@@ -342,10 +342,130 @@ export function timeToMinutes(time: string): number {
     return (hoursPart ?? 0) * 60 + (minutesPart ?? 0);
 }
 
+export function minutesToTime(total: number): string {
+    const hoursPart = Math.floor(total / 60);
+    const minutesPart = total % 60;
+
+    return `${String(hoursPart).padStart(2, '0')}:${String(minutesPart).padStart(2, '0')}`;
+}
+
 export function schoolDayLengthMinutes(hours: SchoolHours): number {
     return Math.max(
         1,
         timeToMinutes(hours.endsAt) - timeToMinutes(hours.startsAt),
+    );
+}
+
+export const QUARTER_HOUR_MINUTES = 15;
+export const HALF_HOUR_MINUTES = 30;
+
+export type QuarterHourSlot = {
+    startsAt: string;
+    endsAt: string;
+    minutes: number;
+};
+
+export type HalfHourSlot = QuarterHourSlot;
+
+function timedSlots(
+    hours: SchoolHours,
+    stepMinutes: number,
+): QuarterHourSlot[] {
+    const dayStart = timeToMinutes(hours.startsAt);
+    const dayEnd = timeToMinutes(hours.endsAt);
+
+    if (dayStart >= dayEnd) {
+        return [];
+    }
+
+    const slots: QuarterHourSlot[] = [];
+
+    for (let minute = dayStart; minute < dayEnd; minute += stepMinutes) {
+        const end = Math.min(minute + stepMinutes, dayEnd);
+
+        slots.push({
+            startsAt: minutesToTime(minute),
+            endsAt: minutesToTime(end),
+            minutes: end - minute,
+        });
+    }
+
+    return slots;
+}
+
+/** 15-minute boxes covering ouverture → fermeture. */
+export function quarterHourSlots(hours: SchoolHours): QuarterHourSlot[] {
+    return timedSlots(hours, QUARTER_HOUR_MINUTES);
+}
+
+/** 30-minute boxes covering ouverture → fermeture. */
+export function halfHourSlots(hours: SchoolHours): HalfHourSlot[] {
+    return timedSlots(hours, HALF_HOUR_MINUTES);
+}
+
+export function periodStartingAt(
+    periods: readonly TimetablePeriod[],
+    time: string,
+): TimetablePeriod | null {
+    return periods.find((period) => period.startsAt === time) ?? null;
+}
+
+export function periodCoveringTime(
+    periods: readonly TimetablePeriod[],
+    time: string,
+): TimetablePeriod | null {
+    return (
+        periods.find(
+            (period) => period.startsAt <= time && time < period.endsAt,
+        ) ?? null
+    );
+}
+
+/** Prefer a period that starts at this time, else one covering it, else nearest start. */
+export function resolvePeriodIdForTime(
+    periods: readonly TimetablePeriod[],
+    time: string,
+): string | null {
+    const exact = periodStartingAt(periods, time);
+
+    if (exact) {
+        return exact.id;
+    }
+
+    const covering = periodCoveringTime(periods, time);
+
+    if (covering) {
+        return covering.id;
+    }
+
+    if (periods.length === 0) {
+        return null;
+    }
+
+    const target = timeToMinutes(time);
+    let best = periods[0]!;
+    let bestDistance = Math.abs(timeToMinutes(best.startsAt) - target);
+
+    for (const period of periods.slice(1)) {
+        const distance = Math.abs(timeToMinutes(period.startsAt) - target);
+
+        if (distance < bestDistance) {
+            best = period;
+            bestDistance = distance;
+        }
+    }
+
+    return best.id;
+}
+
+export function breakCoveringTime(
+    hours: SchoolHours,
+    time: string,
+): (SchoolBreak & { label: string }) | null {
+    return (
+        schoolBreaks(hours).find(
+            (item) => item.startsAt <= time && time < item.endsAt,
+        ) ?? null
     );
 }
 
@@ -453,8 +573,7 @@ export function segmentHeightPx(
     hours: SchoolHours,
     dayHeightPx: number,
 ): number {
-    const duration =
-        timeToMinutes(endsAt) - timeToMinutes(startsAt);
+    const duration = timeToMinutes(endsAt) - timeToMinutes(startsAt);
 
     return Math.max(
         8,

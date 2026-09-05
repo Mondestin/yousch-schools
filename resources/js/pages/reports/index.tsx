@@ -38,9 +38,12 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { useSchoolContext } from '@/hooks/use-school-context';
+import { apiData } from '@/lib/api';
+import { downloadTextFile, printHtmlDocument } from '@/lib/school-export';
 import { defaultTermId } from '@/lib/school-grades';
 import { cycleLabel, studentRows } from '@/lib/school-rows';
-import { toastStub } from '@/lib/school-toast';
+import { toastApiError, toastSaved } from '@/lib/school-toast';
+import { bulletin as studentBulletin } from '@/routes/api/v1/students';
 import { index as reports, show } from '@/routes/reports';
 import { grades } from '@/routes/students';
 import type { SchoolDataset } from '@/types/school';
@@ -91,6 +94,56 @@ export default function ReportsIndex({ catalog }: { catalog: SchoolDataset }) {
                 query: { ...query, trimestre: termId },
             }),
         );
+    }
+
+    async function fetchBulletin(studentId: string): Promise<unknown> {
+        return apiData(
+            studentBulletin.url(studentId, {
+                query: { termId },
+            }),
+        );
+    }
+
+    async function downloadBulletin(
+        studentId: string,
+        name: string,
+    ): Promise<void> {
+        try {
+            const data = await fetchBulletin(studentId);
+            const slug = name
+                .toLowerCase()
+                .replace(/\s+/g, '-')
+                .replace(/[^a-z0-9-]/gi, '');
+            downloadTextFile(
+                `bulletin-${slug || studentId}.json`,
+                JSON.stringify(data, null, 2),
+                'application/json;charset=utf-8',
+            );
+            toastSaved('Bulletin téléchargé');
+        } catch (error) {
+            toastApiError(error, 'Impossible de télécharger le bulletin');
+        }
+    }
+
+    async function printBulletin(
+        studentId: string,
+        name: string,
+        matricule: string,
+        classroom: string,
+    ): Promise<void> {
+        try {
+            const data = await fetchBulletin(studentId);
+            const termName = currentTerm?.name ?? termId;
+            printHtmlDocument(
+                `Bulletin — ${name}`,
+                `<h1>Bulletin scolaire</h1>
+<p class="meta"><strong>${name}</strong> · ${matricule}</p>
+<p class="meta">${classroom} · ${termName} · ${academicYearLabel}</p>
+<pre style="white-space:pre-wrap;font-size:12px;margin-top:16px;">${JSON.stringify(data, null, 2).replace(/</g, '&lt;')}</pre>`,
+            );
+        } catch (error) {
+            toastApiError(error, 'Impossible d’imprimer le bulletin');
+        }
     }
 
     return (
@@ -216,7 +269,7 @@ export default function ReportsIndex({ catalog }: { catalog: SchoolDataset }) {
                                     {currentTerm?.name ?? '—'}
                                 </TableCell>
                                 <TableCell>
-                                    <Badge variant="muted">Maquette</Badge>
+                                    <Badge variant="success">Disponible</Badge>
                                 </TableCell>
                                 <TableCell className="px-3 py-1.5 text-center">
                                     <RowMenu
@@ -238,14 +291,26 @@ export default function ReportsIndex({ catalog }: { catalog: SchoolDataset }) {
                                                     ),
                                             },
                                             {
-                                                label: 'Télécharger le PDF',
+                                                label: 'Télécharger',
                                                 icon: Download,
-                                                onSelect: () => toastStub(),
+                                                onSelect: () => {
+                                                    void downloadBulletin(
+                                                        row.studentId,
+                                                        row.name,
+                                                    );
+                                                },
                                             },
                                             {
                                                 label: 'Imprimer',
                                                 icon: Printer,
-                                                onSelect: () => toastStub(),
+                                                onSelect: () => {
+                                                    void printBulletin(
+                                                        row.studentId,
+                                                        row.name,
+                                                        row.matricule,
+                                                        row.classroom,
+                                                    );
+                                                },
                                             },
                                         ]}
                                     />
