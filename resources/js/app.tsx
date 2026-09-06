@@ -6,6 +6,7 @@ import AppLayout from '@/layouts/app-layout';
 import AssessmentLayout from '@/layouts/assessment/layout';
 import AuthLayout from '@/layouts/auth-layout';
 import CashLayout from '@/layouts/cash/layout';
+import DocumentsLayout from '@/layouts/documents/layout';
 import PupilsLayout from '@/layouts/pupils/layout';
 import SchoolLayout from '@/layouts/school/layout';
 import SettingsLayout from '@/layouts/settings/layout';
@@ -38,6 +39,10 @@ void createInertiaApp({
                 return [AppLayout, CashLayout];
             case name.startsWith('assessments/'):
                 return [AppLayout, AssessmentLayout];
+            case name === 'documents/index' ||
+                name === 'documents/requests' ||
+                name === 'documents/templates':
+                return [AppLayout, DocumentsLayout];
             case name === 'students/index' ||
                 name === 'students/admissions' ||
                 name === 'students/reenrollments':

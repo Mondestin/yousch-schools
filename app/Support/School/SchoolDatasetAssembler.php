@@ -64,6 +64,8 @@ final class SchoolDatasetAssembler
             FrenchAcademicCalendar::ensureCurrentYear();
         }
 
+        app(SchoolStructureProvisioner::class)->ensureDefaults();
+
         $profile = SchoolProfile::query()->first();
         $subscription = SchoolSubscription::query()->with('receipts')->first();
         $mentions = Mention::query()

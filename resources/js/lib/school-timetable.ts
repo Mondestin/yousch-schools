@@ -34,19 +34,24 @@ export const WEEKDAYS: { id: Weekday; label: string }[] = [
 ];
 
 export const TIMETABLE_PERIODS: TimetablePeriod[] = [
-    { id: 'p1', startsAt: '07:30', endsAt: '08:25' },
-    { id: 'p2', startsAt: '08:25', endsAt: '09:20' },
-    { id: 'p3', startsAt: '09:20', endsAt: '10:15' },
-    { id: 'p4', startsAt: '10:35', endsAt: '11:30' },
-    { id: 'p5', startsAt: '11:30', endsAt: '12:25' },
-    { id: 'p6', startsAt: '13:30', endsAt: '14:25' },
+    { id: 'p1', startsAt: '07:30', endsAt: '08:00' },
+    { id: 'p2', startsAt: '08:00', endsAt: '08:30' },
+    { id: 'p3', startsAt: '08:30', endsAt: '09:00' },
+    { id: 'p4', startsAt: '09:00', endsAt: '09:30' },
+    { id: 'p5', startsAt: '09:30', endsAt: '10:00' },
+    { id: 'p6', startsAt: '10:30', endsAt: '11:00' },
+    { id: 'p7', startsAt: '11:00', endsAt: '11:30' },
+    { id: 'p8', startsAt: '11:30', endsAt: '12:00' },
+    { id: 'p9', startsAt: '13:00', endsAt: '13:30' },
+    { id: 'p10', startsAt: '13:30', endsAt: '14:00' },
+    { id: 'p11', startsAt: '14:00', endsAt: '14:30' },
 ];
 
 export const DEFAULT_SCHOOL_HOURS: SchoolHours = {
     startsAt: '07:30',
-    endsAt: '14:25',
-    recess: { startsAt: '10:15', endsAt: '10:35' },
-    lunch: { startsAt: '12:25', endsAt: '13:30' },
+    endsAt: '14:30',
+    recess: { startsAt: '10:00', endsAt: '10:30' },
+    lunch: { startsAt: '12:00', endsAt: '13:00' },
 };
 
 export function defaultCycleSchedule(cycle: Cycle): CycleSchedule {

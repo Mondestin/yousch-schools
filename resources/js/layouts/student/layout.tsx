@@ -29,8 +29,10 @@ export default function StudentLayout({ children }: PropsWithChildren) {
         catalog: SchoolDataset;
         studentId: string;
     }>().props;
+    const pageComponent = usePage().component;
     const { query, filter } = useSchoolContext();
     const fiche = studentFiche(catalog, studentId, filter.academicYearId);
+    const isDocuments = pageComponent === 'students/documents';
 
     if (!fiche) {
         return children;
@@ -71,8 +73,8 @@ export default function StudentLayout({ children }: PropsWithChildren) {
     ];
 
     return (
-        <PageShell>
-            <header className="flex items-start gap-4">
+        <PageShell flush className="overflow-hidden">
+            <header className="flex shrink-0 items-start gap-4 px-6 pt-6">
                 {fiche.student.photoUrl ? (
                     <img
                         src={fiche.student.photoUrl}
@@ -99,8 +101,16 @@ export default function StudentLayout({ children }: PropsWithChildren) {
                     </p>
                 </div>
             </header>
-            <PageTabs items={tabs} />
-            {children}
+            <PageTabs flush items={tabs} />
+            <div
+                className={
+                    isDocuments
+                        ? 'flex min-h-0 flex-1 flex-col overflow-hidden px-6 pt-4 pb-4'
+                        : 'min-h-0 flex-1 overflow-y-auto px-6 pt-4 pb-6'
+                }
+            >
+                {children}
+            </div>
         </PageShell>
     );
 }

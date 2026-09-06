@@ -23,6 +23,10 @@ class DocumentVerifyController extends Controller
                 'term' => $result['term'] ?? null,
                 'academicYear' => $result['academicYear'] ?? null,
                 'payment' => $result['payment'] ?? null,
+                'documentNumber' => $result['documentNumber'] ?? null,
+                'documentStatus' => $result['documentStatus'] ?? null,
+                'documentStatusLabel' => $result['documentStatusLabel'] ?? null,
+                'documentTitle' => $result['documentTitle'] ?? null,
             ],
         ]);
     }

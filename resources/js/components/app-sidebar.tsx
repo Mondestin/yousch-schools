@@ -8,6 +8,7 @@ import {
     ClipboardCheck,
     ClipboardList,
     FileText,
+    FileBadge2,
     GraduationCap,
     LayoutGrid,
     Megaphone,
@@ -33,6 +34,7 @@ import {
 import { useSchoolContext } from '@/hooks/use-school-context';
 import { canAccess, type NavKey } from '@/lib/school-access';
 import { index as announcements } from '@/routes/announcements';
+import { index as documentsHub } from '@/routes/documents';
 import { index as assessments } from '@/routes/assessments';
 import { index as attendance } from '@/routes/attendance';
 import { dashboard } from '@/routes';
@@ -148,6 +150,13 @@ export function AppSidebar() {
             title: 'Annonces',
             href: announcements({ query }),
             icon: Megaphone,
+        },
+        {
+            key: 'documents',
+            title: 'Documents',
+            href: documentsHub({ query }),
+            icon: FileBadge2,
+            match: 'prefix',
         },
         {
             key: 'staff',

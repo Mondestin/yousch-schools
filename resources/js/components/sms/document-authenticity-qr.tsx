@@ -9,6 +9,11 @@ export type DocumentAuthenticityClaims = {
         | 'bulletin'
         | 'attestation'
         | 'certificat'
+        | 'attestation_reussite'
+        | 'attestation_radiation'
+        | 'attestation_transfert'
+        | 'attestation_bourse'
+        | 'certificat_conduite'
         | 'payment_statement'
         | 'payment_receipt';
     studentId: string;
