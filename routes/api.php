@@ -22,6 +22,7 @@ use App\Http\Controllers\Api\V1\ReenrollmentController;
 use App\Http\Controllers\Api\V1\ResultsController;
 use App\Http\Controllers\Api\V1\SanctionController;
 use App\Http\Controllers\Api\V1\SchoolProfileController;
+use App\Http\Controllers\Api\V1\StaffController;
 use App\Http\Controllers\Api\V1\StudentController;
 use App\Http\Controllers\Api\V1\SubjectController;
 use App\Http\Controllers\Api\V1\SubscriptionController;
@@ -300,6 +301,15 @@ Route::prefix('v1')->group(function (): void {
             ->name('api.v1.sanctions.update');
         Route::delete('/sanctions/{sanction}', [SanctionController::class, 'destroy'])
             ->name('api.v1.sanctions.destroy');
+
+        Route::get('/staff', [StaffController::class, 'index'])
+            ->name('api.v1.staff.index');
+        Route::post('/staff', [StaffController::class, 'store'])
+            ->name('api.v1.staff.store');
+        Route::put('/staff/{staff}', [StaffController::class, 'update'])
+            ->name('api.v1.staff.update');
+        Route::delete('/staff/{staff}', [StaffController::class, 'destroy'])
+            ->name('api.v1.staff.destroy');
 
         Route::get('/students/{student}/documents', [DocumentController::class, 'show'])
             ->name('api.v1.students.documents');

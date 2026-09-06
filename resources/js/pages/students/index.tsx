@@ -32,6 +32,7 @@ import {
 } from '@/components/ui/table';
 import { useSchoolContext } from '@/hooks/use-school-context';
 import { crudItems } from '@/lib/school-crud';
+import { apiJson } from '@/lib/api';
 import {
     cycleLabel,
     enrollmentStatusLabel,
@@ -39,7 +40,8 @@ import {
     isLyceeCycle,
     studentRows,
 } from '@/lib/school-rows';
-import { toastRemoved } from '@/lib/school-toast';
+import { toastApiError, toastRemoved } from '@/lib/school-toast';
+import { destroy as destroyEnrollment } from '@/routes/api/v1/enrollments';
 import { create, index as students, show } from '@/routes/students';
 import type { SchoolDataset } from '@/types/school';
 
@@ -83,6 +85,21 @@ export default function StudentsIndex({ catalog }: { catalog: SchoolDataset }) {
         });
     }, [catalog, classroomId, filter, removed, search]);
     const table = useClientTable(rows);
+
+    async function removeEnrollment(
+        enrollmentId: string,
+        name: string,
+    ): Promise<void> {
+        try {
+            await apiJson(destroyEnrollment.url(enrollmentId), {
+                method: 'DELETE',
+            });
+            setRemoved((current) => [...current, enrollmentId]);
+            toastRemoved(`${name} — inscription retirée`);
+        } catch (error) {
+            toastApiError(error, 'Impossible de retirer l’inscription');
+        }
+    }
 
     return (
         <>
@@ -226,12 +243,9 @@ export default function StudentsIndex({ catalog }: { catalog: SchoolDataset }) {
                                                 );
                                             },
                                             onDelete: () => {
-                                                setRemoved((current) => [
-                                                    ...current,
+                                                void removeEnrollment(
                                                     row.id,
-                                                ]);
-                                                toastRemoved(
-                                                    'Inscription retirée',
+                                                    row.name,
                                                 );
                                             },
                                             confirm: {

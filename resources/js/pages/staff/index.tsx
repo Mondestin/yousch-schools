@@ -53,9 +53,15 @@ import {
 import { crudItems } from '@/lib/school-crud';
 import { requiredEmail, requiredText } from '@/lib/school-form';
 import { DetailDialog } from '@/components/sms/detail-dialog';
+import { ApiError, apiData, apiJson } from '@/lib/api';
 import { formatFrDateTime, formatLastSeen } from '@/lib/school-rows';
 import { staffCycleSummary, staffRoleLabel } from '@/lib/school-staff';
-import { toastStub } from '@/lib/school-toast';
+import { toastApiError, toastRemoved, toastSaved } from '@/lib/school-toast';
+import {
+    destroy as destroyStaff,
+    store as storeStaff,
+    update as updateStaff,
+} from '@/routes/api/v1/staff';
 import { index as staff } from '@/routes/staff';
 import type { SchoolDataset, StaffRole, StaffUser } from '@/types/school';
 
@@ -73,6 +79,7 @@ export default function StaffIndex({ catalog }: { catalog: SchoolDataset }) {
     const [open, setOpen] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [viewing, setViewing] = useState<StaffUser | null>(null);
+    const [saving, setSaving] = useState(false);
     const allCycles = catalog.cycles.map((item) => item.value);
     const [form, setForm] = useState({
         name: '',
@@ -139,12 +146,16 @@ export default function StaffIndex({ catalog }: { catalog: SchoolDataset }) {
         setOpen(true);
     }
 
-    function remove(user: StaffUser): void {
-        // No /api/v1/staff (or users) routes in routes/api.php — accounts stay mock-only.
-        void user;
-        toastStub(
-            'Les comptes utilisateurs ne sont pas encore disponibles via l’API.',
-        );
+    async function remove(user: StaffUser): Promise<void> {
+        try {
+            await apiJson(destroyStaff.url(user.id), { method: 'DELETE' });
+            setItems((current) =>
+                current.filter((item) => item.id !== user.id),
+            );
+            toastRemoved(`${user.name} retiré`);
+        } catch (error) {
+            toastApiError(error, 'Impossible de supprimer le compte');
+        }
     }
 
     function toggleCycle(
@@ -163,7 +174,7 @@ export default function StaffIndex({ catalog }: { catalog: SchoolDataset }) {
         });
     }
 
-    function save(): void {
+    async function save(): Promise<void> {
         if (!validate(staffSchema, form)) {
             return;
         }
@@ -174,11 +185,53 @@ export default function StaffIndex({ catalog }: { catalog: SchoolDataset }) {
             return;
         }
 
-        // No /api/v1/staff (or users) routes in routes/api.php — leave as stub.
-        setOpen(false);
-        toastStub(
-            'Les comptes utilisateurs ne sont pas encore disponibles via l’API.',
-        );
+        const payload = {
+            name: form.name.trim(),
+            email: form.email.trim(),
+            phone: form.phone.trim(),
+            role: form.role,
+            cycles: form.cycles,
+        };
+
+        setSaving(true);
+
+        try {
+            const saved = editingId
+                ? await apiData<StaffUser>(updateStaff.url(editingId), {
+                      method: 'PUT',
+                      body: payload,
+                  })
+                : await apiData<StaffUser>(storeStaff.url(), {
+                      method: 'POST',
+                      body: payload,
+                  });
+
+            setItems((current) =>
+                editingId
+                    ? current.map((item) =>
+                          item.id === editingId ? saved : item,
+                      )
+                    : [saved, ...current],
+            );
+            setOpen(false);
+            toastSaved(
+                editingId
+                    ? undefined
+                    : 'Compte créé — mot de passe initial : password',
+            );
+        } catch (error) {
+            if (error instanceof ApiError) {
+                const fields = error.fieldErrors();
+
+                if (Object.keys(fields).length > 0) {
+                    showErrors(fields);
+                }
+            }
+
+            toastApiError(error);
+        } finally {
+            setSaving(false);
+        }
     }
 
     return (
@@ -308,7 +361,9 @@ export default function StaffIndex({ catalog }: { catalog: SchoolDataset }) {
                                                 onEdit: () => openEdit(user),
                                                 onDuplicate: () =>
                                                     duplicate(user),
-                                                onDelete: () => remove(user),
+                                                onDelete: () => {
+                                                    void remove(user);
+                                                },
                                                 confirm: {
                                                     title: 'Supprimer le compte ?',
                                                     description: `${user.name} perdra l’accès à YouSchlow.`,
@@ -391,7 +446,10 @@ export default function StaffIndex({ catalog }: { catalog: SchoolDataset }) {
                     editingId ? 'Modifier l’utilisateur' : 'Nouvel utilisateur'
                 }
                 submitLabel={editingId ? 'Enregistrer' : 'Créer'}
-                onSubmit={save}
+                submitting={saving}
+                onSubmit={() => {
+                    void save();
+                }}
             >
                 <Field id="name" label="Nom" required error={errors.name}>
                     <Input

@@ -98,6 +98,7 @@ final class ApiContract
             ['name' => 'inventory', 'methods' => ['GET', 'POST', 'PUT', 'DELETE'], 'path' => '/inventory', 'auth' => true],
             ['name' => 'announcements', 'methods' => ['GET', 'POST', 'PUT', 'DELETE'], 'path' => '/announcements', 'auth' => true],
             ['name' => 'sanctions', 'methods' => ['GET', 'POST', 'PUT', 'DELETE'], 'path' => '/sanctions', 'auth' => true],
+            ['name' => 'staff', 'methods' => ['GET', 'POST', 'PUT', 'DELETE'], 'path' => '/staff', 'auth' => true],
         ];
     }
 }

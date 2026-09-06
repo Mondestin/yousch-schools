@@ -6,17 +6,21 @@ import { assessmentTypeLabel } from '@/lib/school-students';
 import {
     assessmentTimeRange,
     assessmentsOnPeriod,
+    breakCoveringTime,
     capitalizeFr,
     findSlot,
+    halfHourSlots,
+    periodCoveringTime,
     periodLabel,
+    periodStartingAt,
+    resolvePeriodIdForTime,
     schoolHoursForClassroom,
-    segmentHeightPx,
     slotDisplay,
     subjectTone,
-    timetableDaySegments,
+    timeToMinutes,
     timetablePeriodsForClassroom,
     weekdayFromDate,
-    type TimetableDaySegment,
+    type HalfHourSlot,
 } from '@/lib/school-timetable';
 import { cn } from '@/lib/utils';
 import type {
@@ -27,8 +31,8 @@ import type {
     Weekday,
 } from '@/types/school';
 
-/** Visual height of ouverture → fermeture (px). Segments scale to this. */
-const DAY_HEIGHT_PX = 640;
+/** Pixel height of one full 30-minute box. */
+const HALF_HOUR_HEIGHT_PX = 56;
 
 export function TimetableWeek({
     catalog,
@@ -51,7 +55,7 @@ export function TimetableWeek({
     const singleDay = days.length === 1;
     const periods = timetablePeriodsForClassroom(catalog, classroomId);
     const hours = schoolHoursForClassroom(catalog, classroomId);
-    const segments = timetableDaySegments(periods, hours);
+    const halves = halfHourSlots(hours);
 
     return (
         <div
@@ -93,17 +97,17 @@ export function TimetableWeek({
                 </>
             )}
 
-            {segments.map((segment, index) => (
-                <DaySegmentRow
-                    key={`${segment.kind}-${segment.startsAt}-${segment.endsAt}`}
+            {halves.map((half, index) => (
+                <HalfHourRow
+                    key={half.startsAt}
                     catalog={catalog}
                     classroomId={classroomId}
                     slots={slots}
                     days={days}
-                    segment={segment}
+                    half={half}
                     periods={periods}
                     hours={hours}
-                    showEndLabel={index === segments.length - 1}
+                    showEndLabel={index === halves.length - 1}
                     today={singleDay ? null : today}
                     onCreate={onCreate}
                     onEdit={onEdit}
@@ -113,12 +117,36 @@ export function TimetableWeek({
     );
 }
 
-function DaySegmentRow({
+function halfHeight(half: HalfHourSlot): number {
+    return Math.max(24, (half.minutes / 30) * HALF_HOUR_HEIGHT_PX);
+}
+
+function AddBox({
+    height,
+    onClick,
+}: {
+    height: number;
+    onClick: () => void;
+}) {
+    return (
+        <button
+            type="button"
+            className="text-muted-foreground/70 hover:border-primary hover:text-primary border-border flex w-full items-center justify-center rounded-md border border-dashed transition group-hover:text-muted-foreground"
+            style={{ minHeight: Math.max(28, height - 8) }}
+            onClick={onClick}
+        >
+            <Plus className="size-4" />
+            <span className="sr-only">Ajouter un créneau</span>
+        </button>
+    );
+}
+
+function HalfHourRow({
     catalog,
     classroomId,
     slots,
     days,
-    segment,
+    half,
     periods,
     hours,
     showEndLabel,
@@ -130,7 +158,7 @@ function DaySegmentRow({
     classroomId: string;
     slots: TimetableSlot[];
     days: Date[];
-    segment: TimetableDaySegment;
+    half: HalfHourSlot;
     periods: TimetablePeriod[];
     hours: SchoolHours;
     showEndLabel: boolean;
@@ -138,158 +166,173 @@ function DaySegmentRow({
     onCreate: (weekday: Weekday, periodId: string) => void;
     onEdit: (slot: TimetableSlot) => void;
 }) {
-    const height = segmentHeightPx(
-        segment.startsAt,
-        segment.endsAt,
-        hours,
-        DAY_HEIGHT_PX,
-    );
-
-    if (segment.kind === 'break') {
-        return (
-            <>
-                <div
-                    className="text-muted-foreground border-border flex items-start justify-end border-t px-2 pt-1.5 text-[10px]"
-                    style={{ minHeight: height }}
-                >
-                    {segment.startsAt}
-                </div>
-                <div
-                    className="border-border bg-muted/40 text-muted-foreground flex items-center justify-center border-t border-l text-[11px] font-medium tracking-[0.12em] uppercase"
-                    style={{
-                        gridColumn: `2 / span ${days.length}`,
-                        minHeight: height,
-                    }}
-                >
-                    {segment.label}
-                </div>
-                {showEndLabel ? (
-                    <DayEndLabel endsAt={hours.endsAt} days={days.length} />
-                ) : null}
-            </>
-        );
-    }
-
-    if (segment.kind === 'gap') {
-        return (
-            <>
-                <div
-                    className="text-muted-foreground border-border flex items-start justify-end border-t px-2 pt-1.5 text-xs"
-                    style={{ minHeight: height }}
-                >
-                    {segment.startsAt}
-                </div>
-                {days.map((day) => (
-                    <div
-                        key={`${day.toISOString()}-gap-${segment.startsAt}`}
-                        className="border-border bg-muted/15 border-t border-l"
-                        style={{ minHeight: height }}
-                    />
-                ))}
-                {showEndLabel ? (
-                    <DayEndLabel endsAt={hours.endsAt} days={days.length} />
-                ) : null}
-            </>
-        );
-    }
-
-    const periodId = segment.period.id;
+    const height = halfHeight(half);
+    const pause = breakCoveringTime(hours, half.startsAt);
+    const periodStart = periodStartingAt(periods, half.startsAt);
+    const periodCover = periodCoveringTime(periods, half.startsAt);
+    const isPeriodContinuation =
+        periodCover !== null && periodCover.startsAt !== half.startsAt;
 
     return (
         <>
             <div
-                className="text-muted-foreground border-border flex items-start justify-end border-t px-2 pt-2 text-xs"
-                style={{ minHeight: height }}
+                className="text-muted-foreground border-border flex items-start justify-end border-t px-2 pt-1.5 text-xs leading-none"
+                style={{ height }}
             >
-                {segment.startsAt}
+                {half.startsAt}
             </div>
             {days.map((day) => {
                 const weekday = weekdayFromDate(day);
+                const isToday = today !== null && isSameDay(day, today);
 
                 if (!weekday) {
                     return (
                         <div
                             key={day.toISOString()}
                             className="border-border border-t border-l"
-                            style={{ minHeight: height }}
+                            style={{ height }}
                         />
                     );
                 }
 
-                const slot = findSlot(slots, classroomId, weekday, periodId);
-                const exams = assessmentsOnPeriod(
-                    catalog,
-                    classroomId,
-                    day,
-                    periodId,
-                );
-                const isToday = today !== null && isSameDay(day, today);
-                const display = slot ? slotDisplay(catalog, slot) : null;
+                if (pause) {
+                    const showLabel = pause.startsAt === half.startsAt;
+
+                    return (
+                        <div
+                            key={`${day.toISOString()}-${half.startsAt}-break`}
+                            className="border-border bg-muted/40 text-muted-foreground flex items-center justify-center border-t border-l text-[10px] font-medium tracking-[0.1em] uppercase"
+                            style={{ height }}
+                        >
+                            {showLabel ? pause.label : null}
+                        </div>
+                    );
+                }
+
+                if (isPeriodContinuation) {
+                    return (
+                        <div
+                            key={`${day.toISOString()}-${half.startsAt}-cont`}
+                            className={cn(
+                                'border-border border-t border-l',
+                                isToday && 'bg-primary/[0.03]',
+                            )}
+                            style={{ height }}
+                        />
+                    );
+                }
+
+                const period = periodStart ?? periodCover;
+                const periodId =
+                    period?.id ??
+                    resolvePeriodIdForTime(periods, half.startsAt);
+
+                if (period && periodStart) {
+                    const slot = findSlot(
+                        slots,
+                        classroomId,
+                        weekday,
+                        period.id,
+                    );
+                    const exams = assessmentsOnPeriod(
+                        catalog,
+                        classroomId,
+                        day,
+                        period.id,
+                    );
+                    const display = slot ? slotDisplay(catalog, slot) : null;
+                    const spanMinutes = Math.max(
+                        30,
+                        timeToMinutes(period.endsAt) -
+                            timeToMinutes(period.startsAt),
+                    );
+                    const eventHeight = Math.max(
+                        height,
+                        (spanMinutes / 30) * HALF_HOUR_HEIGHT_PX - 2,
+                    );
+
+                    return (
+                        <div
+                            key={`${day.toISOString()}-${half.startsAt}-period`}
+                            className={cn(
+                                'border-border group relative overflow-visible border-t border-l p-1',
+                                isToday && 'bg-primary/[0.03]',
+                            )}
+                            style={{ height }}
+                        >
+                            <div
+                                className="absolute inset-x-1 top-1 z-10 flex flex-col gap-1"
+                                style={{ height: eventHeight }}
+                            >
+                                {slot && display ? (
+                                    <TimetableEvent
+                                        block
+                                        tone={subjectTone(
+                                            catalog,
+                                            slot.subjectId,
+                                        )}
+                                        title={display.subjectName}
+                                        time={periodLabel(
+                                            slot.periodId,
+                                            periods,
+                                        )}
+                                        hint={
+                                            display.room
+                                                ? `${display.teacherLastName} · ${display.room}`
+                                                : display.teacherLastName
+                                        }
+                                        onClick={() => onEdit(slot)}
+                                    />
+                                ) : exams.length === 0 && periodId ? (
+                                    <AddBox
+                                        height={eventHeight}
+                                        onClick={() =>
+                                            onCreate(weekday, periodId)
+                                        }
+                                    />
+                                ) : null}
+                                {exams.map((exam) => (
+                                    <TimetableEvent
+                                        key={exam.id}
+                                        tone="exam"
+                                        title={exam.name}
+                                        time={`${assessmentTypeLabel(exam.type)} · ${assessmentTimeRange(exam)}`}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                    );
+                }
 
                 return (
                     <div
-                        key={`${day.toISOString()}-${periodId}`}
+                        key={`${day.toISOString()}-${half.startsAt}-add`}
                         className={cn(
-                            'border-border group flex flex-col gap-1 border-t border-l p-1.5',
+                            'border-border group relative border-t border-l p-1',
                             isToday && 'bg-primary/[0.03]',
                         )}
-                        style={{ minHeight: height }}
+                        style={{ height }}
                     >
-                        {slot && display ? (
-                            <div className="min-h-0 flex-1">
-                                <TimetableEvent
-                                    block
-                                    tone={subjectTone(catalog, slot.subjectId)}
-                                    title={display.subjectName}
-                                    time={periodLabel(slot.periodId, periods)}
-                                    hint={
-                                        display.room
-                                            ? `${display.teacherLastName} · ${display.room}`
-                                            : display.teacherLastName
-                                    }
-                                    onClick={() => onEdit(slot)}
-                                />
-                            </div>
-                        ) : exams.length === 0 ? (
-                            <button
-                                type="button"
-                                className="text-muted-foreground hover:border-primary hover:text-primary border-border/0 flex h-full min-h-[40px] w-full items-center justify-center rounded-md border border-dashed opacity-0 transition group-hover:opacity-100"
+                        {periodId ? (
+                            <AddBox
+                                height={height}
                                 onClick={() => onCreate(weekday, periodId)}
-                            >
-                                <Plus className="size-4" />
-                                <span className="sr-only">
-                                    Ajouter un créneau
-                                </span>
-                            </button>
-                        ) : null}
-                        {exams.map((exam) => (
-                            <TimetableEvent
-                                key={exam.id}
-                                tone="exam"
-                                title={exam.name}
-                                time={`${assessmentTypeLabel(exam.type)} · ${assessmentTimeRange(exam)}`}
                             />
-                        ))}
+                        ) : null}
                     </div>
                 );
             })}
             {showEndLabel ? (
-                <DayEndLabel endsAt={hours.endsAt} days={days.length} />
+                <>
+                    <div className="text-muted-foreground border-border flex items-start justify-end border-t px-2 pt-1.5 pb-2 text-xs leading-none">
+                        {hours.endsAt}
+                    </div>
+                    <div
+                        className="border-border border-t"
+                        style={{ gridColumn: `2 / span ${days.length}` }}
+                    />
+                </>
             ) : null}
-        </>
-    );
-}
-
-function DayEndLabel({ endsAt, days }: { endsAt: string; days: number }) {
-    return (
-        <>
-            <div className="text-muted-foreground border-border flex items-start justify-end border-t px-2 pt-1.5 pb-2 text-xs">
-                {endsAt}
-            </div>
-            <div
-                className="border-border border-t"
-                style={{ gridColumn: `2 / span ${days}` }}
-            />
         </>
     );
 }

@@ -33,7 +33,8 @@ import {
     formatFrDate,
     paymentStatusLabel,
 } from '@/lib/school-rows';
-import { toastStub } from '@/lib/school-toast';
+import { downloadTextFile, printHtmlDocument } from '@/lib/school-export';
+import { toastSaved, toastStub } from '@/lib/school-toast';
 import {
     PLAN_OFFERS,
     planLabel,
@@ -46,6 +47,7 @@ import type {
     PaymentStatus,
     SchoolDataset,
     SubscriptionPlan,
+    SubscriptionReceipt,
 } from '@/types/school';
 
 const statusVariant: Record<PaymentStatus, 'success' | 'warning' | 'danger'> = {
@@ -78,6 +80,43 @@ export default function SchoolSubscriptionPage({
         );
     }, [item.receipts, search]);
     const table = useClientTable(rows);
+
+    function receiptText(receipt: SubscriptionReceipt): string {
+        return [
+            `Reçu d’abonnement YouSchlow`,
+            `Référence : ${receipt.reference}`,
+            `Période : ${receipt.periodLabel}`,
+            `Offre : ${planLabel(receipt.plan)}`,
+            `Montant : ${formatFcfa(receipt.amount)}`,
+            `Mode : ${subscriptionMethodLabel(receipt.method)}`,
+            `Statut : ${paymentStatusLabel(receipt.status)}`,
+            `Payé le : ${receipt.paidOn ? formatFrDate(receipt.paidOn) : 'non réglé'}`,
+        ].join('\n');
+    }
+
+    function downloadReceipt(receipt: SubscriptionReceipt): void {
+        downloadTextFile(
+            `recu-${receipt.reference}.txt`,
+            receiptText(receipt),
+        );
+        toastSaved('Reçu téléchargé');
+    }
+
+    function printReceipt(receipt: SubscriptionReceipt): void {
+        printHtmlDocument(
+            `Reçu ${receipt.reference}`,
+            `<h1>Reçu d’abonnement</h1>
+<p class="meta">Référence · ${receipt.reference}</p>
+<p class="meta">${receipt.periodLabel}</p>
+<table>
+<tr><th>Offre</th><td>${planLabel(receipt.plan)}</td></tr>
+<tr><th>Montant</th><td>${formatFcfa(receipt.amount)}</td></tr>
+<tr><th>Mode</th><td>${subscriptionMethodLabel(receipt.method)}</td></tr>
+<tr><th>Statut</th><td>${paymentStatusLabel(receipt.status)}</td></tr>
+<tr><th>Payé le</th><td>${receipt.paidOn ? formatFrDate(receipt.paidOn) : 'non réglé'}</td></tr>
+</table>`,
+        );
+    }
 
     return (
         <>
@@ -262,17 +301,15 @@ export default function SchoolSubscriptionPage({
                                                     label: 'Télécharger le reçu',
                                                     icon: Download,
                                                     onSelect: () =>
-                                                        toastStub(
-                                                            'Téléchargement du reçu',
+                                                        downloadReceipt(
+                                                            receipt,
                                                         ),
                                                 },
                                                 {
                                                     label: 'Imprimer le reçu',
                                                     icon: Printer,
                                                     onSelect: () =>
-                                                        toastStub(
-                                                            'Impression du reçu',
-                                                        ),
+                                                        printReceipt(receipt),
                                                 },
                                             ]}
                                         />
