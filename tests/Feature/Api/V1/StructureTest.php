@@ -52,7 +52,10 @@ test('admin can update school profile and upload logo', function () {
         ->assertJsonPath('data.name', 'École Les Palmiers')
         ->assertJsonPath('data.currency', 'FCFA');
 
-    expect(SchoolProfile::query()->first()?->logo_url)->not->toBeNull();
+    $logoUrl = SchoolProfile::query()->first()?->logo_url;
+
+    expect($logoUrl)->not->toBeNull()
+        ->and($logoUrl)->toContain('/storage/schools/palmiers/school/');
 });
 
 test('admin can upsert fees and schedules', function () {

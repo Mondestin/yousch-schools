@@ -424,7 +424,7 @@ export default function PaymentsIndex({ catalog }: { catalog: SchoolDataset }) {
 
     return (
         <>
-            <Head title="Caisse — Frais" />
+            <Head title="Caisse : Frais" />
             <div className="grid gap-3 px-6 py-4 sm:grid-cols-2 xl:grid-cols-4">
                 <KpiCard
                     icon={CircleDollarSign}
@@ -661,7 +661,7 @@ export default function PaymentsIndex({ catalog }: { catalog: SchoolDataset }) {
                                 <TableCell>
                                     {row.method
                                         ? cashMethodLabel(row.method)
-                                        : '—'}
+                                        : '-'}
                                 </TableCell>
                                 <TableCell>
                                     <span className="flex flex-wrap items-center gap-1.5">
@@ -775,7 +775,7 @@ export default function PaymentsIndex({ catalog }: { catalog: SchoolDataset }) {
                         searchPlaceholder="Rechercher un élève..."
                         options={students.map((row) => ({
                             value: row.studentId,
-                            label: `${row.lastName} ${row.firstName} — ${row.matricule} (${row.classroom})`,
+                            label: `${row.lastName} ${row.firstName} - ${row.matricule} (${row.classroom})`,
                             keywords: `${row.name} ${row.matricule} ${row.classroom}`,
                         }))}
                         onValueChange={(value) => {

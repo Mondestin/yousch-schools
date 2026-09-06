@@ -7,6 +7,8 @@ use App\Enums\StaffRole;
 use App\Http\Controllers\Api\V1\Concerns\EnsuresStaffAbility;
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Support\Tenancy\CurrentSchool;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -26,7 +28,7 @@ class StaffController extends Controller
             return $denied;
         }
 
-        $data = User::query()
+        $data = $this->staffQuery()
             ->orderBy('name')
             ->get()
             ->map(static function (User $staff): array {
@@ -77,7 +79,7 @@ class StaffController extends Controller
             return $denied;
         }
 
-        $model = User::query()->findOrFail($staff);
+        $model = $this->staffQuery()->findOrFail($staff);
         $validated = $this->validatedStaff($request, $model);
 
         $attributes = [
@@ -109,7 +111,7 @@ class StaffController extends Controller
             return $denied;
         }
 
-        $model = User::query()->findOrFail($staff);
+        $model = $this->staffQuery()->findOrFail($staff);
 
         if ((string) $model->id === (string) $user->id) {
             throw ValidationException::withMessages([
@@ -120,6 +122,14 @@ class StaffController extends Controller
         $model->delete();
 
         return response()->json(['message' => 'Compte utilisateur supprimé.']);
+    }
+
+    /**
+     * @return Builder<User>
+     */
+    private function staffQuery(): Builder
+    {
+        return User::query()->where('school_id', CurrentSchool::require()->id);
     }
 
     /**

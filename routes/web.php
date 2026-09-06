@@ -1,11 +1,35 @@
 <?php
 
+use App\Http\Controllers\Auth\SchoolDomainLoginController;
+use App\Http\Controllers\Auth\SchoolRegistrationController;
+use App\Http\Controllers\DocumentAuthenticityController;
+use App\Http\Controllers\DocumentVerifyController;
 use App\Http\Controllers\SchoolPagesController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [SchoolPagesController::class, 'welcome'])->name('home');
 
+Route::get('v/{token}', [DocumentVerifyController::class, 'show'])
+    ->where('token', '[A-Za-z0-9\-_\.]+')
+    ->middleware('throttle:60,1')
+    ->name('documents.verify');
+
+Route::middleware('guest')->group(function () {
+    Route::get('register', [SchoolRegistrationController::class, 'create'])
+        ->name('register');
+    Route::post('register', [SchoolRegistrationController::class, 'store'])
+        ->name('register.store');
+
+    Route::post('login/domain', [SchoolDomainLoginController::class, 'store'])
+        ->name('login.domain.resolve');
+    Route::get('login/domain/{domain}', [SchoolDomainLoginController::class, 'show'])
+        ->name('login.domain');
+});
+
 Route::middleware(['auth', 'verified'])->group(function () {
+    Route::post('documents/authenticity', [DocumentAuthenticityController::class, 'store'])
+        ->name('documents.authenticity');
+
     Route::get('dashboard', [SchoolPagesController::class, 'dashboard'])->name('dashboard');
     Route::get('eleves', [SchoolPagesController::class, 'students'])->name('students.index');
     Route::get('eleves/inscription', [SchoolPagesController::class, 'createStudent'])->name('students.create');

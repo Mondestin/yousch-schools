@@ -7,12 +7,12 @@ use App\Http\Controllers\Controller;
 use App\Models\SchoolProfile;
 use App\Models\User;
 use App\Support\SchoolCatalog;
+use App\Support\Storage\SchoolStorage;
+use App\Support\Tenancy\CurrentSchool;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
-use RuntimeException;
 
 class SchoolProfileController extends Controller
 {
@@ -89,13 +89,17 @@ class SchoolProfileController extends Controller
             'currency' => $validated['currency'],
         ]);
 
+        if ($profile->school_id === null) {
+            $profile->school_id = CurrentSchool::id();
+        }
+
         if ($request->boolean('removeLogo')) {
-            $this->deleteStoredUrl($profile->logo_url);
+            SchoolStorage::deleteUrl($profile->logo_url);
             $profile->logo_url = null;
         }
 
         if ($request->boolean('removeStamp')) {
-            $this->deleteStoredUrl($profile->stamp_url);
+            SchoolStorage::deleteUrl($profile->stamp_url);
             $profile->stamp_url = null;
         }
 
@@ -103,14 +107,8 @@ class SchoolProfileController extends Controller
             $logo = $request->file('logo');
 
             if ($logo instanceof UploadedFile) {
-                $this->deleteStoredUrl($profile->logo_url);
-                $path = $logo->store('school', 'public');
-
-                if ($path === false) {
-                    throw new RuntimeException('Impossible d’enregistrer le logo.');
-                }
-
-                $profile->logo_url = Storage::disk('public')->url($path);
+                SchoolStorage::deleteUrl($profile->logo_url);
+                $profile->logo_url = SchoolStorage::store($logo, 'school');
             }
         }
 
@@ -118,36 +116,13 @@ class SchoolProfileController extends Controller
             $stamp = $request->file('stamp');
 
             if ($stamp instanceof UploadedFile) {
-                $this->deleteStoredUrl($profile->stamp_url);
-                $path = $stamp->store('school', 'public');
-
-                if ($path === false) {
-                    throw new RuntimeException('Impossible d’enregistrer le tampon.');
-                }
-
-                $profile->stamp_url = Storage::disk('public')->url($path);
+                SchoolStorage::deleteUrl($profile->stamp_url);
+                $profile->stamp_url = SchoolStorage::store($stamp, 'school');
             }
         }
 
         $profile->save();
 
         return response()->json(['data' => $profile->toApiArray()]);
-    }
-
-    private function deleteStoredUrl(?string $url): void
-    {
-        if ($url === null || $url === '') {
-            return;
-        }
-
-        $prefix = '/storage/';
-        $position = strpos($url, $prefix);
-
-        if ($position === false) {
-            return;
-        }
-
-        $relative = substr($url, $position + strlen($prefix));
-        Storage::disk('public')->delete($relative);
     }
 }

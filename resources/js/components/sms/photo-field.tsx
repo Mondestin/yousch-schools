@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 
 export function PhotoField({
     id = 'photo',
+    name,
     label = 'Photo',
     preview,
     fallback: Icon,
@@ -15,6 +16,7 @@ export function PhotoField({
     onFile,
 }: {
     id?: string;
+    name?: string;
     label?: string;
     preview: string | null;
     fallback?: LucideIcon;
@@ -57,6 +59,7 @@ export function PhotoField({
                 </span>
                 <input
                     id={id}
+                    name={name}
                     type="file"
                     accept="image/*"
                     className="sr-only"

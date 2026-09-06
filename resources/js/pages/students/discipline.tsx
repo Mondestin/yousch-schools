@@ -171,7 +171,7 @@ export default function StudentDisciplinePage({
 
     return (
         <>
-            <Head title={`${fiche.name} — Discipline`} />
+            <Head title={`${fiche.name} : Discipline`} />
             <div className="mb-4 flex items-center justify-between gap-3">
                 <h2 className="text-[15px] font-semibold">Discipline</h2>
                 <Button type="button" onClick={openCreate}>

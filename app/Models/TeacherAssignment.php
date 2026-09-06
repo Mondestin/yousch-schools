@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToSchool;
 use Database\Factories\TeacherAssignmentFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -26,9 +27,12 @@ use Illuminate\Support\Carbon;
     'classroom_id',
     'subject_id',
     'track_id',
+    'school_id',
 ])]
 class TeacherAssignment extends Model
 {
+    use BelongsToSchool;
+
     /** @use HasFactory<TeacherAssignmentFactory> */
     use HasFactory;
 

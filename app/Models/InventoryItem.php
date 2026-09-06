@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\InventoryCondition;
 use App\Enums\InventoryStatus;
+use App\Models\Concerns\BelongsToSchool;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
@@ -41,9 +42,12 @@ use Illuminate\Support\Carbon;
     'acquired_on',
     'warranty_until',
     'notes',
+    'school_id',
 ])]
 class InventoryItem extends Model
 {
+    use BelongsToSchool;
+
     public $incrementing = false;
 
     protected $keyType = 'string';

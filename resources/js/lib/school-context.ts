@@ -4,7 +4,7 @@ import type { Cycle, SchoolContext } from '@/types/school';
 export { DEFAULT_CYCLE, SCHOOL_CYCLES };
 
 export function anneeQueryFromLabel(label: string): string {
-    return label.replaceAll(/[–—]/g, '-');
+    return label.replaceAll(/[\u2013\u2014-]/g, '-');
 }
 
 export function isSchoolCycle(value: string): value is Cycle {

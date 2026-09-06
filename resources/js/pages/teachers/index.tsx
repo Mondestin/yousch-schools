@@ -23,8 +23,8 @@ import {
     TEACHER_FORM_STEPS,
     TeacherFormFields,
     blankTeacherForm,
+    teacherFormData,
     teacherFormSchema,
-    teacherFromForm,
     teacherSectionValid,
     teacherStepSchema,
     teacherToForm,
@@ -71,7 +71,9 @@ export default function TeachersIndex({ catalog }: { catalog: SchoolDataset }) {
         blankTeacherForm(nextTeacherCode(catalog), catalog.profile.city),
     );
     const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+    const [photoFile, setPhotoFile] = useState<File | null>(null);
     const [files, setFiles] = useState<DossierFile[]>([]);
+    const [pendingFiles, setPendingFiles] = useState<File[]>([]);
     const { errors, clearErrors, validate, showErrors } = useFieldErrors();
     const [saving, setSaving] = useState(false);
     const working = useMemo(
@@ -101,7 +103,9 @@ export default function TeachersIndex({ catalog }: { catalog: SchoolDataset }) {
         setEditingId(id);
         setForm(teacherToForm(teacher));
         setPhotoPreview(teacher.photoUrl);
+        setPhotoFile(null);
         setFiles(dossierFilesOf(teacher));
+        setPendingFiles([]);
         setStep(0);
         clearErrors();
         setOpen(true);
@@ -122,7 +126,9 @@ export default function TeachersIndex({ catalog }: { catalog: SchoolDataset }) {
             firstName: '',
         });
         setPhotoPreview(null);
+        setPhotoFile(null);
         setFiles([]);
+        setPendingFiles([]);
         setStep(0);
         clearErrors();
         setOpen(true);
@@ -143,21 +149,21 @@ export default function TeachersIndex({ catalog }: { catalog: SchoolDataset }) {
             return;
         }
 
-        const payload = {
-            ...teacherFromForm(form),
-        };
-
         setSaving(true);
 
         try {
+            const formData = teacherFormData(form, {
+                photo: photoFile,
+                files: pendingFiles,
+            });
             const saved = editingId
                 ? await apiData<Teacher>(updateTeacher.url(editingId), {
                       method: 'PUT',
-                      body: payload,
+                      formData,
                   })
                 : await apiData<Teacher>(storeTeacher.url(), {
                       method: 'POST',
-                      body: payload,
+                      formData,
                   });
 
             setItems((current) =>
@@ -391,9 +397,15 @@ export default function TeachersIndex({ catalog }: { catalog: SchoolDataset }) {
                 {TEACHER_FORM_STEPS[step].id === 'files' ? (
                     <FileListField
                         label="Dossier"
-                        hint="CV, diplôme, contrat — PDF, Word ou image, 5 Mo maximum."
+                        hint="CV, diplôme, contrat - PDF, Word ou image, 5 Mo maximum."
                         files={files}
                         onChange={setFiles}
+                        onNativeFiles={(incoming) =>
+                            setPendingFiles((current) => [
+                                ...current,
+                                ...incoming,
+                            ])
+                        }
                     />
                 ) : (
                     <TeacherFormFields
@@ -410,6 +422,7 @@ export default function TeachersIndex({ catalog }: { catalog: SchoolDataset }) {
                                 URL.revokeObjectURL(photoPreview);
                             }
 
+                            setPhotoFile(file);
                             setPhotoPreview(
                                 file ? URL.createObjectURL(file) : null,
                             );

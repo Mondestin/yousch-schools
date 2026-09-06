@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\SchoolSubscription;
 use App\Models\SubscriptionReceipt;
 use App\Models\User;
+use App\Support\Tenancy\CurrentSchool;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
@@ -33,9 +34,14 @@ class SchoolStaffSeeder extends Seeder
      */
     private function seedStaff(array $staffUsers): void
     {
+        $schoolId = CurrentSchool::id();
+
         foreach ($staffUsers as $staff) {
             User::query()->updateOrCreate(
-                ['email' => $staff['email']],
+                [
+                    'school_id' => $schoolId,
+                    'email' => $staff['email'],
+                ],
                 [
                     'name' => $staff['name'],
                     'phone' => $staff['phone'],
@@ -57,6 +63,7 @@ class SchoolStaffSeeder extends Seeder
         SchoolSubscription::query()->updateOrCreate(
             ['id' => 'sub-main'],
             [
+                'school_id' => CurrentSchool::id(),
                 'plan' => $subscription['plan'],
                 'status' => $subscription['status'],
                 'seats' => $subscription['seats'],
@@ -70,6 +77,7 @@ class SchoolStaffSeeder extends Seeder
             SubscriptionReceipt::query()->updateOrCreate(
                 ['id' => $receipt['id']],
                 [
+                    'school_id' => CurrentSchool::id(),
                     'school_subscription_id' => 'sub-main',
                     'reference' => $receipt['reference'],
                     'period_label' => $receipt['periodLabel'],

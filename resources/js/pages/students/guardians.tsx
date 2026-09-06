@@ -143,7 +143,7 @@ export default function StudentGuardiansPage({
 
     return (
         <>
-            <Head title={`${fiche.name} — Tuteurs`} />
+            <Head title={`${fiche.name} : Tuteurs`} />
             <h2 className="mb-4 text-[15px] font-semibold">Tuteurs</h2>
             <div className="overflow-hidden rounded-[8px] border">
                 {rows.length === 0 ? (
@@ -186,7 +186,7 @@ export default function StudentGuardiansPage({
                                     <TableCell>{guardian.phone}</TableCell>
                                     <TableCell>{guardian.profession}</TableCell>
                                     <TableCell>
-                                        {guardian.email ?? '—'}
+                                        {guardian.email ?? '-'}
                                     </TableCell>
                                     <TableCell>
                                         <Badge variant="muted">
@@ -241,15 +241,15 @@ export default function StudentGuardiansPage({
                                   label: 'Profession',
                                   value: viewing.profession,
                               },
-                              { label: 'E-mail', value: viewing.email ?? '—' },
-                              { label: 'Ville', value: viewing.city ?? '—' },
+                              { label: 'E-mail', value: viewing.email ?? '-' },
+                              { label: 'Ville', value: viewing.city ?? '-' },
                               {
                                   label: 'Quartier',
-                                  value: viewing.neighborhood ?? '—',
+                                  value: viewing.neighborhood ?? '-',
                               },
                               {
                                   label: 'Adresse',
-                                  value: viewing.address ?? '—',
+                                  value: viewing.address ?? '-',
                                   wide: true,
                               },
                           ]

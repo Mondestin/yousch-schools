@@ -6,6 +6,7 @@ use App\Enums\AdmissionStatus;
 use App\Enums\Cycle;
 use App\Enums\Gender;
 use App\Enums\GuardianRelation;
+use App\Models\Concerns\BelongsToSchool;
 use App\Models\Contracts\HasDossierFiles;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
@@ -60,9 +61,12 @@ use Illuminate\Support\Carbon;
     'guardian_relation',
     'notes',
     'student_id',
+    'school_id',
 ])]
 class Admission extends Model implements HasDossierFiles
 {
+    use BelongsToSchool;
+
     public $incrementing = false;
 
     protected $keyType = 'string';

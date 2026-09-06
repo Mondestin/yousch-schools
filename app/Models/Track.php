@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\Cycle;
+use App\Models\Concerns\BelongsToSchool;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -21,9 +22,12 @@ use Illuminate\Support\Carbon;
     'cycle',
     'code',
     'name',
+    'school_id',
 ])]
 class Track extends Model
 {
+    use BelongsToSchool;
+
     public $incrementing = false;
 
     protected $keyType = 'string';

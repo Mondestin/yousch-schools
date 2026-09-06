@@ -12,13 +12,17 @@ import SettingsLayout from '@/layouts/settings/layout';
 import StudentLayout from '@/layouts/student/layout';
 import StructureLayout from '@/layouts/structure/layout';
 
-const appName = import.meta.env.VITE_APP_NAME || 'YouSchlow';
+const appName = import.meta.env.VITE_APP_NAME || 'Yousch';
 
 void createInertiaApp({
     title: (title) => (title ? `${title} - ${appName}` : appName),
     layout: (name) => {
         switch (true) {
             case name === 'welcome':
+                return null;
+            case name === 'documents/verify':
+                return null;
+            case name === 'auth/login':
                 return null;
             case name.startsWith('errors/'):
                 return null;

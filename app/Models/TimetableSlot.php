@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\Weekday;
+use App\Models\Concerns\BelongsToSchool;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -30,9 +31,12 @@ use Illuminate\Support\Carbon;
     'subject_id',
     'teacher_id',
     'room',
+    'school_id',
 ])]
 class TimetableSlot extends Model
 {
+    use BelongsToSchool;
+
     public $incrementing = false;
 
     protected $keyType = 'string';

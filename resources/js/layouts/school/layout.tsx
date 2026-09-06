@@ -36,7 +36,7 @@ export default function SchoolLayout({ children }: PropsWithChildren) {
             <PageHeader
                 flush
                 title="Établissement"
-                description="Identité imprimée sur les bulletins, tarifs par cycle et abonnement YouSchlow."
+                description="Identité imprimée sur les bulletins, tarifs par cycle et abonnement Yousch."
             />
             <PageTabs flush items={tabs} />
             <div className="px-6 py-5">{children}</div>

@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Support\SchoolCatalog;
+use App\Support\Tenancy\CurrentSchool;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -36,6 +37,8 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $school = CurrentSchool::get();
+
         return [
             ...parent::share($request),
             'name' => config('app.name'),
@@ -43,6 +46,7 @@ class HandleInertiaRequests extends Middleware
                 'user' => $request->user(),
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+            'currentSchool' => $school?->toSharedArray(),
             'schoolContext' => SchoolCatalog::context($request),
             'catalog' => $request->user() ? SchoolCatalog::dataset() : null,
         ];

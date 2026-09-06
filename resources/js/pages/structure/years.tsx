@@ -296,7 +296,7 @@ export default function StructureYearsPage({
                                 <TableCell>
                                     <div className="flex flex-wrap gap-1">
                                         {year.terms.length === 0
-                                            ? '—'
+                                            ? '-'
                                             : year.terms.map((term) => (
                                                   <Badge
                                                       key={term.id}
@@ -314,7 +314,7 @@ export default function StructureYearsPage({
                                         </Badge>
                                     ) : (
                                         <span className="text-muted-foreground">
-                                            —
+                                            -
                                         </span>
                                     )}
                                 </TableCell>

@@ -1,6 +1,8 @@
 import { Head } from '@inertiajs/react';
 import { FileBadge2, FileText, FolderOpen, Printer } from 'lucide-react';
 import { useMemo, useState, type ReactNode } from 'react';
+import { DocumentAuthenticityQr } from '@/components/sms/document-authenticity-qr';
+import { DocumentPied } from '@/components/sms/document-pied';
 import { DocumentStamp } from '@/components/sms/document-stamp';
 import { EmptyState } from '@/components/sms/empty-state';
 import { PageHeader } from '@/components/sms/page-header';
@@ -77,7 +79,7 @@ export default function StudentDocumentsPage({
 
     return (
         <>
-            <Head title={`Documents — ${fiche.name}`} />
+            <Head title={`Documents : ${fiche.name}`} />
             <PageHeader
                 className="no-print"
                 title="Documents"
@@ -163,6 +165,8 @@ export default function StudentDocumentsPage({
                             fiche={fiche}
                             kind={selected.kind}
                             issuedOn={issuedOn}
+                            studentId={studentId}
+                            academicYearId={filter.academicYearId}
                         />
                     ) : (
                         <DossierPreview file={selected.file} />
@@ -237,10 +241,14 @@ function SchoolCertificate({
     fiche,
     kind,
     issuedOn,
+    studentId,
+    academicYearId,
 }: {
     fiche: StudentFiche;
     kind: GeneratedKind;
     issuedOn: string;
+    studentId: string;
+    academicYearId: string;
 }) {
     const gender = genderLabel(fiche.student.gender).toLowerCase();
     const title =
@@ -307,6 +315,15 @@ function SchoolCertificate({
                 <br />
                 {fiche.profile.directorName}
             </p>
+            <DocumentAuthenticityQr
+                claims={{
+                    type: kind,
+                    studentId,
+                    academicYearId,
+                    issuedOn: new Date().toISOString().slice(0, 10),
+                }}
+            />
+            <DocumentPied />
         </article>
     );
 }

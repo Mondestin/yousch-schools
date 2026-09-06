@@ -595,7 +595,7 @@ export default function GuardianShowPage({
                         searchPlaceholder="Rechercher un élève..."
                         options={candidates.map((row) => ({
                             value: row.studentId,
-                            label: `${row.matricule} — ${row.name}`,
+                            label: `${row.matricule} - ${row.name}`,
                             keywords: `${row.name} ${row.matricule} ${row.classroom}`,
                         }))}
                         onValueChange={(value) =>

@@ -12,8 +12,8 @@ import { RowMenu } from '@/components/sms/row-menu';
 import {
     TEACHER_FORM_STEPS,
     TeacherFormFields,
+    teacherFormData,
     teacherFormSchema,
-    teacherFromForm,
     teacherSectionValid,
     teacherStepSchema,
     teacherToForm,
@@ -84,7 +84,9 @@ export default function TeacherShowPage({
     const [photoPreview, setPhotoPreview] = useState<string | null>(
         teacher?.photoUrl ?? null,
     );
+    const [photoFile, setPhotoFile] = useState<File | null>(null);
     const [files, setFiles] = useState<DossierFile[]>(dossierFilesOf(teacher));
+    const [pendingFiles, setPendingFiles] = useState<File[]>([]);
     const [form, setForm] = useState(() =>
         teacher ? teacherToForm(teacher) : teacherToForm(catalog.teachers[0]),
     );
@@ -141,7 +143,9 @@ export default function TeacherShowPage({
     function openEdit(): void {
         setForm(teacherToForm(current));
         setPhotoPreview(current.photoUrl);
+        setPhotoFile(null);
         setFiles(dossierFilesOf(current));
+        setPendingFiles([]);
         setIdentityStep(0);
         clearErrors();
         setIdentityOpen(true);
@@ -157,9 +161,16 @@ export default function TeacherShowPage({
         try {
             const saved = await apiData<Teacher>(updateTeacher.url(teacherId), {
                 method: 'PUT',
-                body: teacherFromForm(form),
+                formData: teacherFormData(form, {
+                    photo: photoFile,
+                    files: pendingFiles,
+                }),
             });
             setTeacher(saved);
+            setPhotoPreview(saved.photoUrl);
+            setPhotoFile(null);
+            setPendingFiles([]);
+            setFiles(dossierFilesOf(saved));
             setIdentityOpen(false);
             toastSaved();
         } catch (error) {
@@ -419,7 +430,7 @@ export default function TeacherShowPage({
                                                         {row.trackCode}
                                                     </Badge>
                                                 ) : (
-                                                    '—'
+                                                    '-'
                                                 )}
                                             </TableCell>
                                             <TableCell>
@@ -547,9 +558,15 @@ export default function TeacherShowPage({
                 {TEACHER_FORM_STEPS[identityStep].id === 'files' ? (
                     <FileListField
                         label="Dossier"
-                        hint="CV, diplôme, contrat — PDF, Word ou image, 5 Mo maximum."
+                        hint="CV, diplôme, contrat - PDF, Word ou image, 5 Mo maximum."
                         files={files}
                         onChange={setFiles}
+                        onNativeFiles={(incoming) =>
+                            setPendingFiles((current) => [
+                                ...current,
+                                ...incoming,
+                            ])
+                        }
                     />
                 ) : (
                     <TeacherFormFields
@@ -569,6 +586,7 @@ export default function TeacherShowPage({
                                 URL.revokeObjectURL(photoPreview);
                             }
 
+                            setPhotoFile(file);
                             setPhotoPreview(
                                 file
                                     ? URL.createObjectURL(file)
@@ -725,7 +743,7 @@ export default function TeacherShowPage({
                         <SelectContent>
                             {subjects.map((subject) => (
                                 <SelectItem key={subject.id} value={subject.id}>
-                                    {subject.code} — {subject.name}
+                                    {subject.code} - {subject.name}
                                 </SelectItem>
                             ))}
                         </SelectContent>

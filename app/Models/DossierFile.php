@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToSchool;
 use Database\Factories\DossierFileFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -26,9 +27,12 @@ use Illuminate\Support\Carbon;
     'name',
     'url',
     'mime',
+    'school_id',
 ])]
 class DossierFile extends Model
 {
+    use BelongsToSchool;
+
     /** @use HasFactory<DossierFileFactory> */
     use HasFactory;
 

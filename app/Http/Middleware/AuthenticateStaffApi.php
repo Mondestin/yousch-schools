@@ -3,7 +3,10 @@
 namespace App\Http\Middleware;
 
 use App\Models\PersonalAccessToken;
+use App\Models\School;
+use App\Models\Scopes\SchoolScope;
 use App\Models\User;
+use App\Support\Tenancy\CurrentSchool;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -26,7 +29,10 @@ class AuthenticateStaffApi
         }
 
         if (Auth::guard('web')->check()) {
-            $this->touchLastSeen(Auth::guard('web')->user());
+            /** @var User $user */
+            $user = Auth::guard('web')->user();
+            $this->bindSchool($user);
+            $this->touchLastSeen($user);
 
             return $next($request);
         }
@@ -52,9 +58,13 @@ class AuthenticateStaffApi
             return response()->json(['message' => 'Non authentifié.'], 401);
         }
 
-        $user = $token->tokenable;
+        /** @var User|null $user */
+        $user = User::query()
+            ->withoutGlobalScope(SchoolScope::class)
+            ->whereKey($token->tokenable_id)
+            ->first();
 
-        if (! $user instanceof User) {
+        if ($user === null) {
             Auth::guard('web')->forgetUser();
 
             return response()->json(['message' => 'Non authentifié.'], 401);
@@ -63,9 +73,23 @@ class AuthenticateStaffApi
         $token->forceFill(['last_used_at' => now()])->save();
         $user->withAccessToken($token);
         Auth::guard('web')->setUser($user);
+        $this->bindSchool($user);
         $this->touchLastSeen($user);
 
         return $next($request);
+    }
+
+    private function bindSchool(User $user): void
+    {
+        if ($user->school_id === null) {
+            return;
+        }
+
+        $school = School::query()->find($user->school_id);
+
+        if ($school !== null && $school->isActive()) {
+            CurrentSchool::set($school);
+        }
     }
 
     private function touchLastSeen(?User $user): void

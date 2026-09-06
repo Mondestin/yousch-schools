@@ -32,7 +32,7 @@ export default function AssessmentLayout({ children }: PropsWithChildren) {
             <PageHeader
                 flush
                 title="Devoirs & notes"
-                description={`Notes /20 · ${cycleLabel(cycle)} · ${academicYearLabel}. Devoirs puis composition de trimestre — une grille, pas de colonnes sFRA.`}
+                description={`Notes /20 · ${cycleLabel(cycle)} · ${academicYearLabel}. Devoirs puis composition de trimestre - une grille, pas de colonnes sFRA.`}
             />
             <PageTabs flush items={tabs} match="exact" />
             <div className="flex min-h-0 flex-1 flex-col overflow-hidden">

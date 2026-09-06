@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\ReenrollmentStatus;
+use App\Models\Concerns\BelongsToSchool;
 use App\Models\Contracts\HasDossierFiles;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
@@ -33,9 +34,12 @@ use Illuminate\Support\Carbon;
     'submitted_on',
     'status',
     'notes',
+    'school_id',
 ])]
 class Reenrollment extends Model implements HasDossierFiles
 {
+    use BelongsToSchool;
+
     public $incrementing = false;
 
     protected $keyType = 'string';

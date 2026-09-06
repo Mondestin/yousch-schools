@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\Cycle;
+use App\Models\Concerns\BelongsToSchool;
 use App\Models\Contracts\HasDossierFiles;
 use Database\Factories\SubjectFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -36,9 +37,12 @@ use Illuminate\Support\Carbon;
     'cycle',
     'grade_level_id',
     'track_id',
+    'school_id',
 ])]
 class Subject extends Model implements HasDossierFiles
 {
+    use BelongsToSchool;
+
     /** @use HasFactory<SubjectFactory> */
     use HasFactory;
 

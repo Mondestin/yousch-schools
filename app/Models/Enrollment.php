@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\EnrollmentStatus;
+use App\Models\Concerns\BelongsToSchool;
 use Database\Factories\EnrollmentFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -27,9 +28,12 @@ use Illuminate\Support\Carbon;
     'academic_year_id',
     'track_id',
     'status',
+    'school_id',
 ])]
 class Enrollment extends Model
 {
+    use BelongsToSchool;
+
     /** @use HasFactory<EnrollmentFactory> */
     use HasFactory;
 

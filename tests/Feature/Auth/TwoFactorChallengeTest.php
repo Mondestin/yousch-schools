@@ -20,12 +20,17 @@ test('two factor challenge can be rendered', function () {
         'confirmPassword' => true,
     ]);
 
-    $user = User::factory()->withTwoFactor()->create();
+    $school = defaultSchool();
+    $user = User::factory()->withTwoFactor()->create([
+        'school_id' => $school->id,
+    ]);
+
+    $this->get(route('login.domain', ['domain' => $school->domain]))->assertOk();
 
     $this->post(route('login'), [
         'email' => $user->email,
         'password' => 'password',
-    ]);
+    ])->assertRedirect(route('two-factor.login'));
 
     $this->get(route('two-factor.login'))
         ->assertOk()

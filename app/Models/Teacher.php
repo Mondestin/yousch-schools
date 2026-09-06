@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\Gender;
 use App\Enums\TeacherStatus;
+use App\Models\Concerns\BelongsToSchool;
 use App\Models\Contracts\HasDossierFiles;
 use Database\Factories\TeacherFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -54,9 +55,12 @@ use Illuminate\Support\Carbon;
     'marital_status',
     'status',
     'photo_url',
+    'school_id',
 ])]
 class Teacher extends Model implements HasDossierFiles
 {
+    use BelongsToSchool;
+
     /** @use HasFactory<TeacherFactory> */
     use HasFactory;
 

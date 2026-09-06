@@ -10,9 +10,9 @@ import {
     TEACHER_FORM_STEPS,
     TeacherFormFields,
     blankTeacherForm,
+    teacherFormData,
     teacherFormSchema,
     teacherFormValid,
-    teacherFromForm,
     teacherSectionValid,
     teacherStepSchema,
 } from '@/components/sms/teacher-form';
@@ -38,7 +38,9 @@ export default function TeachersCreate({
     );
     const [step, setStep] = useState(0);
     const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+    const [photoFile, setPhotoFile] = useState<File | null>(null);
     const [files, setFiles] = useState<DossierFile[]>([]);
+    const [pendingFiles, setPendingFiles] = useState<File[]>([]);
     const { errors, clearErrors, validate, showErrors } = useFieldErrors();
     const [saving, setSaving] = useState(false);
     const stepId = TEACHER_FORM_STEPS[step].id;
@@ -55,25 +57,25 @@ export default function TeachersCreate({
     const fullName = `${form.lastName} ${form.firstName}`.trim();
     const previewDetails = useMemo(
         () => [
-            { label: 'Matricule', value: form.code.trim() || '—' },
+            { label: 'Matricule', value: form.code.trim() || '-' },
             {
                 label: 'Poste',
                 value: form.position.trim() || 'Non renseigné',
             },
             {
                 label: 'Téléphone',
-                value: form.phone.trim() || '—',
+                value: form.phone.trim() || '-',
             },
             {
                 label: 'Embauche',
-                value: form.hiredOn ? formatFrDate(form.hiredOn) : '—',
+                value: form.hiredOn ? formatFrDate(form.hiredOn) : '-',
             },
             {
                 label: 'Ville',
                 value:
                     [form.city.trim(), form.neighborhood.trim()]
                         .filter(Boolean)
-                        .join(' · ') || '—',
+                        .join(' · ') || '-',
             },
             {
                 label: 'Dossier',
@@ -106,7 +108,10 @@ export default function TeachersCreate({
         try {
             await apiData(storeTeacher.url(), {
                 method: 'POST',
-                body: teacherFromForm(form),
+                formData: teacherFormData(form, {
+                    photo: photoFile,
+                    files: pendingFiles,
+                }),
             });
             toastSaved();
             router.visit(teachers({ query }));
@@ -167,12 +172,18 @@ export default function TeachersCreate({
                                 <FormSection
                                     icon={FolderOpen}
                                     title="Dossier"
-                                    description="CV, diplômes, contrat — PDF, Word ou image."
+                                    description="CV, diplômes, contrat - PDF, Word ou image."
                                 >
                                     <FileListField
                                         label="Pièces jointes"
                                         files={files}
                                         onChange={setFiles}
+                                        onNativeFiles={(incoming) =>
+                                            setPendingFiles((current) => [
+                                                ...current,
+                                                ...incoming,
+                                            ])
+                                        }
                                     />
                                 </FormSection>
                             ) : (
@@ -194,6 +205,7 @@ export default function TeachersCreate({
                                             URL.revokeObjectURL(photoPreview);
                                         }
 
+                                        setPhotoFile(file);
                                         setPhotoPreview(
                                             file
                                                 ? URL.createObjectURL(file)

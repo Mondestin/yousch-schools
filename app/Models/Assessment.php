@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\AssessmentType;
+use App\Models\Concerns\BelongsToSchool;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -30,9 +31,12 @@ use Illuminate\Support\Carbon;
     'held_on',
     'held_at',
     'held_until',
+    'school_id',
 ])]
 class Assessment extends Model
 {
+    use BelongsToSchool;
+
     public $incrementing = false;
 
     protected $keyType = 'string';

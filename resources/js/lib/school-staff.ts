@@ -161,12 +161,12 @@ export function teacherFiche(
 
             return {
                 ...item,
-                classroom: classroom?.name ?? '—',
+                classroom: classroom?.name ?? '-',
                 cycle: classroom?.cycle ?? null,
-                cycleName: classroom ? cycleLabel(classroom.cycle) : '—',
-                subject: subject?.name ?? '—',
-                subjectCode: subject?.code ?? '—',
-                yearLabel: year?.label ?? '—',
+                cycleName: classroom ? cycleLabel(classroom.cycle) : '-',
+                subject: subject?.name ?? '-',
+                subjectCode: subject?.code ?? '-',
+                yearLabel: year?.label ?? '-',
                 trackCode: track?.code ?? null,
                 lycee: classroom ? isLyceeCycle(classroom.cycle) : false,
             };

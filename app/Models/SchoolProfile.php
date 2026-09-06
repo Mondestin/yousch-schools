@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToSchool;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
@@ -37,9 +38,11 @@ use Illuminate\Support\Carbon;
     'currency',
     'logo_url',
     'stamp_url',
+    'school_id',
 ])]
 class SchoolProfile extends Model
 {
+    use BelongsToSchool;
     use HasUlids;
 
     /**

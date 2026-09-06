@@ -48,13 +48,13 @@ export default function ErrorShow({ status }: { status: number }) {
 
     return (
         <>
-            <Head title={`${status} — ${copy.title}`} />
+            <Head title={`${status} - ${copy.title}`} />
             <div className="bg-background text-foreground flex min-h-svh flex-col">
                 <header className="flex items-center justify-between px-6 py-5 md:px-10">
                     <Link href="/" className="flex items-center gap-2.5">
                         <img
                             src="/logo.png"
-                            alt={String(name ?? 'YouSchlow')}
+                            alt={String(name ?? 'Yousch')}
                             className="h-9 w-auto object-contain"
                         />
                     </Link>

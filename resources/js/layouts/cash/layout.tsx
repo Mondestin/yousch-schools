@@ -27,7 +27,7 @@ export default function CashLayout({ children }: PropsWithChildren) {
             <PageHeader
                 flush
                 title="Caisse"
-                description="Frais des élèves et journal de caisse — espèces, mobile money, virement."
+                description="Frais des élèves et journal de caisse - espèces, mobile money, virement."
             />
             <PageTabs flush items={tabs} />
             {children}

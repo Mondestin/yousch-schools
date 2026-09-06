@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\AnnouncementAudience;
+use App\Models\Concerns\BelongsToSchool;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
@@ -22,9 +23,12 @@ use Illuminate\Support\Carbon;
     'audience',
     'published_on',
     'expires_on',
+    'school_id',
 ])]
 class Announcement extends Model
 {
+    use BelongsToSchool;
+
     public $incrementing = false;
 
     protected $keyType = 'string';

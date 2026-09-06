@@ -13,6 +13,8 @@ import {
     paymentStatusLabel,
 } from '@/lib/school-rows';
 import { receipt, index as payments } from '@/routes/payments';
+import { DocumentAuthenticityQr } from '@/components/sms/document-authenticity-qr';
+import { DocumentPied } from '@/components/sms/document-pied';
 import { DocumentStamp } from '@/components/sms/document-stamp';
 import type { SchoolDataset } from '@/types/school';
 
@@ -46,7 +48,7 @@ export default function PaymentShowPage({
 
     return (
         <>
-            <Head title={`Relevé — ${fiche.name}`} />
+            <Head title={`Relevé : ${fiche.name}`} />
             <PageShell>
                 <PageHeader
                     className="no-print"
@@ -89,7 +91,7 @@ export default function PaymentShowPage({
                                 {COUNTRY_NAME}
                             </p>
                             <p>{COUNTRY_MOTTO}</p>
-                            <p>———————</p>
+                            <p>-------</p>
                             <p className="mt-10 text-[13px] font-medium">
                                 Année scolaire {fiche.yearLabel}
                             </p>
@@ -196,6 +198,15 @@ export default function PaymentShowPage({
                             </p>
                         </div>
                     </section>
+                    <DocumentAuthenticityQr
+                        claims={{
+                            type: 'payment_statement',
+                            studentId,
+                            academicYearId: filter.academicYearId,
+                            issuedOn: new Date().toISOString().slice(0, 10),
+                        }}
+                    />
+                    <DocumentPied />
                 </article>
             </PageShell>
         </>

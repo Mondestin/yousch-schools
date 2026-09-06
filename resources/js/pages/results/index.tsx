@@ -83,7 +83,7 @@ export default function ResultsIndex({ catalog }: { catalog: SchoolDataset }) {
                             label="Moyenne de classe"
                             value={
                                 report.classAverage === null
-                                    ? '—'
+                                    ? '-'
                                     : `${formatNote(report.classAverage)} / 20`
                             }
                         />
@@ -198,7 +198,7 @@ export default function ResultsIndex({ catalog }: { catalog: SchoolDataset }) {
                             <TableBody>
                                 {table.pageRows.map((row) => (
                                     <TableRow key={row.studentId}>
-                                        <TableCell>{row.rank ?? '—'}</TableCell>
+                                        <TableCell>{row.rank ?? '-'}</TableCell>
                                         <TableCell>{row.matricule}</TableCell>
                                         <TableCell>
                                             <Link
@@ -221,11 +221,11 @@ export default function ResultsIndex({ catalog }: { catalog: SchoolDataset }) {
                                         </TableCell>
                                         <TableCell>
                                             {row.average === null
-                                                ? '—'
+                                                ? '-'
                                                 : formatNote(row.average)}
                                         </TableCell>
                                         <TableCell>
-                                            {row.mention ?? '—'}
+                                            {row.mention ?? '-'}
                                         </TableCell>
                                         <TableCell>
                                             {row.result ? (
@@ -239,7 +239,7 @@ export default function ResultsIndex({ catalog }: { catalog: SchoolDataset }) {
                                                     {row.result}
                                                 </Badge>
                                             ) : (
-                                                '—'
+                                                '-'
                                             )}
                                         </TableCell>
                                     </TableRow>

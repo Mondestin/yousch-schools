@@ -496,7 +496,7 @@ export default function StudentsAdmissions({
                                 </TableCell>
                                 <TableCell>
                                     {classroomMap.get(row.classroomId)?.name ??
-                                        '—'}
+                                        '-'}
                                 </TableCell>
                                 <TableCell>
                                     {row.guardianLastName}{' '}
@@ -836,7 +836,7 @@ export default function StudentsAdmissions({
                 </Field>
                 <FileListField
                     label="Pièces du dossier"
-                    hint="Extrait de naissance, photos, carnet — PDF ou image, 5 Mo maximum."
+                    hint="Extrait de naissance, photos, carnet - PDF ou image, 5 Mo maximum."
                     files={files}
                     onChange={setFiles}
                 />

@@ -105,6 +105,7 @@ export default function Profile({
                     action={ProfileController.update()}
                     options={{
                         preserveScroll: true,
+                        forceFormData: true,
                     }}
                     className="space-y-6"
                 >
@@ -112,15 +113,22 @@ export default function Profile({
                         <>
                             <PhotoField
                                 id="avatar"
+                                name="avatar"
                                 label="Photo de profil"
                                 preview={photoPreview}
                                 fallback={UserRound}
                                 alt={auth.user.name}
                                 onFile={(file) =>
                                     setPhotoPreview(
-                                        file ? URL.createObjectURL(file) : null,
+                                        file
+                                            ? URL.createObjectURL(file)
+                                            : (auth.user.avatar ?? null),
                                     )
                                 }
+                            />
+                            <InputError
+                                className="-mt-4"
+                                message={errors.avatar}
                             />
 
                             <div className="grid gap-2">

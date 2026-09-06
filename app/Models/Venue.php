@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\VenueKind;
+use App\Models\Concerns\BelongsToSchool;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
@@ -24,9 +25,12 @@ use Illuminate\Support\Carbon;
     'building',
     'capacity',
     'available',
+    'school_id',
 ])]
 class Venue extends Model
 {
+    use BelongsToSchool;
+
     public $incrementing = false;
 
     protected $keyType = 'string';

@@ -8,7 +8,7 @@
         "phone": "06 521 12 34 / 05 551 23 45",
         "email": "contact@palmiers.cg",
         "address": "Quartier Moungali, avenue de la Paix",
-        "motto": "Rigueur — Travail — Réussite",
+        "motto": "Rigueur - Travail - Réussite",
         "currency": "FCFA",
         "logoUrl": null,
         "stampUrl": null
@@ -3174,7 +3174,7 @@
             "files": [
                 {
                     "id": "tf-tc-1-1",
-                    "name": "CV — Koné Binta.pdf",
+                    "name": "CV - Koné Binta.pdf",
                     "url": "#",
                     "mime": "application/pdf"
                 },
@@ -3385,7 +3385,7 @@
                 },
                 {
                     "id": "sf-math-6eme-2",
-                    "name": "Exercices — fractions.pdf",
+                    "name": "Exercices - fractions.pdf",
                     "url": "#",
                     "mime": "application/pdf"
                 }
@@ -4969,7 +4969,7 @@
         {
             "id": "as-1",
             "type": "devoir",
-            "name": "Devoir 1 — Mathématiques",
+            "name": "Devoir 1 - Mathématiques",
             "classroomId": "cr-6eme",
             "subjectId": "su-math-6eme",
             "termId": "term-2026-1",
@@ -4980,7 +4980,7 @@
         {
             "id": "as-2",
             "type": "composition",
-            "name": "Composition du 1er trimestre — Mathématiques",
+            "name": "Composition du 1er trimestre - Mathématiques",
             "classroomId": "cr-tle-f2",
             "subjectId": "su-math-f2",
             "termId": "term-2026-1",
@@ -4991,7 +4991,7 @@
         {
             "id": "as-3",
             "type": "devoir",
-            "name": "Devoir 1 — Électrotechnique",
+            "name": "Devoir 1 - Électrotechnique",
             "classroomId": "cr-tle-f2",
             "subjectId": "su-elec-f2",
             "termId": "term-2026-1",
@@ -5002,7 +5002,7 @@
         {
             "id": "as-4",
             "type": "composition",
-            "name": "Composition du 1er trimestre — Mathématiques",
+            "name": "Composition du 1er trimestre - Mathématiques",
             "classroomId": "cr-6eme",
             "subjectId": "su-math-6eme",
             "termId": "term-2026-1",
@@ -5013,7 +5013,7 @@
         {
             "id": "as-5",
             "type": "devoir",
-            "name": "Devoir 1 — Français",
+            "name": "Devoir 1 - Français",
             "classroomId": "cr-ce1",
             "subjectId": "su-fra-ce1",
             "termId": "term-2026-1",
@@ -12973,7 +12973,7 @@
             "id": "ca-1",
             "date": "2026-09-01",
             "kind": "entree",
-            "label": "Frais de septembre — CE1 A",
+            "label": "Frais de septembre - CE1 A",
             "amount": 45000,
             "method": "especes",
             "description": "Encaissement guichet des mensualités de septembre pour 9 élèves du CE1 A. Reçus 001 à 009 remis aux familles."
@@ -12982,7 +12982,7 @@
             "id": "ca-2",
             "date": "2026-09-02",
             "kind": "entree",
-            "label": "Frais de septembre — Terminale F2",
+            "label": "Frais de septembre - Terminale F2",
             "amount": 75000,
             "method": "mobile_money",
             "description": "Règlement mobile money de la Terminale F2 (5 dossiers). Références de transaction transmises à la comptabilité."
@@ -13000,7 +13000,7 @@
             "id": "ca-4",
             "date": "2026-09-03",
             "kind": "entree",
-            "label": "Frais de septembre — 6ème A",
+            "label": "Frais de septembre - 6ème A",
             "amount": 60000,
             "method": "especes",
             "description": "Avance sur la maintenance du groupe électrogène du bâtiment B, solde à régler à la réception des travaux."
@@ -13033,7 +13033,7 @@
         },
         {
             "id": "an-4",
-            "title": "Tenue de sport — mercredi",
+            "title": "Tenue de sport - mercredi",
             "body": "Les élèves de CM2 et 6ème se présentent en tenue de sport mercredi 9 septembre pour le tournoi inter-classes.",
             "audience": "eleves",
             "publishedOn": "2026-09-03",

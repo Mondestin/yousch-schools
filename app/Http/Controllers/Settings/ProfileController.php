@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\ProfileUpdateRequest;
+use App\Support\Storage\SchoolStorage;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -28,13 +30,28 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $request->user()->fill($request->validated());
+        $user = $request->user();
+        $user->fill($request->safe()->only(['name', 'email']));
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
+        if ($user->isDirty('email')) {
+            $user->email_verified_at = null;
         }
 
-        $request->user()->save();
+        if ($request->boolean('removeAvatar')) {
+            SchoolStorage::deleteUrl($user->avatar_url);
+            $user->avatar_url = null;
+        }
+
+        if ($request->hasFile('avatar')) {
+            $avatar = $request->file('avatar');
+
+            if ($avatar instanceof UploadedFile) {
+                SchoolStorage::deleteUrl($user->avatar_url);
+                $user->avatar_url = SchoolStorage::store($avatar, 'staff/avatars');
+            }
+        }
+
+        $user->save();
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Profil mis à jour.')]);
 

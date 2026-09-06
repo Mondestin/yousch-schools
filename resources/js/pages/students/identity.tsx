@@ -419,7 +419,7 @@ export default function StudentIdentityPage({
                 {step === 2 ? (
                     <FileListField
                         label="Pièces de l’élève"
-                        hint="Extrait de naissance, photos, carnet, certificat — PDF ou image, 5 Mo maximum."
+                        hint="Extrait de naissance, photos, carnet, certificat - PDF ou image, 5 Mo maximum."
                         files={files}
                         onChange={setFiles}
                     />

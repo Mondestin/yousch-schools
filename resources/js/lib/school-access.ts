@@ -102,7 +102,7 @@ export function canAccess(role: StaffRole, key: NavKey): boolean {
 
 export function roleSummary(role: StaffRole): string {
     if (role === 'admin') {
-        return 'Compte, abonnement YouSchlow, utilisateurs et toute l’administration.';
+        return 'Compte, abonnement Yousch, utilisateurs et toute l’administration.';
     }
 
     if (role === 'directeur') {

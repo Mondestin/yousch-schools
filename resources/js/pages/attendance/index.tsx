@@ -533,7 +533,7 @@ export default function AttendanceIndex({
                                     <TableCell>
                                         <div>
                                             {row.periodLabel}
-                                            {row.room !== '—' ? (
+                                            {row.room !== '-' ? (
                                                 <p className="text-muted-foreground text-[12px]">
                                                     {row.room}
                                                 </p>
@@ -547,7 +547,7 @@ export default function AttendanceIndex({
                                             />
                                         ) : (
                                             <span className="text-muted-foreground">
-                                                —
+                                                -
                                             </span>
                                         )}
                                     </TableCell>

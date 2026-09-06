@@ -73,44 +73,36 @@ class AcademicYearController extends Controller
 
             $year = AcademicYear::query()->create([
                 'id' => $id,
-                'label' => $startYear.'–'.$nextYear,
+                'label' => $startYear.'-'.$nextYear,
                 'starts_on' => sprintf('%d-09-01', $startYear),
                 'ends_on' => sprintf('%d-07-15', $nextYear),
                 'is_current' => $isCurrent,
             ]);
 
             if ($withTerms) {
-                Term::query()->insert([
-                    [
-                        'id' => "term-{$startYear}-1",
-                        'academic_year_id' => $id,
-                        'name' => '1er trimestre',
-                        'position' => 1,
-                        'starts_on' => sprintf('%d-09-01', $startYear),
-                        'ends_on' => sprintf('%d-12-18', $startYear),
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ],
-                    [
-                        'id' => "term-{$startYear}-2",
-                        'academic_year_id' => $id,
-                        'name' => '2e trimestre',
-                        'position' => 2,
-                        'starts_on' => sprintf('%d-01-05', $nextYear),
-                        'ends_on' => sprintf('%d-03-31', $nextYear),
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ],
-                    [
-                        'id' => "term-{$startYear}-3",
-                        'academic_year_id' => $id,
-                        'name' => '3e trimestre',
-                        'position' => 3,
-                        'starts_on' => sprintf('%d-04-12', $nextYear),
-                        'ends_on' => sprintf('%d-07-15', $nextYear),
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ],
+                Term::query()->create([
+                    'id' => "term-{$startYear}-1",
+                    'academic_year_id' => $id,
+                    'name' => '1er trimestre',
+                    'position' => 1,
+                    'starts_on' => sprintf('%d-09-01', $startYear),
+                    'ends_on' => sprintf('%d-12-18', $startYear),
+                ]);
+                Term::query()->create([
+                    'id' => "term-{$startYear}-2",
+                    'academic_year_id' => $id,
+                    'name' => '2e trimestre',
+                    'position' => 2,
+                    'starts_on' => sprintf('%d-01-05', $nextYear),
+                    'ends_on' => sprintf('%d-03-31', $nextYear),
+                ]);
+                Term::query()->create([
+                    'id' => "term-{$startYear}-3",
+                    'academic_year_id' => $id,
+                    'name' => '3e trimestre',
+                    'position' => 3,
+                    'starts_on' => sprintf('%d-04-12', $nextYear),
+                    'ends_on' => sprintf('%d-07-15', $nextYear),
                 ]);
             }
 

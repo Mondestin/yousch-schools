@@ -245,7 +245,7 @@ export default function StudentsCreate({
                 formData: body,
             });
             toastSaved(
-                `${saved.lastName} ${saved.firstName} — inscription enregistrée`,
+                `${saved.lastName} ${saved.firstName} : inscription enregistrée`,
             );
             router.visit(students({ query }));
         } catch (error) {
@@ -501,7 +501,7 @@ export default function StudentsCreate({
                                                 (track) =>
                                                     track.id ===
                                                     selectedClassroom.trackId,
-                                            )?.code ?? '—'}
+                                            )?.code ?? '-'}
                                         </p>
                                     ) : null}
                                 </FormSection>

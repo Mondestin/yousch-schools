@@ -83,7 +83,7 @@ export default function SchoolSubscriptionPage({
 
     function receiptText(receipt: SubscriptionReceipt): string {
         return [
-            `Reçu d’abonnement YouSchlow`,
+            `Reçu d’abonnement Yousch`,
             `Référence : ${receipt.reference}`,
             `Période : ${receipt.periodLabel}`,
             `Offre : ${planLabel(receipt.plan)}`,

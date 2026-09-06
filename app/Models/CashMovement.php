@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\CashKind;
 use App\Enums\PaymentMethod;
+use App\Models\Concerns\BelongsToSchool;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
@@ -25,9 +26,12 @@ use Illuminate\Support\Carbon;
     'description',
     'amount',
     'method',
+    'school_id',
 ])]
 class CashMovement extends Model
 {
+    use BelongsToSchool;
+
     public $incrementing = false;
 
     protected $keyType = 'string';

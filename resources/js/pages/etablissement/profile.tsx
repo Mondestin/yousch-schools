@@ -229,7 +229,7 @@ export default function SchoolProfilePage({
                                     id="motto"
                                     value={form.motto}
                                     required
-                                    placeholder="Rigueur — Travail — Réussite"
+                                    placeholder="Rigueur - Travail - Réussite"
                                     onChange={(event) =>
                                         patchForm({ motto: event.target.value })
                                     }

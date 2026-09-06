@@ -11,6 +11,8 @@ import {
     paymentStatusLabel,
 } from '@/lib/school-rows';
 import { index as payments } from '@/routes/payments';
+import { DocumentAuthenticityQr } from '@/components/sms/document-authenticity-qr';
+import { DocumentPied } from '@/components/sms/document-pied';
 import { DocumentStamp } from '@/components/sms/document-stamp';
 import type { SchoolDataset } from '@/types/school';
 
@@ -37,7 +39,7 @@ export default function PaymentReceiptPage({
 
     return (
         <>
-            <Head title={`Reçu — ${slip.name}`} />
+            <Head title={`Reçu : ${slip.name}`} />
             <PageShell>
                 <PageHeader
                     className="no-print"
@@ -96,6 +98,16 @@ export default function PaymentReceiptPage({
                         <br />
                         <strong>{slip.profile.directorName}</strong>
                     </p>
+                    <DocumentAuthenticityQr
+                        claims={{
+                            type: 'payment_receipt',
+                            studentId,
+                            refId: paymentId,
+                            academicYearId: filter.academicYearId,
+                            issuedOn: new Date().toISOString().slice(0, 10),
+                        }}
+                    />
+                    <DocumentPied />
                 </article>
             </PageShell>
         </>

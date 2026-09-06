@@ -126,7 +126,7 @@ export function PresenceBadge({ lastSeenAt }: { lastSeenAt: string | null }) {
 
 export function TrackBadge({ code }: { code: string | null }) {
     if (!code) {
-        return <span className="text-muted-foreground">—</span>;
+        return <span className="text-muted-foreground">-</span>;
     }
 
     return <CodeBadge>{code}</CodeBadge>;

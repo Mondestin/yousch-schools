@@ -123,16 +123,16 @@ export function classroomRoll(
             return {
                 enrollmentId: enrollment.id,
                 studentId: enrollment.studentId,
-                matricule: student?.matricule ?? '—',
+                matricule: student?.matricule ?? '-',
                 name: student ? personName(student) : enrollment.studentId,
                 photoUrl: student?.photoUrl ?? null,
-                classroomName: classroom?.name ?? '—',
+                classroomName: classroom?.name ?? '-',
                 subjectName: display.subjectName,
                 periodLabel: periodLabel(
                     slot.periodId,
                     timetablePeriodsForClassroom(catalog, classroomId),
                 ),
-                room: display.room ?? '—',
+                room: display.room ?? '-',
                 teacherName: display.teacherName,
                 status: mark?.status ?? null,
                 note: mark?.note ?? null,
@@ -328,7 +328,7 @@ export function guardianChildren(
                       student,
                       name: personName(student),
                       relation: link.relation,
-                      classroomName: classroom?.name ?? '—',
+                      classroomName: classroom?.name ?? '-',
                   }
                 : null;
         })
