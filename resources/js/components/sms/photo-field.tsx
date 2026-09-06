@@ -38,7 +38,7 @@ export function PhotoField({
                 htmlFor={id}
                 className={cn(
                     'group border-input hover:border-primary/40 relative flex cursor-pointer flex-col items-center justify-center overflow-hidden rounded-[8px] border border-dashed transition-colors',
-                    large ? 'aspect-square w-full max-w-[11rem]' : 'size-24',
+                    large ? 'aspect-square w-full max-w-[16rem]' : 'size-24',
                     previewClassName,
                 )}
             >

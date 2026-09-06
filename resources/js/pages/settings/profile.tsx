@@ -1,12 +1,11 @@
-import { Form, Head, router, usePage } from '@inertiajs/react';
-import { Link } from '@inertiajs/react';
+import { Form, Head, Link, router, usePage } from '@inertiajs/react';
 import { UserRound } from 'lucide-react';
 import { useState } from 'react';
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
-import { PhotoField } from '@/components/sms/photo-field';
 import { StaffRoleBadge } from '@/components/sms/code-badge';
+import { PhotoField } from '@/components/sms/photo-field';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -14,8 +13,8 @@ import { useSchoolContext } from '@/hooks/use-school-context';
 import { roleLabel, roleSummary, STAFF_ROLES } from '@/lib/school-access';
 import { teacherFiche } from '@/lib/school-staff';
 import { edit } from '@/routes/profile';
-import type { Auth } from '@/types';
 import { send } from '@/routes/verification';
+import type { Auth } from '@/types';
 
 type PageProps = {
     auth: Auth;
@@ -49,6 +48,123 @@ export default function Profile({
             <h1 className="sr-only">Paramètres du profil</h1>
 
             <div className="space-y-6">
+                <Heading
+                    variant="small"
+                    title="Profil"
+                    description="Mettez à jour votre nom et votre e-mail"
+                />
+
+                <Form
+                    action={ProfileController.update()}
+                    options={{
+                        preserveScroll: true,
+                        forceFormData: true,
+                    }}
+                    className="space-y-6"
+                >
+                    {({ processing, errors }) => (
+                        <>
+                            <div className="grid items-start gap-8 md:grid-cols-[16rem_minmax(0,1fr)]">
+                                <div className="space-y-2">
+                                    <PhotoField
+                                        id="avatar"
+                                        name="avatar"
+                                        label="Photo de profil"
+                                        preview={photoPreview}
+                                        fallback={UserRound}
+                                        alt={auth.user.name}
+                                        size="lg"
+                                        previewClassName="max-w-none w-full aspect-square"
+                                        onFile={(file) =>
+                                            setPhotoPreview(
+                                                file
+                                                    ? URL.createObjectURL(file)
+                                                    : (auth.user.avatar ??
+                                                      null),
+                                            )
+                                        }
+                                    />
+                                    <InputError message={errors.avatar} />
+                                </div>
+
+                                <div className="space-y-6">
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="name">Nom</Label>
+                                        <Input
+                                            id="name"
+                                            className="mt-1 block w-full"
+                                            defaultValue={auth.user.name}
+                                            name="name"
+                                            required
+                                            autoComplete="name"
+                                            placeholder="Nom complet"
+                                        />
+                                        <InputError
+                                            className="mt-2"
+                                            message={errors.name}
+                                        />
+                                    </div>
+
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="email">
+                                            Adresse e-mail
+                                        </Label>
+                                        <Input
+                                            id="email"
+                                            type="email"
+                                            className="mt-1 block w-full"
+                                            defaultValue={auth.user.email}
+                                            name="email"
+                                            required
+                                            autoComplete="username"
+                                            placeholder="Adresse e-mail"
+                                        />
+                                        <InputError
+                                            className="mt-2"
+                                            message={errors.email}
+                                        />
+                                    </div>
+
+                                    {mustVerifyEmail &&
+                                        auth.user.email_verified_at ===
+                                            null && (
+                                            <div>
+                                                <p className="text-muted-foreground text-sm">
+                                                    Votre e-mail n’est pas encore
+                                                    vérifié.{' '}
+                                                    <Link
+                                                        href={send()}
+                                                        as="button"
+                                                        className="text-primary decoration-primary/30 hover:decoration-primary underline underline-offset-4 transition-colors duration-300 ease-out"
+                                                    >
+                                                        Renvoyer l’e-mail de
+                                                        vérification.
+                                                    </Link>
+                                                </p>
+
+                                                {status ===
+                                                    'verification-link-sent' && (
+                                                    <div className="text-primary mt-2 text-sm font-medium">
+                                                        Un nouveau lien de
+                                                        vérification a été
+                                                        envoyé.
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+
+                                    <Button
+                                        disabled={processing}
+                                        data-test="update-profile-button"
+                                    >
+                                        Enregistrer
+                                    </Button>
+                                </div>
+                            </div>
+                        </>
+                    )}
+                </Form>
+
                 <section className="space-y-3 rounded-[8px] border px-4 py-4">
                     <div className="flex flex-wrap items-center gap-2">
                         <h2 className="text-[15px] font-semibold">Rôle</h2>
@@ -94,119 +210,6 @@ export default function Profile({
                         Aperçu maquette : le menu et ce profil suivent le rôle.
                     </p>
                 </section>
-
-                <Heading
-                    variant="small"
-                    title="Profil"
-                    description="Mettez à jour votre nom et votre e-mail"
-                />
-
-                <Form
-                    action={ProfileController.update()}
-                    options={{
-                        preserveScroll: true,
-                        forceFormData: true,
-                    }}
-                    className="space-y-6"
-                >
-                    {({ processing, errors }) => (
-                        <>
-                            <PhotoField
-                                id="avatar"
-                                name="avatar"
-                                label="Photo de profil"
-                                preview={photoPreview}
-                                fallback={UserRound}
-                                alt={auth.user.name}
-                                onFile={(file) =>
-                                    setPhotoPreview(
-                                        file
-                                            ? URL.createObjectURL(file)
-                                            : (auth.user.avatar ?? null),
-                                    )
-                                }
-                            />
-                            <InputError
-                                className="-mt-4"
-                                message={errors.avatar}
-                            />
-
-                            <div className="grid gap-2">
-                                <Label htmlFor="name">Nom</Label>
-
-                                <Input
-                                    id="name"
-                                    className="mt-1 block w-full"
-                                    defaultValue={auth.user.name}
-                                    name="name"
-                                    required
-                                    autoComplete="name"
-                                    placeholder="Nom complet"
-                                />
-
-                                <InputError
-                                    className="mt-2"
-                                    message={errors.name}
-                                />
-                            </div>
-
-                            <div className="grid gap-2">
-                                <Label htmlFor="email">Adresse e-mail</Label>
-
-                                <Input
-                                    id="email"
-                                    type="email"
-                                    className="mt-1 block w-full"
-                                    defaultValue={auth.user.email}
-                                    name="email"
-                                    required
-                                    autoComplete="username"
-                                    placeholder="Adresse e-mail"
-                                />
-
-                                <InputError
-                                    className="mt-2"
-                                    message={errors.email}
-                                />
-                            </div>
-
-                            {mustVerifyEmail &&
-                                auth.user.email_verified_at === null && (
-                                    <div>
-                                        <p className="text-muted-foreground -mt-4 text-sm">
-                                            Votre e-mail n’est pas encore
-                                            vérifié.{' '}
-                                            <Link
-                                                href={send()}
-                                                as="button"
-                                                className="text-primary decoration-primary/30 hover:decoration-primary underline underline-offset-4 transition-colors duration-300 ease-out"
-                                            >
-                                                Renvoyer l’e-mail de
-                                                vérification.
-                                            </Link>
-                                        </p>
-
-                                        {status ===
-                                            'verification-link-sent' && (
-                                            <div className="text-primary mt-2 text-sm font-medium">
-                                                Un nouveau lien de vérification
-                                                a été envoyé.
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-
-                            <div className="flex items-center gap-4">
-                                <Button
-                                    disabled={processing}
-                                    data-test="update-profile-button"
-                                >
-                                    Enregistrer
-                                </Button>
-                            </div>
-                        </>
-                    )}
-                </Form>
             </div>
         </>
     );

@@ -77,7 +77,7 @@ export default function TwoFactorChallenge() {
                                 </>
                             ) : (
                                 <div className="flex flex-col items-center justify-center space-y-3 text-center">
-                                    <div className="flex w-full items-center justify-center">
+                                    <div className="flex items-center justify-center">
                                         <InputOTP
                                             name="code"
                                             maxLength={OTP_MAX_LENGTH}
@@ -86,14 +86,16 @@ export default function TwoFactorChallenge() {
                                             disabled={processing}
                                             pattern={REGEXP_ONLY_DIGITS}
                                             autoFocus
+                                            containerClassName="gap-2"
                                         >
-                                            <InputOTPGroup>
+                                            <InputOTPGroup className="gap-2">
                                                 {Array.from(
                                                     { length: OTP_MAX_LENGTH },
                                                     (_, index) => (
                                                         <InputOTPSlot
                                                             key={index}
                                                             index={index}
+                                                            className="h-12 w-11 rounded-md border text-lg first:rounded-md last:rounded-md"
                                                         />
                                                     ),
                                                 )}
@@ -104,13 +106,15 @@ export default function TwoFactorChallenge() {
                                 </div>
                             )}
 
-                            <Button
-                                type="submit"
-                                className="w-full"
-                                disabled={processing}
-                            >
-                                Continuer
-                            </Button>
+                            <div className="flex justify-center">
+                                <Button
+                                    type="submit"
+                                    className="min-w-[12rem] px-8"
+                                    disabled={processing}
+                                >
+                                    Continuer
+                                </Button>
+                            </div>
 
                             <div className="text-muted-foreground text-center text-sm">
                                 <span>ou vous pouvez </span>
