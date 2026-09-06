@@ -1,0 +1,1 @@
+import{f as e,p as t}from"./fr-B0edKAg9.js";function n(n,r,i){let[a,o]=t(i?.in,n,r);return+e(a)==+e(o)}function r(e,n,r){let[i,a]=t(r?.in,e,n);return i.getFullYear()===a.getFullYear()&&i.getMonth()===a.getMonth()}export{n,r as t};

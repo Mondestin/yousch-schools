@@ -1,0 +1,1 @@
+import{o as e,r as t,s as n}from"./wayfinder-BljETBAB.js";var r=n(),i=e();function a(e){let n=(0,r.c)(5),{url:a,className:o}=e;if(!a)return null;let s;n[0]===o?s=n[1]:(s=t(`h-24 w-40 object-contain`,o),n[0]=o,n[1]=s);let c;return n[2]!==s||n[3]!==a?(c=(0,i.jsx)(`img`,{src:a,alt:`Cachet et signature`,className:s}),n[2]=s,n[3]=a,n[4]=c):c=n[4],c}export{a as t};

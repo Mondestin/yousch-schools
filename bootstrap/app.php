@@ -12,6 +12,8 @@ use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Http\Request;
 use Illuminate\Session\Middleware\StartSession;
+use Inertia\Inertia;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -60,5 +62,31 @@ return Application::configure(basePath: dirname(__DIR__))
                     ? "Trop de tentatives. Réessayez dans {$retry} secondes."
                     : 'Trop de tentatives. Réessayez plus tard.',
             ], 429);
+        });
+
+        $exceptions->respond(function (Response $response, \Throwable $exception, Request $request) {
+            if ($request->is('api/*') || $request->expectsJson()) {
+                return $response;
+            }
+
+            $status = $response->getStatusCode();
+
+            if (! in_array($status, [403, 404, 419, 429, 500, 503], true)) {
+                return $response;
+            }
+
+            if ($status === 500 && app()->hasDebugModeEnabled()) {
+                return $response;
+            }
+
+            return Inertia::render('errors/show', [
+                'status' => $status,
+                'auth' => [
+                    'user' => $request->user(),
+                ],
+                'name' => config('app.name'),
+            ])
+                ->toResponse($request)
+                ->setStatusCode($status);
         });
     })->create();

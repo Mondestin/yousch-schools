@@ -1,0 +1,1 @@
+import{o as e,r as t,u as n}from"./wayfinder-BljETBAB.js";var r=e();function i({className:e=``,children:i,...a}){return(0,r.jsx)(n,{className:t(`text-primary decoration-primary/30 hover:decoration-primary underline underline-offset-4 transition-colors duration-300 ease-out`,e),...a,children:i})}export{i as t};
