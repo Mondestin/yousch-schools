@@ -9,10 +9,10 @@ import {
     breakCoveringTime,
     capitalizeFr,
     findSlot,
+    firstHalfHourForPeriod,
     halfHourSlots,
     periodCoveringTime,
     periodLabel,
-    periodStartingAt,
     resolvePeriodIdForTime,
     schoolHoursForClassroom,
     slotDisplay,
@@ -105,6 +105,7 @@ export function TimetableWeek({
                     slots={slots}
                     days={days}
                     half={half}
+                    halves={halves}
                     periods={periods}
                     hours={hours}
                     showEndLabel={index === halves.length - 1}
@@ -141,6 +142,7 @@ function HalfHourRow({
     slots,
     days,
     half,
+    halves,
     periods,
     hours,
     showEndLabel,
@@ -153,6 +155,7 @@ function HalfHourRow({
     slots: TimetableSlot[];
     days: Date[];
     half: HalfHourSlot;
+    halves: HalfHourSlot[];
     periods: TimetablePeriod[];
     hours: SchoolHours;
     showEndLabel: boolean;
@@ -162,10 +165,14 @@ function HalfHourRow({
 }) {
     const height = halfHeight(half);
     const pause = breakCoveringTime(hours, half.startsAt);
-    const periodStart = periodStartingAt(periods, half.startsAt);
     const periodCover = periodCoveringTime(periods, half.startsAt);
-    const isPeriodContinuation =
-        periodCover !== null && periodCover.startsAt !== half.startsAt;
+    const periodHead =
+        periodCover === null
+            ? null
+            : firstHalfHourForPeriod(halves, periodCover, periods);
+    const isPeriodHead =
+        periodCover !== null && periodHead?.startsAt === half.startsAt;
+    const isPeriodContinuation = periodCover !== null && !isPeriodHead;
 
     return (
         <>
@@ -216,12 +223,12 @@ function HalfHourRow({
                     );
                 }
 
-                const period = periodStart ?? periodCover;
+                const period = periodCover;
                 const periodId =
                     period?.id ??
                     resolvePeriodIdForTime(periods, half.startsAt);
 
-                if (period && periodStart) {
+                if (period && isPeriodHead) {
                     const slot = findSlot(
                         slots,
                         classroomId,
@@ -238,7 +245,7 @@ function HalfHourRow({
                     const spanMinutes = Math.max(
                         30,
                         timeToMinutes(period.endsAt) -
-                            timeToMinutes(period.startsAt),
+                            timeToMinutes(half.startsAt),
                     );
                     const eventHeight = Math.max(
                         height,

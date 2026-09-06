@@ -421,6 +421,23 @@ export function periodCoveringTime(
     );
 }
 
+/**
+ * First 30-min grid row that intersects a lesson period.
+ * Periods often start off the half-hour (e.g. 08:25); the grid is :00/:30 only.
+ */
+export function firstHalfHourForPeriod(
+    halves: readonly HalfHourSlot[],
+    period: Pick<TimetablePeriod, 'id' | 'startsAt' | 'endsAt'>,
+    periods: readonly TimetablePeriod[],
+): HalfHourSlot | null {
+    return (
+        halves.find(
+            (half) =>
+                periodCoveringTime(periods, half.startsAt)?.id === period.id,
+        ) ?? null
+    );
+}
+
 /** Prefer a period that starts at this time, else one covering it, else nearest start. */
 export function resolvePeriodIdForTime(
     periods: readonly TimetablePeriod[],
