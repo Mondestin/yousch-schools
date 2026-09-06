@@ -133,7 +133,14 @@ export default function ReportsIndex({ catalog }: { catalog: SchoolDataset }) {
     ): Promise<void> {
         try {
             const fiche = await fetchBulletin(studentId);
-            printBulletinDocument(`Bulletin : ${name}`, fiche);
+            await printBulletinDocument(`Bulletin : ${name}`, fiche, {
+                authenticity: {
+                    studentId,
+                    termId: currentTerm?.id ?? null,
+                    academicYearId: filter.academicYearId,
+                    issuedOn: new Date().toISOString().slice(0, 10),
+                },
+            });
         } catch (error) {
             toastApiError(error, 'Impossible d’imprimer le bulletin');
         }

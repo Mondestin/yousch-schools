@@ -1,5 +1,8 @@
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { documentAuthenticityQrHtml } from '@/components/sms/document-authenticity-qr';
+import { documentPiedSvgHtml } from '@/components/sms/document-pied';
+import { apiJson } from '@/lib/api';
 import { formatNote } from '@/lib/school-grades';
 import {
     COUNTRY_MOTTO,
@@ -8,6 +11,7 @@ import {
     formatFrDate,
 } from '@/lib/school-rows';
 import { genderLabel } from '@/lib/school-students';
+import { authenticity as mintAuthenticity } from '@/routes/documents';
 import type { Gender, SchoolProfile } from '@/types/school';
 
 export type BulletinLine = {
@@ -343,11 +347,60 @@ export function downloadBulletinPdf(
     doc.setFont('helvetica', 'bold');
     doc.text(escapePdfText(fiche.profile.directorName), rightX, y);
 
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const piedHeight = 1.2;
+    const piedY = pageHeight - piedHeight;
+    const piedBottom = pageHeight;
+
+    // Equal-width Congo tricolor (barely slanted yellow band)
+    const yellowTopLeft = pageWidth * (300 / 900);
+    const yellowTopRight = pageWidth * (600 / 900);
+    const yellowBottomLeft = pageWidth * (288 / 900);
+    const yellowBottomRight = pageWidth * (588 / 900);
+    const redTopLeft = pageWidth * (600 / 900);
+    const redBottomLeft = pageWidth * (588 / 900);
+
+    doc.setFillColor(0, 149, 67);
+    doc.rect(0, piedY, pageWidth, piedHeight, 'F');
+
+    doc.setFillColor(220, 36, 31);
+    doc.lines(
+        [
+            [pageWidth - redTopLeft, 0],
+            [0, piedHeight],
+            [redBottomLeft - pageWidth, 0],
+            [0, -piedHeight],
+        ],
+        redTopLeft,
+        piedY,
+        [1, 1],
+        'F',
+        true,
+    );
+
+    doc.setFillColor(252, 209, 22);
+    doc.lines(
+        [
+            [yellowTopRight - yellowTopLeft, 0],
+            [yellowBottomRight - yellowTopRight, piedHeight],
+            [yellowBottomLeft - yellowBottomRight, 0],
+            [yellowTopLeft - yellowBottomLeft, -piedHeight],
+        ],
+        yellowTopLeft,
+        piedY,
+        [1, 1],
+        'F',
+        true,
+    );
+
     doc.save(filename.endsWith('.pdf') ? filename : `${filename}.pdf`);
 }
 
 /** HTML body for the print dialog - same layout as the maquette (reports/show). */
-export function bulletinPrintHtml(fiche: BulletinApiFiche): string {
+export function bulletinPrintHtml(
+    fiche: BulletinApiFiche,
+    verifyUrl?: string | null,
+): string {
     const logoUrl = absoluteUrl(fiche.profile.logoUrl);
     const stampUrl = absoluteUrl(fiche.profile.stampUrl);
 
@@ -421,27 +474,80 @@ export function bulletinPrintHtml(fiche: BulletinApiFiche): string {
     ${stampUrl ? `<img src="${escapeHtml(stampUrl)}" alt="Cachet et signature" class="stamp" />` : ''}
     <p class="director">Le Directeur<br /><strong>${escapeHtml(fiche.profile.directorName)}</strong></p>
   </div>
-</section>`;
+</section>
+${verifyUrl ? documentAuthenticityQrHtml(verifyUrl) : ''}`;
 }
 
-export function printBulletinDocument(
+export type BulletinPrintOptions = {
+    verifyUrl?: string | null;
+    authenticity?: {
+        studentId: string;
+        termId?: string | null;
+        academicYearId?: string | null;
+        issuedOn?: string | null;
+    };
+};
+
+async function resolveBulletinVerifyUrl(
+    options?: BulletinPrintOptions,
+): Promise<string | null> {
+    if (options?.verifyUrl) {
+        return options.verifyUrl;
+    }
+
+    if (!options?.authenticity?.studentId) {
+        return null;
+    }
+
+    try {
+        const data = await apiJson<{ url: string }>(mintAuthenticity.url(), {
+            method: 'POST',
+            body: {
+                type: 'bulletin',
+                studentId: options.authenticity.studentId,
+                termId: options.authenticity.termId ?? null,
+                academicYearId: options.authenticity.academicYearId ?? null,
+                issuedOn:
+                    options.authenticity.issuedOn ??
+                    new Date().toISOString().slice(0, 10),
+            },
+        });
+
+        return data.url;
+    } catch {
+        return null;
+    }
+}
+
+export async function printBulletinDocument(
     title: string,
     fiche: BulletinApiFiche,
-): void {
+    options?: BulletinPrintOptions,
+): Promise<void> {
+    const verifyUrl = await resolveBulletinVerifyUrl(options);
     const html = `<!doctype html>
 <html lang="fr">
 <head>
 <meta charset="utf-8" />
 <title>${escapeHtml(title)}</title>
 <style>
-  @page { size: A4; margin: 12mm; }
+  @page { size: A4; margin: 0; }
   * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 210mm;
+    min-height: 297mm;
+    background: #fff;
+  }
   body {
     font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
     color: #000;
-    margin: 0;
-    padding: 8mm;
-    background: #fff;
+    position: relative;
+    padding: 12mm 12mm 28mm;
+  }
+  .sheet {
+    min-height: calc(297mm - 40mm);
   }
   .top {
     display: grid;
@@ -534,10 +640,44 @@ export function printBulletinDocument(
     object-fit: contain;
   }
   .director { margin-top: 24px !important; padding-top: 8px; }
+  .authenticity {
+    position: absolute;
+    left: 12mm;
+    bottom: 8mm;
+    width: 44mm;
+  }
+  .authenticity p {
+    margin: 4px 0 0;
+    font-size: 8px;
+    line-height: 1.2;
+    color: rgba(0,0,0,0.7);
+    white-space: nowrap;
+  }
+  .pied {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 210mm;
+    margin: 0;
+    padding: 0;
+    line-height: 0;
+  }
+  .pied svg,
+  .pied .document-pied-svg {
+    display: block;
+    width: 100%;
+    height: 4px;
+  }
 </style>
 </head>
 <body>
-${bulletinPrintHtml(fiche)}
+<div class="sheet">
+${bulletinPrintHtml(fiche, verifyUrl)}
+</div>
+<footer class="pied">
+  ${documentPiedSvgHtml()}
+</footer>
 </body>
 </html>`;
 
@@ -566,14 +706,13 @@ ${bulletinPrintHtml(fiche)}
 
     popup.addEventListener('load', triggerPrint);
 
-    // Some browsers fire load before the listener is attached for blob URLs.
     window.setTimeout(() => {
         try {
             if (popup.document?.readyState === 'complete') {
                 triggerPrint();
             }
         } catch {
-            // Cross-origin edge case - ignore; load handler may still run.
+            // ignore
         }
     }, 250);
 }

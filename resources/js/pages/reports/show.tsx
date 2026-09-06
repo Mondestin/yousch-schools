@@ -1,6 +1,8 @@
 import { Head } from '@inertiajs/react';
 import { Printer } from 'lucide-react';
 import { BulletinLetterhead } from '@/components/sms/bulletin-letterhead';
+import { DocumentAuthenticityQr, useDocumentVerifyUrl } from '@/components/sms/document-authenticity-qr';
+import { DocumentPied } from '@/components/sms/document-pied';
 import { DocumentStamp } from '@/components/sms/document-stamp';
 import { PageShell } from '@/components/sms/page-shell';
 import { Button } from '@/components/ui/button';
@@ -32,6 +34,15 @@ export default function ReportShowPage({
     const resolvedTermId = termId || defaultTermId(catalog, filter);
     const fiche = bulletinFiche(catalog, studentId, resolvedTermId);
 
+    const authenticityClaims = {
+        type: 'bulletin' as const,
+        studentId,
+        termId: resolvedTermId,
+        academicYearId: filter.academicYearId,
+        issuedOn: new Date().toISOString().slice(0, 10),
+    };
+    const verifyUrl = useDocumentVerifyUrl(authenticityClaims);
+
     if (!fiche) {
         return null;
     }
@@ -55,9 +66,10 @@ export default function ReportShowPage({
     }
 
     function printMaquette(): void {
-        printBulletinDocument(
+        void printBulletinDocument(
             `Bulletin : ${bulletin.name}`,
             bulletin as BulletinApiFiche,
+            { verifyUrl },
         );
     }
 
@@ -210,6 +222,11 @@ export default function ReportShowPage({
                             </p>
                         </div>
                     </section>
+                    <DocumentAuthenticityQr
+                        claims={authenticityClaims}
+                        verifyUrl={verifyUrl}
+                    />
+                    <DocumentPied />
                 </article>
             </PageShell>
         </>
