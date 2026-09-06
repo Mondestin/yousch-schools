@@ -1,5 +1,5 @@
 ---
 deployment:
-  tasks:
-    - export DEPLOYPATH=/home/mymo4034/schools.yousch.net/
-    - /usr/bin/rsync -a --delete --exclude='.git' ./ $DEPLOYPATH
+    tasks:
+        - export DEPLOYPATH=/home/mymo4034/schools.yousch.net/
+        - /usr/bin/rsync -a --delete --exclude='.git' ./ $DEPLOYPATH
