@@ -20,6 +20,7 @@ use App\Support\Api\ResourceId;
 use App\Support\School\MatriculeGenerator;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -283,7 +284,27 @@ class AdmissionController extends Controller
     }
 
     /**
-     * @return array<string, mixed>
+     * @return array{
+     *     academicYearId: string,
+     *     cycle: string,
+     *     classroomId: string,
+     *     trackId?: string|null,
+     *     submittedOn?: string|null,
+     *     firstName: string,
+     *     lastName: string,
+     *     gender: string,
+     *     bornOn: string,
+     *     city: string,
+     *     neighborhood: string,
+     *     address?: string|null,
+     *     phone?: string|null,
+     *     guardianLastName: string,
+     *     guardianFirstName: string,
+     *     guardianPhone: string,
+     *     guardianRelation: string,
+     *     notes?: string|null,
+     *     files?: list<UploadedFile>|null
+     * }
      */
     private function validatedAdmission(Request $request): array
     {

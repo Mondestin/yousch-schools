@@ -64,10 +64,15 @@ final class SchoolCatalog
                 : ($allowedCycles[0] ?? 'primaire');
         }
 
-        $years = collect($dataset['academicYears']);
+        $academicYears = $dataset['academicYears'] ?? [];
+        if (! is_array($academicYears)) {
+            throw new RuntimeException('School catalog has no academic year.');
+        }
+
+        $years = collect($academicYears);
         $annee = $request->query('annee');
         $year = is_string($annee)
-            ? $years->first(fn (array $row) => self::yearQuery($row['label']) === $annee)
+            ? $years->first(fn (mixed $row): bool => is_array($row) && self::yearQuery((string) $row['label']) === $annee)
             : null;
 
         if (! is_array($year)) {
@@ -80,9 +85,9 @@ final class SchoolCatalog
 
         return [
             'cycle' => $cycle,
-            'annee' => self::yearQuery($year['label']),
-            'academicYearId' => $year['id'],
-            'academicYearLabel' => $year['label'],
+            'annee' => self::yearQuery((string) $year['label']),
+            'academicYearId' => (string) $year['id'],
+            'academicYearLabel' => (string) $year['label'],
             'staffRole' => $staffRole,
             'rolePreview' => $rolePreview,
             'allowedCycles' => $allowedCycles,
@@ -96,7 +101,6 @@ final class SchoolCatalog
     public static function staffRole(?Request $request = null, ?array $dataset = null): array
     {
         $request ??= request();
-        $dataset ??= self::dataset();
         $roles = ['admin', 'directeur', 'secretaire', 'enseignant'];
         $preview = $request->query('role');
 
@@ -106,21 +110,8 @@ final class SchoolCatalog
 
         $user = $request->user();
 
-        if ($user !== null && isset($user->role) && $user->role !== null) {
-            $role = $user->role instanceof \BackedEnum
-                ? $user->role->value
-                : (string) $user->role;
-
-            if (in_array($role, $roles, true)) {
-                return [$role, false];
-            }
-        }
-
-        $email = $user?->email;
-        $match = collect($dataset['staffUsers'] ?? [])->firstWhere('email', $email);
-
-        if (is_array($match) && in_array($match['role'] ?? null, $roles, true)) {
-            return [$match['role'], false];
+        if ($user !== null) {
+            return [$user->role->value, false];
         }
 
         return ['admin', false];
@@ -132,37 +123,63 @@ final class SchoolCatalog
      */
     public static function allowedCycles(?Request $request, array $dataset, bool $rolePreview): array
     {
-        $catalogCycles = collect($dataset['cycles'])->pluck('value')->values();
+        $catalogCycles = self::cycleValues($dataset);
 
         if ($rolePreview) {
-            return $catalogCycles->all();
+            return $catalogCycles;
         }
 
         $user = $request?->user();
 
         if ($user !== null && is_array($user->cycles ?? null) && $user->cycles !== []) {
-            $allowed = $catalogCycles
-                ->filter(fn (mixed $cycle) => in_array($cycle, $user->cycles, true))
-                ->values()
-                ->all();
+            $allowed = array_values(array_filter(
+                $catalogCycles,
+                static fn (string $cycle): bool => in_array($cycle, $user->cycles, true),
+            ));
 
-            return $allowed === [] ? $catalogCycles->all() : $allowed;
+            return $allowed === [] ? $catalogCycles : $allowed;
         }
 
         $email = $user?->email;
-        $match = collect($dataset['staffUsers'] ?? [])->firstWhere('email', $email);
+        $staffUsers = $dataset['staffUsers'] ?? [];
+        $match = is_array($staffUsers)
+            ? collect($staffUsers)->firstWhere('email', $email)
+            : null;
         $assigned = is_array($match) ? ($match['cycles'] ?? null) : null;
 
         if (! is_array($assigned) || $assigned === []) {
-            return $catalogCycles->all();
+            return $catalogCycles;
         }
 
-        $allowed = $catalogCycles
-            ->filter(fn (mixed $cycle) => in_array($cycle, $assigned, true))
-            ->values()
-            ->all();
+        $allowed = array_values(array_filter(
+            $catalogCycles,
+            static fn (string $cycle): bool => in_array($cycle, $assigned, true),
+        ));
 
-        return $allowed === [] ? $catalogCycles->all() : $allowed;
+        return $allowed === [] ? $catalogCycles : $allowed;
+    }
+
+    /**
+     * @param  array<string, mixed>  $dataset
+     * @return list<string>
+     */
+    private static function cycleValues(array $dataset): array
+    {
+        $cycles = $dataset['cycles'] ?? [];
+        if (! is_array($cycles)) {
+            return [];
+        }
+
+        return array_values(array_filter(array_map(
+            static function (mixed $row): ?string {
+                if (! is_array($row) || ! isset($row['value']) || ! is_string($row['value'])) {
+                    return null;
+                }
+
+                return $row['value'];
+            },
+            $cycles,
+        )));
     }
 
     /**

@@ -19,7 +19,7 @@ export default function ResetPassword({ token, email, passwordRules }: Props) {
             <Head title="Réinitialiser le mot de passe" />
 
             <Form
-                {...update.form()}
+                action={update()}
                 transform={(data) => ({ ...data, token, email })}
                 resetOnSuccess={['password', 'password_confirmation']}
             >

@@ -9,8 +9,10 @@ use App\Models\User;
 use App\Support\SchoolCatalog;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use RuntimeException;
 
 class SchoolProfileController extends Controller
 {
@@ -98,15 +100,33 @@ class SchoolProfileController extends Controller
         }
 
         if ($request->hasFile('logo')) {
-            $this->deleteStoredUrl($profile->logo_url);
-            $path = $request->file('logo')->store('school', 'public');
-            $profile->logo_url = Storage::disk('public')->url($path);
+            $logo = $request->file('logo');
+
+            if ($logo instanceof UploadedFile) {
+                $this->deleteStoredUrl($profile->logo_url);
+                $path = $logo->store('school', 'public');
+
+                if ($path === false) {
+                    throw new RuntimeException('Impossible d’enregistrer le logo.');
+                }
+
+                $profile->logo_url = Storage::disk('public')->url($path);
+            }
         }
 
         if ($request->hasFile('stamp')) {
-            $this->deleteStoredUrl($profile->stamp_url);
-            $path = $request->file('stamp')->store('school', 'public');
-            $profile->stamp_url = Storage::disk('public')->url($path);
+            $stamp = $request->file('stamp');
+
+            if ($stamp instanceof UploadedFile) {
+                $this->deleteStoredUrl($profile->stamp_url);
+                $path = $stamp->store('school', 'public');
+
+                if ($path === false) {
+                    throw new RuntimeException('Impossible d’enregistrer le tampon.');
+                }
+
+                $profile->stamp_url = Storage::disk('public')->url($path);
+            }
         }
 
         $profile->save();

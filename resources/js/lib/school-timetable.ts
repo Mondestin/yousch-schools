@@ -504,7 +504,12 @@ export function timetableDaySegments(
     }
 
     const events: Array<
-        | { kind: 'period'; startsAt: string; endsAt: string; period: TimetablePeriod }
+        | {
+              kind: 'period';
+              startsAt: string;
+              endsAt: string;
+              period: TimetablePeriod;
+          }
         | { kind: 'break'; startsAt: string; endsAt: string; label: string }
     > = [
         ...periods
@@ -516,14 +521,13 @@ export function timetableDaySegments(
             )
             .map((period) => ({
                 kind: 'period' as const,
-                startsAt: period.startsAt < dayStart ? dayStart : period.startsAt,
+                startsAt:
+                    period.startsAt < dayStart ? dayStart : period.startsAt,
                 endsAt: period.endsAt > dayEnd ? dayEnd : period.endsAt,
                 period,
             })),
         ...schoolBreaks(hours)
-            .filter(
-                (item) => item.startsAt < dayEnd && item.endsAt > dayStart,
-            )
+            .filter((item) => item.startsAt < dayEnd && item.endsAt > dayStart)
             .map((item) => ({
                 kind: 'break' as const,
                 startsAt: item.startsAt < dayStart ? dayStart : item.startsAt,

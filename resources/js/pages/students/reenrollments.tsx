@@ -323,10 +323,13 @@ export default function StudentsReenrollments({
 
         try {
             const saved = editingId
-                ? await apiData<Reenrollment>(updateReenrollment.url(editingId), {
-                      method: 'PUT',
-                      body: payload,
-                  })
+                ? await apiData<Reenrollment>(
+                      updateReenrollment.url(editingId),
+                      {
+                          method: 'PUT',
+                          body: payload,
+                      },
+                  )
                 : await apiData<Reenrollment>(storeReenrollment.url(), {
                       method: 'POST',
                       body: payload,

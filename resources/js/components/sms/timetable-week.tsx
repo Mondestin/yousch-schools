@@ -121,17 +121,11 @@ function halfHeight(half: HalfHourSlot): number {
     return Math.max(24, (half.minutes / 30) * HALF_HOUR_HEIGHT_PX);
 }
 
-function AddBox({
-    height,
-    onClick,
-}: {
-    height: number;
-    onClick: () => void;
-}) {
+function AddBox({ height, onClick }: { height: number; onClick: () => void }) {
     return (
         <button
             type="button"
-            className="text-muted-foreground/70 hover:border-primary hover:text-primary border-border flex w-full items-center justify-center rounded-md border border-dashed transition group-hover:text-muted-foreground"
+            className="text-muted-foreground/70 hover:border-primary hover:text-primary border-border group-hover:text-muted-foreground flex w-full items-center justify-center rounded-md border border-dashed transition"
             style={{ minHeight: Math.max(28, height - 8) }}
             onClick={onClick}
         >

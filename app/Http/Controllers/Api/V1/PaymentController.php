@@ -162,7 +162,14 @@ class PaymentController extends Controller
     }
 
     /**
-     * @return array<string, mixed>
+     * @return array{
+     *     enrollmentId: string,
+     *     month: string,
+     *     amount: int,
+     *     expectedAmount?: int|null,
+     *     paidOn?: string|null,
+     *     method?: string|null
+     * }
      */
     private function validatedPayment(Request $request, ?Payment $existing = null): array
     {

@@ -55,13 +55,18 @@ final class SchoolDocumentBuilder
             ? 'Attestation de scolarité'
             : 'Certificat de fréquentation';
 
+        $issuedOn = now();
+        $issuedOn->locale('fr');
+        $bornOn = $student->born_on;
+        $bornOn->locale('fr');
+
         return [
             'kind' => $kind,
             'title' => $title,
-            'issuedOn' => now()->locale('fr')->translatedFormat('j F Y'),
+            'issuedOn' => $issuedOn->translatedFormat('j F Y'),
             'name' => trim($student->first_name.' '.$student->last_name),
-            'classroomName' => $classroom?->name ?? '—',
-            'yearLabel' => $year?->label ?? '—',
+            'classroomName' => $classroom !== null ? $classroom->name : '—',
+            'yearLabel' => $year !== null ? $year->label : '—',
             'trackCode' => $track?->code,
             'student' => $student->toApiArray(),
             'enrollment' => $enrollment->toApiArray(),
@@ -69,9 +74,9 @@ final class SchoolDocumentBuilder
             'year' => $year?->toApiArray(),
             'track' => $track?->toApiArray(),
             'genderLabel' => $student->gender->label(),
-            'bornOnLabel' => $student->born_on->locale('fr')->translatedFormat('j F Y'),
+            'bornOnLabel' => $bornOn->translatedFormat('j F Y'),
             'profile' => $profilePayload,
-            'files' => $student->dossierFiles->map->toApiArray()->values()->all(),
+            'files' => array_values($student->dossierFiles->map->toApiArray()->all()),
         ];
     }
 }

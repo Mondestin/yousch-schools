@@ -111,7 +111,13 @@ class EnrollmentController extends Controller
     }
 
     /**
-     * @return array<string, mixed>
+     * @return array{
+     *     studentId: string,
+     *     classroomId: string,
+     *     academicYearId: string,
+     *     trackId?: string|null,
+     *     status?: string|null
+     * }
      */
     private function validatedEnrollment(Request $request, ?Enrollment $existing = null): array
     {

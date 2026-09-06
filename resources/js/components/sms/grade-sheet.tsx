@@ -130,71 +130,6 @@ export function GradeSheet({
         return score === null ? '' : String(score);
     }
 
-    function applyScore(enrollmentId: string, raw: string): boolean {
-        const parsed = parseNote(raw);
-
-        if (parsed === null) {
-            setGrades((current) =>
-                current.filter(
-                    (grade) =>
-                        !(
-                            grade.enrollmentId === enrollmentId &&
-                            grade.assessmentId === assessmentId
-                        ),
-                ),
-            );
-            setDrafts((current) => {
-                const next = { ...current };
-                delete next[enrollmentId];
-
-                return next;
-            });
-
-            return true;
-        }
-
-        if (!isNoteInRange(parsed)) {
-            toast.error('La note doit être comprise entre 0 et 20.');
-
-            return false;
-        }
-
-        setGrades((current) => {
-            const existing = current.find(
-                (grade) =>
-                    grade.enrollmentId === enrollmentId &&
-                    grade.assessmentId === assessmentId,
-            );
-
-            if (existing) {
-                return current.map((grade) =>
-                    grade.id === existing.id
-                        ? { ...grade, score: parsed }
-                        : grade,
-                );
-            }
-
-            return [
-                ...current,
-                {
-                    id: `gr-local-${enrollmentId}-${assessmentId}`,
-                    enrollmentId,
-                    assessmentId,
-                    subjectId: grid?.assessment.subjectId ?? '',
-                    score: parsed,
-                },
-            ];
-        });
-        setDrafts((current) => {
-            const next = { ...current };
-            delete next[enrollmentId];
-
-            return next;
-        });
-
-        return true;
-    }
-
     async function saveAll(): Promise<void> {
         if (!assessmentId || !grid) {
             return;
@@ -227,7 +162,10 @@ export function GradeSheet({
                     score: parsed,
                 };
             })
-            .filter((item): item is { enrollmentId: string; score: number } => item !== null);
+            .filter(
+                (item): item is { enrollmentId: string; score: number } =>
+                    item !== null,
+            );
 
         if (gradesPayload.length === 0) {
             toast.error('Aucune note à enregistrer.');

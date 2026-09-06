@@ -87,8 +87,8 @@ class SchoolPagesController extends Controller
 
     public function showGuardian(string $guardian): Response
     {
-        $exists = collect(SchoolCatalog::dataset()['guardians'])
-            ->contains('id', $guardian);
+        $guardians = SchoolCatalog::dataset()['guardians'] ?? [];
+        $exists = is_array($guardians) && collect($guardians)->contains('id', $guardian);
 
         abort_unless($exists, 404);
 
@@ -110,8 +110,8 @@ class SchoolPagesController extends Controller
 
     public function showTeacher(string $teacher): Response
     {
-        $exists = collect(SchoolCatalog::dataset()['teachers'])
-            ->contains('id', $teacher);
+        $teachers = SchoolCatalog::dataset()['teachers'] ?? [];
+        $exists = is_array($teachers) && collect($teachers)->contains('id', $teacher);
 
         abort_unless($exists, 404);
 
@@ -282,8 +282,8 @@ class SchoolPagesController extends Controller
 
     private function ensureStudent(string $student): void
     {
-        $exists = collect(SchoolCatalog::dataset()['students'])
-            ->contains('id', $student);
+        $students = SchoolCatalog::dataset()['students'] ?? [];
+        $exists = is_array($students) && collect($students)->contains('id', $student);
 
         abort_unless($exists, 404);
     }
@@ -293,10 +293,13 @@ class SchoolPagesController extends Controller
         $this->ensureStudent($student);
 
         $dataset = SchoolCatalog::dataset();
-        $enrollmentIds = collect($dataset['enrollments'])
-            ->where('studentId', $student)
-            ->pluck('id');
-        $exists = collect($dataset['payments'])->contains(
+        $enrollments = $dataset['enrollments'] ?? [];
+        $payments = $dataset['payments'] ?? [];
+
+        $enrollmentIds = is_array($enrollments)
+            ? collect($enrollments)->where('studentId', $student)->pluck('id')
+            : collect();
+        $exists = is_array($payments) && collect($payments)->contains(
             fn (array $row) => $row['id'] === $payment && $enrollmentIds->contains($row['enrollmentId']),
         );
 

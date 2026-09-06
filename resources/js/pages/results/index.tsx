@@ -10,10 +10,11 @@ import { EmptyState } from '@/components/sms/empty-state';
 import { PageHeader } from '@/components/sms/page-header';
 import { PageShell } from '@/components/sms/page-shell';
 import { PageToolbar } from '@/components/sms/page-toolbar';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { PersonCell } from '@/components/sms/person-cell';
 import { SearchSelect } from '@/components/sms/search-select';
+import { TablePagination } from '@/components/sms/table-pagination';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
     Select,
     SelectContent,
@@ -29,6 +30,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import { useClientTable } from '@/hooks/use-client-table';
 import { useSchoolContext } from '@/hooks/use-school-context';
 import { classResults, defaultTermId, formatNote } from '@/lib/school-grades';
 import { classroomsForOffice } from '@/lib/school-office';
@@ -52,6 +54,8 @@ export default function ResultsIndex({ catalog }: { catalog: SchoolDataset }) {
                 : null,
         [catalog, classroomId, termId],
     );
+    const rows = report?.rows ?? [];
+    const table = useClientTable(rows);
 
     return (
         <>
@@ -132,7 +136,7 @@ export default function ResultsIndex({ catalog }: { catalog: SchoolDataset }) {
                         />
                     }
                     empty={
-                        !report || report.rows.length === 0 ? (
+                        rows.length === 0 ? (
                             <EmptyState
                                 icon={Trophy}
                                 title="Aucun résultat à afficher"
@@ -140,8 +144,22 @@ export default function ResultsIndex({ catalog }: { catalog: SchoolDataset }) {
                             />
                         ) : undefined
                     }
+                    footer={
+                        rows.length > 0 ? (
+                            <TablePagination
+                                from={table.from}
+                                to={table.to}
+                                total={table.total}
+                                page={table.page}
+                                lastPage={table.lastPage}
+                                pageSize={table.pageSize}
+                                onPageChange={table.setPage}
+                                onPageSizeChange={table.setPageSize}
+                            />
+                        ) : undefined
+                    }
                 >
-                    {report && report.rows.length > 0 ? (
+                    {rows.length > 0 ? (
                         <Table containerClassName={DATA_TABLE_CONTAINER}>
                             <TableHeader>
                                 <TableRow>
@@ -178,7 +196,7 @@ export default function ResultsIndex({ catalog }: { catalog: SchoolDataset }) {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {report.rows.map((row) => (
+                                {table.pageRows.map((row) => (
                                     <TableRow key={row.studentId}>
                                         <TableCell>{row.rank ?? '—'}</TableCell>
                                         <TableCell>{row.matricule}</TableCell>

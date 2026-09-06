@@ -244,9 +244,7 @@ export default function StudentDisciplinePage({
                     }
                 }}
                 title={viewing?.type ?? 'Sanction'}
-                description={
-                    viewing ? formatFrDate(viewing.date) : undefined
-                }
+                description={viewing ? formatFrDate(viewing.date) : undefined}
                 fields={
                     viewing
                         ? [
@@ -287,12 +285,7 @@ export default function StudentDisciplinePage({
                         }
                     />
                 </Field>
-                <Field
-                    id="reason"
-                    label="Motif"
-                    required
-                    error={errors.reason}
-                >
+                <Field id="reason" label="Motif" required error={errors.reason}>
                     <Textarea
                         id="reason"
                         value={form.reason}

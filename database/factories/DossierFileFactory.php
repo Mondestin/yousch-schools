@@ -23,7 +23,7 @@ class DossierFileFactory extends Factory
             'id' => 'df-'.Str::lower(Str::ulid()),
             'fileable_type' => Student::class,
             'fileable_id' => Student::factory(),
-            'name' => fake()->words(3, true).'.pdf',
+            'name' => fake()->word().'-'.fake()->word().'.pdf',
             'url' => '/storage/dossiers/'.Str::uuid().'.pdf',
             'mime' => 'application/pdf',
         ];

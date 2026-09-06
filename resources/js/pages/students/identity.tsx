@@ -22,7 +22,12 @@ import { toastApiError, toastSaved } from '@/lib/school-toast';
 import { ApiError, apiData } from '@/lib/api';
 import { update as updateStudent } from '@/routes/api/v1/students';
 import { index as students } from '@/routes/students';
-import type { DossierFile, Gender, SchoolDataset, Student } from '@/types/school';
+import type {
+    DossierFile,
+    Gender,
+    SchoolDataset,
+    Student,
+} from '@/types/school';
 
 const STEPS = [
     { id: 'identity', title: 'Identité' },
@@ -241,9 +246,7 @@ export default function StudentIdentityPage({
                     <FormStepActions
                         current={step}
                         total={STEPS.length}
-                        submitLabel={
-                            saving ? 'Enregistrement…' : 'Enregistrer'
-                        }
+                        submitLabel={saving ? 'Enregistrement…' : 'Enregistrer'}
                         disabled={saving}
                         onCancel={() => setOpen(false)}
                         onBack={() =>

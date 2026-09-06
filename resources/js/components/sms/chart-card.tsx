@@ -12,6 +12,7 @@ export function ChartCard({
     height = 240,
     loading = false,
     legend,
+    summary,
     className,
     children,
 }: {
@@ -22,6 +23,7 @@ export function ChartCard({
     height?: number;
     loading?: boolean;
     legend?: ReactNode;
+    summary?: string;
     className?: string;
     /** A single recharts chart element. */
     children: ReactNode;
@@ -44,7 +46,13 @@ export function ChartCard({
                 </div>
                 {action}
             </div>
-            <div className="px-2 pt-4 pb-2">
+            <div
+                className="px-2 pt-4 pb-2"
+                role="img"
+                aria-label={
+                    summary ?? [title, description].filter(Boolean).join('. ')
+                }
+            >
                 {loading ? (
                     <Skeleton
                         className="mx-2 rounded-[8px]"

@@ -6,6 +6,7 @@ use App\Enums\AdmissionStatus;
 use App\Enums\Cycle;
 use App\Enums\Gender;
 use App\Enums\GuardianRelation;
+use App\Models\Contracts\HasDossierFiles;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -34,6 +35,8 @@ use Illuminate\Support\Carbon;
  * @property GuardianRelation $guardian_relation
  * @property string|null $notes
  * @property string|null $student_id
+ *
+ * @implements HasDossierFiles<$this>
  */
 #[Fillable([
     'id',
@@ -58,7 +61,7 @@ use Illuminate\Support\Carbon;
     'notes',
     'student_id',
 ])]
-class Admission extends Model
+class Admission extends Model implements HasDossierFiles
 {
     public $incrementing = false;
 
@@ -95,9 +98,6 @@ class Admission extends Model
         return $this->belongsTo(Classroom::class);
     }
 
-    /**
-     * @return MorphMany<DossierFile, $this>
-     */
     public function files(): MorphMany
     {
         return $this->morphMany(DossierFile::class, 'fileable');

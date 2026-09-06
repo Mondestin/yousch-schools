@@ -29,7 +29,9 @@ class TeacherFactory extends Factory
             'gender' => fake()->randomElement(Gender::cases())->value,
             'qualification' => fake()->randomElement(['Licence', 'Master', 'CAPES']),
             'hired_on' => fake()->dateTimeBetween('-10 years', '-1 month')->format('Y-m-d'),
-            'born_on' => fake()->optional()->dateTimeBetween('-60 years', '-25 years')?->format('Y-m-d'),
+            'born_on' => fake()->boolean(70)
+                ? fake()->dateTimeBetween('-60 years', '-25 years')->format('Y-m-d')
+                : null,
             'email' => fake()->optional()->safeEmail(),
             'address' => fake()->optional()->streetAddress(),
             'position' => fake()->optional()->randomElement(['Professeur', 'Professeur principal']),

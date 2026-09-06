@@ -142,7 +142,9 @@ export default function StructureYearsPage({
     async function remove(year: AcademicYear): Promise<void> {
         try {
             await apiJson(destroyYear.url(year.id), { method: 'DELETE' });
-            setYears((current) => current.filter((item) => item.id !== year.id));
+            setYears((current) =>
+                current.filter((item) => item.id !== year.id),
+            );
             setTerms((current) =>
                 current.filter((term) => term.academicYearId !== year.id),
             );

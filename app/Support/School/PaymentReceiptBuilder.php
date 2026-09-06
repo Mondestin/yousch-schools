@@ -54,23 +54,37 @@ final class PaymentReceiptBuilder
 
         $lines = collect($months)->map(function (string $month) use ($enrollment, $posted, $monthly): array {
             $payment = $posted->get($month);
-            $amount = $payment?->amount ?? 0;
-            $expectedAmount = $payment?->expected_amount ?? $monthly;
-            $status = $payment?->status->value
-                ?? TuitionFee::statusFromAmount(0, $expectedAmount)->value;
+
+            if ($payment instanceof Payment) {
+                return [
+                    'id' => $payment->id,
+                    'enrollmentId' => $enrollment->id,
+                    'month' => $month,
+                    'amount' => $payment->amount,
+                    'expectedAmount' => $payment->expected_amount,
+                    'remaining' => max(0, $payment->expected_amount - $payment->amount),
+                    'status' => $payment->status->value,
+                    'paidOn' => $payment->paid_on?->format('Y-m-d'),
+                    'method' => $payment->method?->value,
+                    'monthLabel' => $this->formatFrMonth($month),
+                    'posted' => true,
+                ];
+            }
+
+            $expectedAmount = $monthly;
 
             return [
-                'id' => $payment?->id ?? 'due-'.$enrollment->id.'-'.$month,
+                'id' => 'due-'.$enrollment->id.'-'.$month,
                 'enrollmentId' => $enrollment->id,
                 'month' => $month,
-                'amount' => $amount,
+                'amount' => 0,
                 'expectedAmount' => $expectedAmount,
-                'remaining' => max(0, $expectedAmount - $amount),
-                'status' => $status,
-                'paidOn' => $payment?->paid_on?->format('Y-m-d'),
-                'method' => $payment?->method?->value,
+                'remaining' => max(0, $expectedAmount),
+                'status' => TuitionFee::statusFromAmount(0, $expectedAmount)->value,
+                'paidOn' => null,
+                'method' => null,
                 'monthLabel' => $this->formatFrMonth($month),
-                'posted' => $payment !== null,
+                'posted' => false,
             ];
         })->values()->all();
 
@@ -79,6 +93,8 @@ final class PaymentReceiptBuilder
             ->sum('amount');
 
         $profile = SchoolProfile::query()->first();
+        $issuedOn = now();
+        $issuedOn->locale('fr');
 
         return [
             'student' => $student->toApiArray(),
@@ -87,8 +103,8 @@ final class PaymentReceiptBuilder
             'year' => $year?->toApiArray(),
             'track' => $track?->toApiArray(),
             'name' => trim($student->first_name.' '.$student->last_name),
-            'classroomName' => $classroom?->name ?? '—',
-            'yearLabel' => $year?->label ?? '—',
+            'classroomName' => $classroom !== null ? $classroom->name : '—',
+            'yearLabel' => $year !== null ? $year->label : '—',
             'trackCode' => $track?->code,
             'lines' => $lines,
             'monthlyAmount' => $monthly,
@@ -96,7 +112,7 @@ final class PaymentReceiptBuilder
             'paidTotal' => (int) $paidTotal,
             'unpaidTotal' => max(0, ($monthly * self::ANNUAL_FEE_MONTHS) - (int) $paidTotal),
             'profile' => $profile?->toApiArray() ?? SchoolCatalog::fixture()['profile'],
-            'issuedOn' => now()->locale('fr')->translatedFormat('j F Y'),
+            'issuedOn' => $issuedOn->translatedFormat('j F Y'),
         ];
     }
 
@@ -117,8 +133,9 @@ final class PaymentReceiptBuilder
 
     private function formatFrMonth(string $month): string
     {
-        return Carbon::createFromFormat('Y-m', $month)
-            ->locale('fr')
-            ->translatedFormat('F Y');
+        $date = Carbon::parse($month.'-01');
+        $date->locale('fr');
+
+        return $date->translatedFormat('F Y');
     }
 }

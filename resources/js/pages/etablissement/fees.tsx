@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/table';
 import { formatFcfa } from '@/lib/school-rows';
 import { toastApiError, toastSaved } from '@/lib/school-toast';
-import { ApiError, apiData } from '@/lib/api';
+import { apiData } from '@/lib/api';
 import { upsert as upsertFees } from '@/routes/api/v1/school/fees';
 import { fees as schoolFees, index as school } from '@/routes/etablissement';
 import type { Cycle, FeeTariff, SchoolDataset } from '@/types/school';

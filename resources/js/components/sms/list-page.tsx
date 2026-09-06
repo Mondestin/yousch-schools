@@ -75,6 +75,7 @@ export function ListPage({
                             onChange={(event) =>
                                 onSearchChange(event.target.value)
                             }
+                            aria-label={`Rechercher dans ${title}`}
                             placeholder={searchPlaceholder}
                         />
                     }

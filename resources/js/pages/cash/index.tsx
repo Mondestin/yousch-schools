@@ -223,10 +223,13 @@ export default function CashIndex({ catalog }: { catalog: SchoolDataset }) {
 
         try {
             const saved = editingId
-                ? await apiData<CashMovement>(updateCashMovement.url(editingId), {
-                      method: 'PUT',
-                      body: payload,
-                  })
+                ? await apiData<CashMovement>(
+                      updateCashMovement.url(editingId),
+                      {
+                          method: 'PUT',
+                          body: payload,
+                      },
+                  )
                 : await apiData<CashMovement>(storeCashMovement.url(), {
                       method: 'POST',
                       body: payload,

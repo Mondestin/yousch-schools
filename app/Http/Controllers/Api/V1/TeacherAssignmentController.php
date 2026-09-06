@@ -109,7 +109,13 @@ class TeacherAssignmentController extends Controller
     }
 
     /**
-     * @return array<string, mixed>
+     * @return array{
+     *     teacherId: string,
+     *     academicYearId: string,
+     *     classroomId: string,
+     *     subjectId: string,
+     *     trackId?: string|null
+     * }
      */
     private function validatedAssignment(Request $request, ?TeacherAssignment $existing = null): array
     {
@@ -144,7 +150,13 @@ class TeacherAssignmentController extends Controller
     }
 
     /**
-     * @param  array<string, mixed>  $validated
+     * @param  array{
+     *     teacherId: string,
+     *     academicYearId: string,
+     *     classroomId: string,
+     *     subjectId: string,
+     *     trackId?: string|null
+     * }  $validated
      */
     private function assertConsistency(array $validated): void
     {

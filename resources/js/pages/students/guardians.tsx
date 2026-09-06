@@ -34,10 +34,7 @@ import {
 } from '@/lib/school-students';
 import { toastApiError, toastRemoved, toastSaved } from '@/lib/school-toast';
 import { ApiError, apiJson } from '@/lib/api';
-import {
-    attachStudent,
-    detachStudent,
-} from '@/routes/api/v1/guardians';
+import { attachStudent, detachStudent } from '@/routes/api/v1/guardians';
 import { show as showGuardian } from '@/routes/guardians';
 import { index as students } from '@/routes/students';
 import type {

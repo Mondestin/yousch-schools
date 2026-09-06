@@ -2,12 +2,15 @@
 
 namespace App\Http\Controllers\Api\V1\Concerns;
 
+use App\Models\Contracts\HasDossierDocuments;
+use App\Models\Contracts\HasDossierFiles;
 use App\Models\DossierFile;
 use App\Support\Api\ResourceId;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use RuntimeException;
 
 trait ManagesDossierUploads
 {
@@ -23,27 +26,43 @@ trait ManagesDossierUploads
             return $currentUrl;
         }
 
+        $photo = $request->file('photo');
+
+        if (! $photo instanceof UploadedFile) {
+            return $currentUrl;
+        }
+
         $this->deleteStoredPublicUrl($currentUrl);
-        $path = $request->file('photo')->store($directory, 'public');
+        $path = $photo->store($directory, 'public');
+
+        if ($path === false) {
+            throw new RuntimeException('Impossible d’enregistrer la photo.');
+        }
 
         return Storage::disk('public')->url($path);
     }
 
     /**
-     * @param  list<UploadedFile>|null  $files
+     * @param  UploadedFile|array<int, mixed>|null  $files
      */
-    protected function storeDossierFiles(Model $fileable, ?array $files, string $directory): void
+    protected function storeDossierFiles(Model $fileable, UploadedFile|array|null $files, string $directory): void
     {
         if ($files === null) {
             return;
         }
 
-        foreach ($files as $file) {
+        $uploads = $files instanceof UploadedFile ? [$files] : $files;
+
+        foreach ($uploads as $file) {
             if (! $file instanceof UploadedFile) {
                 continue;
             }
 
             $path = $file->store($directory, 'public');
+
+            if ($path === false) {
+                throw new RuntimeException('Impossible d’enregistrer le fichier.');
+            }
 
             DossierFile::query()->create([
                 'id' => ResourceId::make('df'),
@@ -58,13 +77,13 @@ trait ManagesDossierUploads
 
     protected function copyDossierFiles(Model $from, Model $to): void
     {
-        if (! method_exists($from, 'dossierFiles') && ! method_exists($from, 'files')) {
+        if ($from instanceof HasDossierFiles) {
+            $source = $from->files()->get();
+        } elseif ($from instanceof HasDossierDocuments) {
+            $source = $from->dossierFiles()->get();
+        } else {
             return;
         }
-
-        $source = method_exists($from, 'dossierFiles')
-            ? $from->dossierFiles()->get()
-            : $from->files()->get();
 
         foreach ($source as $file) {
             DossierFile::query()->create([
