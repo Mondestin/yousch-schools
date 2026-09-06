@@ -13,6 +13,12 @@ declare module '@inertiajs/core' {
             name: string;
             auth: Auth;
             sidebarOpen: boolean;
+            currentSchool: {
+                id: string;
+                name: string;
+                domain: string;
+                status: string;
+            } | null;
             schoolContext: SchoolContext;
             catalog: SchoolDataset | null;
             [key: string]: unknown;

@@ -52,7 +52,7 @@ export default function StructureLayout({ children }: PropsWithChildren) {
             <PageHeader
                 flush
                 title="Structure"
-                description={`Années, classes, salles et horaires ${cycleLabel(cycle)} — affichage 6ème, 2nde, 1ère.`}
+                description={`Années, classes, salles et horaires ${cycleLabel(cycle)} - affichage 6ème, 2nde, 1ère.`}
             />
             <PageTabs flush items={tabs} />
             {children}

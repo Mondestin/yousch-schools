@@ -27,7 +27,7 @@ test('grades bulk upsert validates 0 to 20 and unique enrollment assessment subj
 
     $assessment = $this->postJson('/api/v1/assessments', [
         'type' => 'devoir',
-        'name' => 'Devoir 2 — Mathématiques',
+        'name' => 'Devoir 2 - Mathématiques',
         'classroomId' => 'cr-6eme',
         'subjectId' => 'su-math-6eme',
         'termId' => 'term-2026-1',

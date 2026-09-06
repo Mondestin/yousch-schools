@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\Cycle;
+use App\Models\Concerns\BelongsToSchool;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
@@ -20,9 +21,11 @@ use Illuminate\Support\Carbon;
     'cycle',
     'hours',
     'periods',
+    'school_id',
 ])]
 class CycleSchedule extends Model
 {
+    use BelongsToSchool;
     use HasUlids;
 
     /**

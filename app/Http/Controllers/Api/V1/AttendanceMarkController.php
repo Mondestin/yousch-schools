@@ -11,13 +11,14 @@ use App\Models\Enrollment;
 use App\Models\User;
 use App\Support\Api\ResourceId;
 use App\Support\Auth\StaffAssignmentScope;
+use App\Support\Storage\SchoolStorage;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
+use RuntimeException;
 
 class AttendanceMarkController extends Controller
 {
@@ -139,15 +140,18 @@ class AttendanceMarkController extends Controller
 
                 if ($document instanceof UploadedFile) {
                     $this->deleteStoredPublicUrl($documentUrl);
-                    $path = $document->store('attendance/excuses', 'public');
 
-                    if ($path === false) {
+                    try {
+                        $documentUrl = SchoolStorage::store(
+                            $document,
+                            'attendance/excuses',
+                        );
+                    } catch (RuntimeException) {
                         throw ValidationException::withMessages([
                             "marks.{$index}.document" => ['Impossible d’enregistrer le justificatif.'],
                         ]);
                     }
 
-                    $documentUrl = Storage::disk('public')->url($path);
                     $documentName = $document->getClientOriginalName();
                 }
 

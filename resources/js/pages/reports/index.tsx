@@ -133,7 +133,7 @@ export default function ReportsIndex({ catalog }: { catalog: SchoolDataset }) {
     ): Promise<void> {
         try {
             const fiche = await fetchBulletin(studentId);
-            printBulletinDocument(`Bulletin — ${name}`, fiche);
+            printBulletinDocument(`Bulletin : ${name}`, fiche);
         } catch (error) {
             toastApiError(error, 'Impossible d’imprimer le bulletin');
         }
@@ -259,7 +259,7 @@ export default function ReportsIndex({ catalog }: { catalog: SchoolDataset }) {
                                     <CycleBadge cycle={row.cycle} />
                                 </TableCell>
                                 <TableCell>
-                                    {currentTerm?.name ?? '—'}
+                                    {currentTerm?.name ?? '-'}
                                 </TableCell>
                                 <TableCell>
                                     <Badge variant="success">Disponible</Badge>

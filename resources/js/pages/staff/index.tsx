@@ -217,7 +217,7 @@ export default function StaffIndex({ catalog }: { catalog: SchoolDataset }) {
             toastSaved(
                 editingId
                     ? undefined
-                    : 'Compte créé — mot de passe initial : password',
+                    : 'Compte créé : mot de passe initial : password',
             );
         } catch (error) {
             if (error instanceof ApiError) {
@@ -366,7 +366,7 @@ export default function StaffIndex({ catalog }: { catalog: SchoolDataset }) {
                                                 },
                                                 confirm: {
                                                     title: 'Supprimer le compte ?',
-                                                    description: `${user.name} perdra l’accès à YouSchlow.`,
+                                                    description: `${user.name} perdra l’accès à Yousch.`,
                                                 },
                                             })}
                                         />
@@ -432,7 +432,7 @@ export default function StaffIndex({ catalog }: { catalog: SchoolDataset }) {
                                   label: 'Horodatage',
                                   value: viewing.lastSeenAt
                                       ? formatFrDateTime(viewing.lastSeenAt)
-                                      : '—',
+                                      : '-',
                               },
                           ]
                         : []

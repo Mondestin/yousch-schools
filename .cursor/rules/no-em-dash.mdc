@@ -1,0 +1,27 @@
+---
+description: Never use em dashes; prefer hyphen or colon in copy
+alwaysApply: true
+---
+
+# Typography: no em dash
+
+Never use the em dash character (Unicode U+2014) in code, UI copy, tests, fixtures, or docs written for this project.
+
+## Prefer
+
+- **Missing / empty values:** `-`
+- **Title or label + detail:** ` : ` (e.g. `Bulletin : Awa Kongo`, `Caisse : Frais`)
+- **Lists, mottos, ranges, asides:** ` - ` (e.g. `Rigueur - Travail - Réussite`, `PDF - Word ou image`)
+- **Decorative rules:** ASCII hyphens only (`-------`)
+
+## Also avoid
+
+- En dash (Unicode U+2013) in user-facing strings; use `-` instead.
+
+## Examples
+
+Bad title separator: use a colon instead of an em dash between "Bulletin" and the student name.
+
+Bad empty placeholder: use `'-'`, never an em dash character.
+
+Good: `Bulletin : Awa Kongo`, `value ?? '-'`, `Rigueur - Travail - Réussite`.

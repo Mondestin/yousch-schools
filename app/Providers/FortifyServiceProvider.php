@@ -4,8 +4,12 @@ namespace App\Providers;
 
 use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\ResetUserPassword;
+use App\Models\Scopes\SchoolScope;
+use App\Models\User;
+use App\Support\Tenancy\CurrentSchool;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
@@ -31,6 +35,7 @@ class FortifyServiceProvider extends ServiceProvider
     {
         $this->configureActions();
         $this->configureViews();
+        $this->configureAuth();
         $this->configureRateLimiting();
     }
 
@@ -48,8 +53,7 @@ class FortifyServiceProvider extends ServiceProvider
      */
     private function configureViews(): void
     {
-        Fortify::loginView(fn (Request $request) => Inertia::render('auth/login', [
-            'canResetPassword' => Features::enabled(Features::resetPasswords()),
+        Fortify::loginView(fn (Request $request) => Inertia::render('auth/login-domain', [
             'status' => $request->session()->get('status'),
         ]));
 
@@ -78,6 +82,35 @@ class FortifyServiceProvider extends ServiceProvider
         Fortify::confirmPasswordView(fn () => Inertia::render('auth/confirm-password'));
     }
 
+    private function configureAuth(): void
+    {
+        Fortify::authenticateUsing(function (Request $request) {
+            $schoolId = $request->session()->get('login.school_id');
+
+            if (! is_string($schoolId) || $schoolId === '') {
+                return null;
+            }
+
+            /** @var User|null $user */
+            $user = User::query()
+                ->withoutGlobalScope(SchoolScope::class)
+                ->where('school_id', $schoolId)
+                ->where(Fortify::username(), $request->input(Fortify::username()))
+                ->first();
+
+            if ($user === null || ! Hash::check((string) $request->input('password'), $user->password)) {
+                return null;
+            }
+
+            $school = $user->school()->first();
+            if ($school !== null) {
+                CurrentSchool::set($school);
+            }
+
+            return $user;
+        });
+    }
+
     /**
      * Configure rate limiting.
      */
@@ -88,7 +121,10 @@ class FortifyServiceProvider extends ServiceProvider
         });
 
         RateLimiter::for('login', function (Request $request) {
-            $throttleKey = Str::transliterate(Str::lower($request->input(Fortify::username())).'|'.$request->ip());
+            $schoolId = (string) $request->session()->get('login.school_id', '');
+            $throttleKey = Str::transliterate(
+                Str::lower((string) $request->input(Fortify::username())).'|'.$schoolId.'|'.$request->ip(),
+            );
 
             return Limit::perMinute(5)->by($throttleKey);
         });

@@ -8,19 +8,22 @@ use App\Support\Auth\StaffAccess;
 use Database\Seeders\SchoolStaffSeeder;
 
 test('api login returns bearer token and staff payload', function () {
+    $school = defaultSchool();
     $user = User::factory()->admin()->create([
         'email' => 'admin@example.test',
         'password' => 'password',
     ]);
 
     $response = $this->postJson('/api/v1/login', [
+        'domain' => $school->domain,
         'email' => 'admin@example.test',
         'password' => 'password',
         'deviceName' => 'iphone-test',
     ])->assertOk()
         ->assertJsonPath('tokenType', 'Bearer')
         ->assertJsonPath('user.email', 'admin@example.test')
-        ->assertJsonPath('user.role', 'admin');
+        ->assertJsonPath('user.role', 'admin')
+        ->assertJsonPath('school.domain', $school->domain);
 
     $token = $response->json('token');
 
@@ -35,12 +38,14 @@ test('api login returns bearer token and staff payload', function () {
 });
 
 test('api login rejects bad credentials', function () {
+    $school = defaultSchool();
     User::factory()->create([
         'email' => 'admin@example.test',
         'password' => 'password',
     ]);
 
     $this->postJson('/api/v1/login', [
+        'domain' => $school->domain,
         'email' => 'admin@example.test',
         'password' => 'wrong',
     ])->assertUnprocessable()
@@ -48,12 +53,14 @@ test('api login rejects bad credentials', function () {
 });
 
 test('api logout deletes the current access token', function () {
+    $school = defaultSchool();
     $user = User::factory()->admin()->create([
         'email' => 'admin@example.test',
         'password' => 'password',
     ]);
 
     $token = $this->postJson('/api/v1/login', [
+        'domain' => $school->domain,
         'email' => $user->email,
         'password' => 'password',
     ])->json('token');

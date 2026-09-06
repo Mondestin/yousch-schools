@@ -500,7 +500,7 @@ export function TeacherFormFields({
 
 export function teacherFromForm(
     form: TeacherFormValues,
-): Omit<Teacher, 'id' | 'photoUrl'> {
+): Omit<Teacher, 'id' | 'photoUrl' | 'files'> {
     return {
         code: form.code.trim(),
         lastName: form.lastName.trim(),
@@ -518,6 +518,38 @@ export function teacherFromForm(
         maritalStatus: form.maritalStatus,
         status: form.status,
     };
+}
+
+export function teacherFormData(
+    form: TeacherFormValues,
+    options: {
+        photo?: File | null;
+        removePhoto?: boolean;
+        files?: File[] | null;
+    } = {},
+): FormData {
+    const body = new FormData();
+    const payload = teacherFromForm(form);
+
+    for (const [key, value] of Object.entries(payload)) {
+        if (value !== null && value !== undefined && value !== '') {
+            body.append(key, String(value));
+        }
+    }
+
+    if (options.photo) {
+        body.append('photo', options.photo);
+    }
+
+    if (options.removePhoto) {
+        body.append('removePhoto', '1');
+    }
+
+    for (const file of options.files ?? []) {
+        body.append('files[]', file);
+    }
+
+    return body;
 }
 
 export function teacherFormValid(form: TeacherFormValues): boolean {

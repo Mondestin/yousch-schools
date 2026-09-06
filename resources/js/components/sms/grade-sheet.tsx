@@ -392,7 +392,7 @@ export function GradeSheet({
                                     />
                                 </TableCell>
                                 <TableCell>
-                                    {grid?.classroomName ?? '—'}
+                                    {grid?.classroomName ?? '-'}
                                 </TableCell>
                                 <TableCell>
                                     {grid ? (
@@ -405,7 +405,7 @@ export function GradeSheet({
                                             </span>
                                         </span>
                                     ) : (
-                                        '—'
+                                        '-'
                                     )}
                                 </TableCell>
                                 <TableCell>
@@ -442,7 +442,7 @@ export function GradeSheet({
                                             }}
                                         >
                                             {row.score === null
-                                                ? '—'
+                                                ? '-'
                                                 : formatNote(row.score)}
                                         </button>
                                     )}

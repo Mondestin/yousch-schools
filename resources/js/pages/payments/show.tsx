@@ -46,7 +46,7 @@ export default function PaymentShowPage({
 
     return (
         <>
-            <Head title={`Relevé — ${fiche.name}`} />
+            <Head title={`Relevé : ${fiche.name}`} />
             <PageShell>
                 <PageHeader
                     className="no-print"
@@ -89,7 +89,7 @@ export default function PaymentShowPage({
                                 {COUNTRY_NAME}
                             </p>
                             <p>{COUNTRY_MOTTO}</p>
-                            <p>———————</p>
+                            <p>-------</p>
                             <p className="mt-10 text-[13px] font-medium">
                                 Année scolaire {fiche.yearLabel}
                             </p>

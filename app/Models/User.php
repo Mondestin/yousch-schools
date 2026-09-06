@@ -5,10 +5,12 @@ namespace App\Models;
 use App\Auth\HasApiTokens;
 use App\Enums\Cycle;
 use App\Enums\StaffRole;
+use App\Models\Concerns\BelongsToSchool;
 use App\Support\Auth\StaffAccess;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -19,6 +21,7 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property int $id
  * @property string $name
  * @property string $email
+ * @property string|null $avatar_url
  * @property string|null $phone
  * @property StaffRole $role
  * @property list<string>|null $cycles
@@ -32,12 +35,25 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['name', 'email', 'password', 'phone', 'role', 'cycles', 'last_seen_at'])]
+#[Fillable(['name', 'email', 'avatar_url', 'password', 'phone', 'role', 'cycles', 'last_seen_at', 'school_id', 'is_platform_admin'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasApiTokens, HasFactory, Notifiable, TwoFactorAuthenticatable;
+    use BelongsToSchool, HasApiTokens, HasFactory, Notifiable, TwoFactorAuthenticatable;
+
+    /**
+     * @var list<string>
+     */
+    protected $appends = ['avatar'];
+
+    /**
+     * Session auth loads the user before SetCurrentSchool can bind the tenant.
+     */
+    protected static function appliesSchoolScope(): bool
+    {
+        return false;
+    }
 
     /**
      * @return array<string, string>
@@ -51,7 +67,18 @@ class User extends Authenticatable
             'role' => StaffRole::class,
             'cycles' => 'array',
             'last_seen_at' => 'datetime',
+            'is_platform_admin' => 'boolean',
         ];
+    }
+
+    /**
+     * Frontend auth shape expects `avatar`.
+     */
+    protected function avatar(): Attribute
+    {
+        return Attribute::get(
+            fn (): ?string => $this->avatar_url,
+        );
     }
 
     public function canAccess(string $ability): bool

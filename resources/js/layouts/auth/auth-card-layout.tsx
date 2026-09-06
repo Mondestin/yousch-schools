@@ -27,7 +27,7 @@ export default function AuthCardLayout({
                 >
                     <img
                         src="/logo.png"
-                        alt="YouSchlow"
+                        alt="Yousch"
                         className="h-10 w-auto object-contain"
                     />
                 </Link>

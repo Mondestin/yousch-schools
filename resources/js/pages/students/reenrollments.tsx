@@ -312,7 +312,7 @@ export default function StudentsReenrollments({
         const payload = {
             academicYearId: filter.academicYearId,
             studentId: form.studentId,
-            previousClass: form.previousClass.trim() || '—',
+            previousClass: form.previousClass.trim() || '-',
             classroomId: form.classroomId,
             trackId: lycee ? form.trackId || null : null,
             submittedOn: form.submittedOn,
@@ -475,12 +475,12 @@ export default function StudentsReenrollments({
                                     <TableCell className="font-medium">
                                         {pupil
                                             ? `${pupil.lastName} ${pupil.firstName}`
-                                            : '—'}
+                                            : '-'}
                                     </TableCell>
                                     <TableCell>{row.previousClass}</TableCell>
                                     <TableCell>
                                         {classroomMap.get(row.classroomId)
-                                            ?.name ?? '—'}
+                                            ?.name ?? '-'}
                                     </TableCell>
                                     <TableCell>
                                         {formatFrDate(row.submittedOn)}
@@ -702,7 +702,7 @@ export default function StudentsReenrollments({
                 </Field>
                 <FileListField
                     label="Pièces du dossier"
-                    hint="Bulletin, quittance, photos — PDF ou image, 5 Mo maximum."
+                    hint="Bulletin, quittance, photos - PDF ou image, 5 Mo maximum."
                     files={files}
                     onChange={setFiles}
                 />

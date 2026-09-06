@@ -683,7 +683,7 @@ export default function AssessmentsIndex({
                         searchPlaceholder="Rechercher une matière..."
                         options={subjects.map((subject) => ({
                             value: subject.id,
-                            label: `${subject.code} — ${subject.name}`,
+                            label: `${subject.code} - ${subject.name}`,
                         }))}
                         onValueChange={(value) =>
                             patchForm({ subjectId: value })

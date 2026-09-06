@@ -3,6 +3,7 @@
 use App\Http\Middleware\AuthenticateStaffApi;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\SetCurrentSchool;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Application;
@@ -29,6 +30,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'auth.staff' => AuthenticateStaffApi::class,
+            'school' => SetCurrentSchool::class,
         ]);
 
         // Same-origin web clients call /api/v1 with session + CSRF cookies.
@@ -41,6 +43,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->web(append: [
             HandleAppearance::class,
+            SetCurrentSchool::class,
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
         ]);
@@ -64,7 +67,7 @@ return Application::configure(basePath: dirname(__DIR__))
             ], 429);
         });
 
-        $exceptions->respond(function (Response $response, \Throwable $exception, Request $request) {
+        $exceptions->respond(function (Response $response, Throwable $exception, Request $request) {
             if ($request->is('api/*') || $request->expectsJson()) {
                 return $response;
             }

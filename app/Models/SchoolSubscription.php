@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\SubscriptionPlan;
 use App\Enums\SubscriptionStatus;
+use App\Models\Concerns\BelongsToSchool;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -28,9 +29,12 @@ use Illuminate\Support\Carbon;
     'used_seats',
     'renews_on',
     'monthly_amount',
+    'school_id',
 ])]
 class SchoolSubscription extends Model
 {
+    use BelongsToSchool;
+
     public $incrementing = false;
 
     protected $keyType = 'string';

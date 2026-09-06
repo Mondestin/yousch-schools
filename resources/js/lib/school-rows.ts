@@ -195,14 +195,14 @@ export function studentRows(
             return {
                 id: enrollment.id,
                 studentId: enrollment.studentId,
-                matricule: student?.matricule ?? '—',
-                name: student ? personName(student) : '—',
+                matricule: student?.matricule ?? '-',
+                name: student ? personName(student) : '-',
                 firstName: student?.firstName ?? '',
                 lastName: student?.lastName ?? '',
                 classroomId: classroom?.id ?? '',
-                classroom: classroom?.name ?? '—',
+                classroom: classroom?.name ?? '-',
                 cycle: classroom?.cycle ?? 'primaire',
-                cycleName: classroom ? cycleLabel(classroom.cycle) : '—',
+                cycleName: classroom ? cycleLabel(classroom.cycle) : '-',
                 track: track?.code ?? null,
                 status: enrollment.status,
                 enrolledOn: student?.enrolledOn ?? '',
@@ -263,12 +263,12 @@ export function paymentRows(
             return {
                 ...payment,
                 studentId: enrollment?.studentId ?? '',
-                studentName: student ? personName(student) : '—',
+                studentName: student ? personName(student) : '-',
                 lastName: student?.lastName ?? '',
                 firstName: student?.firstName ?? '',
-                matricule: student?.matricule ?? '—',
+                matricule: student?.matricule ?? '-',
                 classroomId: classroom?.id ?? '',
-                classroom: classroom?.name ?? '—',
+                classroom: classroom?.name ?? '-',
                 cycle: classroom?.cycle ?? 'primaire',
                 academicYearId: enrollment?.academicYearId ?? '',
                 photoUrl: student?.photoUrl ?? null,
@@ -298,10 +298,10 @@ export function assessmentRows(
 
             return {
                 ...assessment,
-                classroom: classroom?.name ?? '—',
+                classroom: classroom?.name ?? '-',
                 cycle: classroom?.cycle ?? 'primaire',
-                subject: subjects.get(assessment.subjectId)?.name ?? '—',
-                term: term?.name ?? '—',
+                subject: subjects.get(assessment.subjectId)?.name ?? '-',
+                term: term?.name ?? '-',
                 academicYearId: term?.academicYearId ?? '',
             };
         })

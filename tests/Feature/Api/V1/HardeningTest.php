@@ -3,8 +3,10 @@
 use App\Models\User;
 
 test('api login is rate limited after five attempts', function () {
+    $school = defaultSchool();
     $email = 'locked-'.uniqid('', true).'@example.com';
     $payload = [
+        'domain' => $school->domain,
         'email' => $email,
         'password' => 'wrong-password',
     ];
@@ -21,17 +23,20 @@ test('api login is rate limited after five attempts', function () {
 test('api login validation messages are in french', function () {
     $this->postJson('/api/v1/login', [])
         ->assertUnprocessable()
-        ->assertJsonValidationErrors(['email', 'password'])
+        ->assertJsonValidationErrors(['domain', 'email', 'password'])
+        ->assertJsonPath('errors.domain.0', 'Le domaine de l’établissement est obligatoire.')
         ->assertJsonPath('errors.email.0', 'L’adresse e-mail est obligatoire.')
         ->assertJsonPath('errors.password.0', 'Le mot de passe est obligatoire.');
 });
 
 test('bearer token abilities mirror staff role', function () {
+    $school = defaultSchool();
     $user = User::factory()->secretaire()->create([
         'password' => 'password',
     ]);
 
     $token = $this->postJson('/api/v1/login', [
+        'domain' => $school->domain,
         'email' => $user->email,
         'password' => 'password',
         'deviceName' => 'test-phone',

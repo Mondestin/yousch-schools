@@ -256,7 +256,7 @@ export default function InventoryIndex({
             setItems((current) =>
                 current.map((row) => (row.id === item.id ? saved : row)),
             );
-            toastSaved(`${item.name} — ${inventoryStatusLabel(next)}`);
+            toastSaved(`${item.name} - ${inventoryStatusLabel(next)}`);
         } catch (error) {
             toastApiError(error);
         }
@@ -555,7 +555,7 @@ export default function InventoryIndex({
                                         </Badge>
                                     </TableCell>
                                     <TableCell>
-                                        {item.location || '—'}
+                                        {item.location || '-'}
                                     </TableCell>
                                     <TableCell>
                                         {formatFcfa(inventoryValue(item))}
@@ -646,15 +646,15 @@ export default function InventoryIndex({
                               },
                               {
                                   label: 'Lieu',
-                                  value: viewing.location || '—',
+                                  value: viewing.location || '-',
                               },
                               {
                                   label: 'Responsable',
-                                  value: viewing.assignee || '—',
+                                  value: viewing.assignee || '-',
                               },
                               {
                                   label: 'Fournisseur',
-                                  value: viewing.supplier || '—',
+                                  value: viewing.supplier || '-',
                               },
                               {
                                   label: 'Acquis le',

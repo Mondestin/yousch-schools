@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\Gender;
+use App\Models\Concerns\BelongsToSchool;
 use Database\Factories\GuardianFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -35,9 +36,12 @@ use Illuminate\Support\Carbon;
     'city',
     'neighborhood',
     'address',
+    'school_id',
 ])]
 class Guardian extends Model
 {
+    use BelongsToSchool;
+
     /** @use HasFactory<GuardianFactory> */
     use HasFactory;
 

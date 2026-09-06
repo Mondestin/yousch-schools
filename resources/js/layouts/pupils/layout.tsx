@@ -36,7 +36,7 @@ export default function PupilsLayout({ children }: PropsWithChildren) {
             <PageHeader
                 flush
                 title="Élèves"
-                description={`Inscriptions, admissions et réinscriptions — ${cycleLabel(filter.cycle)} · ${academicYearLabel}.`}
+                description={`Inscriptions, admissions et réinscriptions - ${cycleLabel(filter.cycle)} · ${academicYearLabel}.`}
             />
             <PageTabs flush match="exact" items={tabs} />
             {children}

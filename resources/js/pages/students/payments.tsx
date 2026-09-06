@@ -78,7 +78,7 @@ export default function StudentPaymentsPage({
 
     return (
         <>
-            <Head title={`${fiche.name} — Paiements`} />
+            <Head title={`${fiche.name} : Paiements`} />
             <h2 className="mb-4 text-[15px] font-semibold">Paiements</h2>
             {account ? (
                 <p className="text-muted-foreground mb-4 text-[13px]">
@@ -131,7 +131,7 @@ export default function StudentPaymentsPage({
                                     <TableCell>
                                         {row.paidOn
                                             ? formatFrDate(row.paidOn)
-                                            : '—'}
+                                            : '-'}
                                     </TableCell>
                                 </TableRow>
                             ))}

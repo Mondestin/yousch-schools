@@ -15,12 +15,14 @@ export function FileListField({
     hint = 'PDF, Word ou image, 5 Mo maximum par fichier.',
     files,
     onChange,
+    onNativeFiles,
 }: {
     id?: string;
     label?: string;
     hint?: string;
     files: DossierFile[];
     onChange?: (files: DossierFile[]) => void;
+    onNativeFiles?: (files: File[]) => void;
 }) {
     const editable = onChange !== undefined;
 
@@ -94,6 +96,10 @@ export function FileListField({
                         className="hidden"
                         onChange={(event) => {
                             const selected = event.target.files;
+
+                            if (selected && selected.length > 0) {
+                                onNativeFiles?.(Array.from(selected));
+                            }
 
                             void appendDossierFiles(files, selected).then(
                                 (next) => {

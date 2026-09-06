@@ -284,7 +284,7 @@ export default function StructureVenuesPage({
                                 <TableCell>
                                     {venueKindLabel(venue.kind)}
                                 </TableCell>
-                                <TableCell>{venue.building ?? '—'}</TableCell>
+                                <TableCell>{venue.building ?? '-'}</TableCell>
                                 <TableCell>{venue.capacity} places</TableCell>
                                 <TableCell>
                                     <Badge
@@ -339,7 +339,7 @@ export default function StructureVenuesPage({
                               },
                               {
                                   label: 'Bâtiment',
-                                  value: viewing.building ?? '—',
+                                  value: viewing.building ?? '-',
                               },
                               {
                                   label: 'Capacité',

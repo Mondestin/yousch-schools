@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\Cycle;
+use App\Models\Concerns\BelongsToSchool;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -23,9 +24,12 @@ use Illuminate\Support\Carbon;
     'code',
     'name',
     'position',
+    'school_id',
 ])]
 class GradeLevel extends Model
 {
+    use BelongsToSchool;
+
     public $incrementing = false;
 
     protected $keyType = 'string';

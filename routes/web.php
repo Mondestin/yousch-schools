@@ -1,9 +1,23 @@
 <?php
 
+use App\Http\Controllers\Auth\SchoolDomainLoginController;
+use App\Http\Controllers\Auth\SchoolRegistrationController;
 use App\Http\Controllers\SchoolPagesController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [SchoolPagesController::class, 'welcome'])->name('home');
+
+Route::middleware('guest')->group(function () {
+    Route::get('register', [SchoolRegistrationController::class, 'create'])
+        ->name('register');
+    Route::post('register', [SchoolRegistrationController::class, 'store'])
+        ->name('register.store');
+
+    Route::post('login/domain', [SchoolDomainLoginController::class, 'store'])
+        ->name('login.domain.resolve');
+    Route::get('login/domain/{domain}', [SchoolDomainLoginController::class, 'show'])
+        ->name('login.domain');
+});
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', [SchoolPagesController::class, 'dashboard'])->name('dashboard');

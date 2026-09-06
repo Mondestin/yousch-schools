@@ -14,7 +14,7 @@ export function toastRemoved(message = 'Supprimé'): void {
 export function toastStub(message = 'Action de maquette'): void {
     toast.info(message, {
         description:
-            'Maquette — les modifications ne sont pas encore enregistrées.',
+            'Maquette : les modifications ne sont pas encore enregistrées.',
     });
 }
 

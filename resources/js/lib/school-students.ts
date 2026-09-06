@@ -15,7 +15,7 @@ export function genderLabel(gender: Gender | null | undefined): string {
         return 'Masculin';
     }
 
-    return '—';
+    return '-';
 }
 
 export const GUARDIAN_RELATIONS: GuardianRelation[] = [
@@ -170,8 +170,8 @@ export function studentFiche(
 
             return {
                 ...grade,
-                subject: subject?.name ?? '—',
-                assessment: assessment?.name ?? '—',
+                subject: subject?.name ?? '-',
+                assessment: assessment?.name ?? '-',
                 type: assessment?.type ?? 'devoir',
                 heldOn: assessment?.heldOn ?? '',
                 mention: mentionForScore(catalog, grade.score),
@@ -192,10 +192,10 @@ export function studentFiche(
         year,
         track,
         name: personName(student),
-        classroomName: classroom?.name ?? '—',
+        classroomName: classroom?.name ?? '-',
         cycle: classroom?.cycle ?? null,
-        cycleName: classroom ? cycleLabel(classroom.cycle) : '—',
-        yearLabel: year?.label ?? '—',
+        cycleName: classroom ? cycleLabel(classroom.cycle) : '-',
+        yearLabel: year?.label ?? '-',
         trackCode: track?.code ?? null,
         enrolledOnLabel: formatFrDate(student.enrolledOn),
         bornOnLabel: formatFrDate(student.bornOn),
@@ -246,9 +246,9 @@ export function guardianFiche(catalog: SchoolDataset, guardianId: string) {
                 lastName: student.lastName,
                 firstName: student.firstName,
                 matricule: student.matricule,
-                classroom: classroom?.name ?? '—',
+                classroom: classroom?.name ?? '-',
                 cycle: classroom?.cycle ?? null,
-                cycleName: classroom ? cycleLabel(classroom.cycle) : '—',
+                cycleName: classroom ? cycleLabel(classroom.cycle) : '-',
                 relation: link.relation,
             };
         })

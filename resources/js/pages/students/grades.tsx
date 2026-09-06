@@ -32,7 +32,7 @@ export default function StudentGradesPage({
 
     return (
         <>
-            <Head title={`${fiche.name} — Notes`} />
+            <Head title={`${fiche.name} : Notes`} />
             <h2 className="mb-4 text-[15px] font-semibold">Notes /20</h2>
             <div className="overflow-hidden rounded-[8px] border">
                 {fiche.grades.length === 0 ? (
@@ -66,7 +66,7 @@ export default function StudentGradesPage({
                                     <TableCell>
                                         {grade.heldOn
                                             ? formatFrDate(grade.heldOn)
-                                            : '—'}
+                                            : '-'}
                                     </TableCell>
                                     <TableCell>
                                         <Badge variant="code">
@@ -74,7 +74,7 @@ export default function StudentGradesPage({
                                         </Badge>
                                     </TableCell>
                                     <TableCell>
-                                        {grade.mention ?? '—'}
+                                        {grade.mention ?? '-'}
                                     </TableCell>
                                 </TableRow>
                             ))}

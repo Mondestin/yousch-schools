@@ -95,7 +95,7 @@ export default function StudentsIndex({ catalog }: { catalog: SchoolDataset }) {
                 method: 'DELETE',
             });
             setRemoved((current) => [...current, enrollmentId]);
-            toastRemoved(`${name} — inscription retirée`);
+            toastRemoved(`${name} : inscription retirée`);
         } catch (error) {
             toastApiError(error, 'Impossible de retirer l’inscription');
         }

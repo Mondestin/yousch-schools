@@ -381,25 +381,25 @@ export default function SubjectsIndex({ catalog }: { catalog: SchoolDataset }) {
                                         {subject.name}
                                     </TableCell>
                                     <TableCell className="text-muted-foreground">
-                                        {subject.textbook ?? '—'}
+                                        {subject.textbook ?? '-'}
                                     </TableCell>
                                     <TableCell>
-                                        {subject.coefficient ?? '—'}
+                                        {subject.coefficient ?? '-'}
                                     </TableCell>
                                     <TableCell>
                                         {levelMap.get(subject.gradeLevelId)
-                                            ?.code ?? '—'}
+                                            ?.code ?? '-'}
                                     </TableCell>
                                     {lycee ? (
                                         <TableCell>
                                             {subject.trackId
                                                 ? (trackMap.get(subject.trackId)
-                                                      ?.code ?? '—')
-                                                : '—'}
+                                                      ?.code ?? '-')
+                                                : '-'}
                                         </TableCell>
                                     ) : null}
                                     <TableCell>
-                                        {fileCount > 0 ? fileCount : '—'}
+                                        {fileCount > 0 ? fileCount : '-'}
                                     </TableCell>
                                     <TableCell className="px-3 py-1.5 text-center">
                                         <RowMenu
@@ -447,7 +447,7 @@ export default function SubjectsIndex({ catalog }: { catalog: SchoolDataset }) {
                                   label: 'Classe',
                                   value:
                                       levelMap.get(viewing.gradeLevelId)
-                                          ?.code ?? '—',
+                                          ?.code ?? '-',
                               },
                               {
                                   label: 'Coefficient',
@@ -458,8 +458,8 @@ export default function SubjectsIndex({ catalog }: { catalog: SchoolDataset }) {
                                   label: 'Série',
                                   value: viewing.trackId
                                       ? (trackMap.get(viewing.trackId)?.code ??
-                                        '—')
-                                      : '—',
+                                        '-')
+                                      : '-',
                               },
                               {
                                   label: 'Manuel',
@@ -566,7 +566,7 @@ export default function SubjectsIndex({ catalog }: { catalog: SchoolDataset }) {
                 </Field>
                 <FileListField
                     label="Fichiers pour les enseignants"
-                    hint="Programme, polycopiés, exercices — PDF, Word ou image, 5 Mo maximum."
+                    hint="Programme, polycopiés, exercices - PDF, Word ou image, 5 Mo maximum."
                     files={files}
                     onChange={setFiles}
                 />

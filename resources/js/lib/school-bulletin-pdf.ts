@@ -1,7 +1,12 @@
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { formatNote } from '@/lib/school-grades';
-import { COUNTRY_MOTTO, COUNTRY_NAME, formatFrDate } from '@/lib/school-rows';
+import {
+    COUNTRY_MOTTO,
+    COUNTRY_NAME,
+    COUNTRY_SHORT,
+    formatFrDate,
+} from '@/lib/school-rows';
 import { genderLabel } from '@/lib/school-students';
 import type { Gender, SchoolProfile } from '@/types/school';
 
@@ -41,13 +46,14 @@ export type BulletinApiFiche = {
     issuedOn: string;
 };
 
-function note(value: number | null): string {
-    return value === null ? '—' : formatNote(value);
+/** Match maquette: blank cell when the note is missing. */
+function noteCell(value: number | null): string {
+    return value === null ? '' : formatNote(value);
 }
 
 function rankLabel(rank: number | null, classSize: number): string {
     if (rank === null) {
-        return '—';
+        return '';
     }
 
     const ordinal = rank === 1 ? '1er' : `${rank}e`;
@@ -59,7 +65,65 @@ function escapePdfText(value: string): string {
     return value.replace(/\s+/g, ' ').trim();
 }
 
-/** Build and download a formatted A4 bulletin PDF. */
+function escapeHtml(value: string): string {
+    return value
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
+
+function absoluteUrl(url: string | null | undefined): string | null {
+    if (!url) {
+        return null;
+    }
+
+    if (
+        url.startsWith('http://') ||
+        url.startsWith('https://') ||
+        url.startsWith('data:')
+    ) {
+        return url;
+    }
+
+    if (typeof window === 'undefined') {
+        return url;
+    }
+
+    return new URL(url, window.location.origin).href;
+}
+
+function identityRows(fiche: BulletinApiFiche): Array<[string, string]> {
+    const rows: Array<[string, string]> = [
+        ['Numéro d’élève', fiche.student.matricule],
+        ['Classe', fiche.classroomName],
+        [
+            'Nom(s) et prénom(s)',
+            `${fiche.student.lastName} ${fiche.student.firstName}`,
+        ],
+        ['Date de naissance', formatFrDate(fiche.student.bornOn)],
+        ['Genre', genderLabel(fiche.student.gender)],
+        ['Examen', fiche.term.name],
+    ];
+
+    if (fiche.trackCode) {
+        rows.splice(2, 0, ['Série', fiche.trackCode]);
+    }
+
+    return rows;
+}
+
+function totalGeneralLabel(fiche: BulletinApiFiche): string {
+    return fiche.lines.some((line) => line.weighted !== null)
+        ? formatNote(fiche.totalGeneral)
+        : '';
+}
+
+function averageLabel(fiche: BulletinApiFiche): string {
+    return fiche.average === null ? '' : formatNote(fiche.average);
+}
+
+/** Build and download a formatted A4 bulletin PDF (aligned with the maquette). */
 export function downloadBulletinPdf(
     fiche: BulletinApiFiche,
     filename: string,
@@ -75,55 +139,72 @@ export function downloadBulletinPdf(
 
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(11);
-    doc.text(escapePdfText(fiche.profile.name), margin, y);
+    doc.text(escapePdfText(fiche.profile.name), pageWidth / 4, y, {
+        align: 'center',
+    });
     y += 5;
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(9);
+
+    if (fiche.profile.motto) {
+        doc.text(escapePdfText(fiche.profile.motto), pageWidth / 4, y, {
+            align: 'center',
+        });
+        y += 4;
+    }
+
+    if (fiche.profile.phone) {
+        doc.text(`Tél. : ${escapePdfText(fiche.profile.phone)}`, pageWidth / 4, y, {
+            align: 'center',
+        });
+        y += 4;
+    }
+
+    if (fiche.profile.email) {
+        doc.text(
+            `E-mail : ${escapePdfText(fiche.profile.email)}`,
+            pageWidth / 4,
+            y,
+            { align: 'center' },
+        );
+        y += 4;
+    }
+
+    if (fiche.profile.address) {
+        doc.text(escapePdfText(fiche.profile.address), pageWidth / 4, y, {
+            align: 'center',
+        });
+        y += 4;
+    }
+
     doc.text(
-        escapePdfText(`${fiche.profile.address} — ${fiche.profile.city}`),
-        margin,
+        `${escapePdfText(fiche.profile.city)}, ${COUNTRY_SHORT}`,
+        pageWidth / 4,
         y,
-    );
-    y += 4;
-    doc.text(
-        escapePdfText(`Tél. ${fiche.profile.phone} · ${fiche.profile.email}`),
-        margin,
-        y,
+        { align: 'center' },
     );
 
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(10);
-    doc.text(COUNTRY_NAME.toUpperCase(), pageWidth - margin, 14, {
-        align: 'right',
+    doc.text(COUNTRY_NAME.toUpperCase(), (pageWidth * 3) / 4, 14, {
+        align: 'center',
     });
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8);
-    doc.text(COUNTRY_MOTTO, pageWidth - margin, 19, { align: 'right' });
-    doc.text(`Année scolaire ${fiche.yearLabel}`, pageWidth - margin, 24, {
-        align: 'right',
+    doc.text(COUNTRY_MOTTO, (pageWidth * 3) / 4, 19, { align: 'center' });
+    doc.text('-------', (pageWidth * 3) / 4, 24, { align: 'center' });
+    doc.setFontSize(9);
+    doc.text(`Année scolaire ${fiche.yearLabel}`, (pageWidth * 3) / 4, 32, {
+        align: 'center',
     });
 
-    y = 34;
+    y = 42;
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(16);
     doc.text('BULLETIN DE NOTES', pageWidth / 2, y, { align: 'center' });
     y += 10;
 
-    const identity: Array<[string, string]> = [
-        ['Numéro d’élève', fiche.student.matricule],
-        ['Classe', fiche.classroomName],
-        [
-            'Nom(s) et prénom(s)',
-            `${fiche.student.lastName} ${fiche.student.firstName}`,
-        ],
-        ['Date de naissance', formatFrDate(fiche.student.bornOn)],
-        ['Genre', genderLabel(fiche.student.gender)],
-        ['Examen', fiche.term.name],
-    ];
-
-    if (fiche.trackCode) {
-        identity.splice(2, 0, ['Série', fiche.trackCode]);
-    }
+    const identity = identityRows(fiche);
 
     doc.setFontSize(10);
     const colGap = (pageWidth - margin * 2) / 2;
@@ -154,7 +235,7 @@ export function downloadBulletinPdf(
             textColor: [20, 20, 20],
         },
         headStyles: {
-            fillColor: [245, 245, 245],
+            fillColor: [244, 244, 245],
             textColor: [20, 20, 20],
             fontStyle: 'bold',
             halign: 'center',
@@ -179,11 +260,11 @@ export function downloadBulletinPdf(
         ],
         body: fiche.lines.map((line) => [
             line.name.toUpperCase(),
-            note(line.devoir),
-            note(line.composition),
-            note(line.average),
+            noteCell(line.devoir),
+            noteCell(line.composition),
+            noteCell(line.average),
             String(line.coefficient),
-            note(line.weighted),
+            noteCell(line.weighted),
         ]),
     });
 
@@ -202,15 +283,13 @@ export function downloadBulletinPdf(
     doc.setFont('helvetica', 'normal');
     doc.text('Mention : ', leftX, y);
     doc.setFont('helvetica', 'bold');
-    doc.text(fiche.mention ?? '—', leftX + doc.getTextWidth('Mention : '), y);
+    doc.text(fiche.mention ?? '', leftX + doc.getTextWidth('Mention : '), y);
 
     doc.setFont('helvetica', 'normal');
     doc.text('Total général : ', rightX, y);
     doc.setFont('helvetica', 'bold');
     doc.text(
-        fiche.lines.some((line) => line.weighted !== null)
-            ? formatNote(fiche.totalGeneral)
-            : '—',
+        totalGeneralLabel(fiche),
         rightX + doc.getTextWidth('Total général : '),
         y,
     );
@@ -219,13 +298,13 @@ export function downloadBulletinPdf(
     doc.setFont('helvetica', 'normal');
     doc.text('Résultat : ', leftX, y);
     doc.setFont('helvetica', 'bold');
-    doc.text(fiche.result ?? '—', leftX + doc.getTextWidth('Résultat : '), y);
+    doc.text(fiche.result ?? '', leftX + doc.getTextWidth('Résultat : '), y);
 
     doc.setFont('helvetica', 'normal');
     doc.text('Moyenne : ', rightX, y);
     doc.setFont('helvetica', 'bold');
     doc.text(
-        fiche.average === null ? '—' : formatNote(fiche.average),
+        averageLabel(fiche),
         rightX + doc.getTextWidth('Moyenne : '),
         y,
     );
@@ -241,14 +320,18 @@ export function downloadBulletinPdf(
     );
 
     doc.setFont('helvetica', 'normal');
-    doc.text(`Fait à ${fiche.profile.city} le ${fiche.issuedOn}`, rightX, y);
+    doc.text(
+        `Fait à ${fiche.profile.city} le, ${fiche.issuedOn}`,
+        rightX,
+        y,
+    );
     y += 6;
 
     doc.setFont('helvetica', 'normal');
     doc.text('Appréciation : ', leftX, y);
     doc.setFont('helvetica', 'bold');
     const appreciation = doc.splitTextToSize(
-        fiche.appreciation || '—',
+        fiche.appreciation || '',
         pageWidth / 2 - margin - 4,
     );
     doc.text(appreciation, leftX + doc.getTextWidth('Appréciation : '), y);
@@ -263,50 +346,50 @@ export function downloadBulletinPdf(
     doc.save(filename.endsWith('.pdf') ? filename : `${filename}.pdf`);
 }
 
-/** HTML body for the print dialog — same content as the PDF. */
+/** HTML body for the print dialog - same layout as the maquette (reports/show). */
 export function bulletinPrintHtml(fiche: BulletinApiFiche): string {
+    const logoUrl = absoluteUrl(fiche.profile.logoUrl);
+    const stampUrl = absoluteUrl(fiche.profile.stampUrl);
+
     const rows = fiche.lines
         .map(
             (line) => `<tr>
-  <td style="text-transform:uppercase">${escapeHtml(line.name)}</td>
-  <td class="c">${escapeHtml(note(line.devoir))}</td>
-  <td class="c">${escapeHtml(note(line.composition))}</td>
-  <td class="c">${escapeHtml(note(line.average))}</td>
+  <td class="subject">${escapeHtml(line.name)}</td>
+  <td class="c">${escapeHtml(noteCell(line.devoir))}</td>
+  <td class="c">${escapeHtml(noteCell(line.composition))}</td>
+  <td class="c">${escapeHtml(noteCell(line.average))}</td>
   <td class="c">${line.coefficient}</td>
-  <td class="c">${escapeHtml(note(line.weighted))}</td>
+  <td class="c">${escapeHtml(noteCell(line.weighted))}</td>
 </tr>`,
         )
         .join('');
 
-    const identity = [
-        ['Numéro d’élève', fiche.student.matricule],
-        ['Classe', fiche.classroomName],
-        ...(fiche.trackCode ? [['Série', fiche.trackCode] as const] : []),
-        [
-            'Nom(s) et prénom(s)',
-            `${fiche.student.lastName} ${fiche.student.firstName}`,
-        ],
-        ['Date de naissance', formatFrDate(fiche.student.bornOn)],
-        ['Genre', genderLabel(fiche.student.gender)],
-        ['Examen', fiche.term.name],
-    ]
+    const identity = identityRows(fiche)
         .map(
             ([label, value]) =>
-                `<p>${escapeHtml(label)} : <strong>${escapeHtml(value)}</strong></p>`,
+                `<p>${escapeHtml(label)}<span class="sep">:</span><strong>${escapeHtml(value)}</strong></p>`,
         )
         .join('');
 
+    const letterhead = `
+  <div class="letterhead">
+    ${logoUrl ? `<img src="${escapeHtml(logoUrl)}" alt="" class="logo" />` : ''}
+    <p class="school">${escapeHtml(fiche.profile.name)}</p>
+    ${fiche.profile.motto ? `<p class="motto">${escapeHtml(fiche.profile.motto)}</p>` : ''}
+    ${fiche.profile.phone ? `<p>Tél. : ${escapeHtml(fiche.profile.phone)}</p>` : ''}
+    ${fiche.profile.email ? `<p>E-mail : ${escapeHtml(fiche.profile.email)}</p>` : ''}
+    ${fiche.profile.address ? `<p>${escapeHtml(fiche.profile.address)}</p>` : ''}
+    <p>${escapeHtml(fiche.profile.city)}, ${escapeHtml(COUNTRY_SHORT)}</p>
+  </div>`;
+
     return `
 <header class="top">
-  <div>
-    <p class="school">${escapeHtml(fiche.profile.name)}</p>
-    <p>${escapeHtml(fiche.profile.address)} — ${escapeHtml(fiche.profile.city)}</p>
-    <p>Tél. ${escapeHtml(fiche.profile.phone)} · ${escapeHtml(fiche.profile.email)}</p>
-  </div>
+  ${letterhead}
   <div class="country">
-    <p class="strong">${escapeHtml(COUNTRY_NAME.toUpperCase())}</p>
+    <p class="strong">${escapeHtml(COUNTRY_NAME)}</p>
     <p>${escapeHtml(COUNTRY_MOTTO)}</p>
-    <p>Année scolaire ${escapeHtml(fiche.yearLabel)}</p>
+    <p class="rule">-------</p>
+    <p class="year">Année scolaire ${escapeHtml(fiche.yearLabel)}</p>
   </div>
 </header>
 <h1>Bulletin de notes</h1>
@@ -314,7 +397,7 @@ export function bulletinPrintHtml(fiche: BulletinApiFiche): string {
 <table>
   <thead>
     <tr>
-      <th>Matière</th>
+      <th class="left">Matière</th>
       <th>Moyenne de classe</th>
       <th>Composition</th>
       <th>Moyenne</th>
@@ -326,32 +409,19 @@ export function bulletinPrintHtml(fiche: BulletinApiFiche): string {
 </table>
 <section class="summary">
   <div>
-    <p>Mention : <strong>${escapeHtml(fiche.mention ?? '—')}</strong></p>
-    <p>Résultat : <strong>${escapeHtml(fiche.result ?? '—')}</strong></p>
+    <p>Mention : <strong>${escapeHtml(fiche.mention ?? '')}</strong></p>
+    <p>Résultat : <strong>${escapeHtml(fiche.result ?? '')}</strong></p>
     <p>Rang : <strong>${escapeHtml(rankLabel(fiche.rank, fiche.classSize))}</strong></p>
-    <p>Appréciation : <strong>${escapeHtml(fiche.appreciation || '—')}</strong></p>
+    <p>Appréciation : <strong>${escapeHtml(fiche.appreciation || '')}</strong></p>
   </div>
   <div>
-    <p>Total général : <strong>${escapeHtml(
-        fiche.lines.some((line) => line.weighted !== null)
-            ? formatNote(fiche.totalGeneral)
-            : '—',
-    )}</strong></p>
-    <p>Moyenne : <strong>${escapeHtml(
-        fiche.average === null ? '—' : formatNote(fiche.average),
-    )}</strong></p>
-    <p>Fait à ${escapeHtml(fiche.profile.city)} le ${escapeHtml(fiche.issuedOn)}</p>
+    <p>Total général : <strong>${escapeHtml(totalGeneralLabel(fiche))}</strong></p>
+    <p>Moyenne : <strong>${escapeHtml(averageLabel(fiche))}</strong></p>
+    <p>Fait à ${escapeHtml(fiche.profile.city)} le, ${escapeHtml(fiche.issuedOn)}</p>
+    ${stampUrl ? `<img src="${escapeHtml(stampUrl)}" alt="Cachet et signature" class="stamp" />` : ''}
     <p class="director">Le Directeur<br /><strong>${escapeHtml(fiche.profile.directorName)}</strong></p>
   </div>
 </section>`;
-}
-
-function escapeHtml(value: string): string {
-    return value
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;');
 }
 
 export function printBulletinDocument(
@@ -364,21 +434,106 @@ export function printBulletinDocument(
 <meta charset="utf-8" />
 <title>${escapeHtml(title)}</title>
 <style>
-  @page { size: A4; margin: 14mm; }
-  body { font-family: Georgia, "Times New Roman", serif; color: #111; margin: 0; padding: 8mm; }
-  .top { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
-  .school { font-weight: 700; font-size: 14px; margin: 0 0 4px; }
-  .country { text-align: center; font-size: 12px; }
-  .strong { font-weight: 700; font-size: 14px; text-transform: uppercase; margin: 0; }
-  h1 { text-align: center; font-size: 20px; text-transform: uppercase; margin: 24px 0 16px; }
-  .identity { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 24px; font-size: 13px; margin-bottom: 16px; }
+  @page { size: A4; margin: 12mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    color: #000;
+    margin: 0;
+    padding: 8mm;
+    background: #fff;
+  }
+  .top {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    align-items: start;
+  }
+  .letterhead {
+    text-align: center;
+    font-size: 12px;
+    line-height: 1.45;
+  }
+  .letterhead p { margin: 0; }
+  .logo {
+    display: block;
+    margin: 0 auto 8px;
+    height: 96px;
+    width: 128px;
+    object-fit: contain;
+  }
+  .school {
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+  .motto { font-size: 13px; font-weight: 500; }
+  .country {
+    text-align: center;
+    font-size: 12px;
+    line-height: 1.45;
+  }
+  .country p { margin: 0; }
+  .strong {
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+  .rule { margin: 4px 0 !important; }
+  .year {
+    margin-top: 40px !important;
+    font-size: 13px;
+    font-weight: 500;
+  }
+  h1 {
+    text-align: center;
+    font-size: 22px;
+    font-weight: 700;
+    text-transform: uppercase;
+    margin: 32px 0 24px;
+  }
+  .identity {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 32px;
+    row-gap: 4px;
+    font-size: 14px;
+    margin-bottom: 24px;
+  }
   .identity p { margin: 0; }
-  table { width: 100%; border-collapse: collapse; font-size: 12px; }
-  th, td { border: 1px solid #333; padding: 6px 8px; }
-  th { background: #f3f3f3; }
+  .sep { margin: 0 8px; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  th, td {
+    border: 1px solid #000;
+    padding: 6px 8px;
+  }
+  th {
+    background: #f4f4f5;
+    font-weight: 600;
+  }
+  th.left { text-align: left; }
+  td.subject { text-transform: uppercase; }
   td.c { text-align: center; }
-  .summary { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 24px; font-size: 13px; }
-  .director { margin-top: 28px; }
+  .summary {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    margin-top: 32px;
+    font-size: 14px;
+  }
+  .summary p { margin: 0 0 12px; }
+  .stamp {
+    display: block;
+    margin-top: 16px;
+    height: 96px;
+    width: 160px;
+    object-fit: contain;
+  }
+  .director { margin-top: 24px !important; padding-top: 8px; }
 </style>
 </head>
 <body>
@@ -418,7 +573,7 @@ ${bulletinPrintHtml(fiche)}
                 triggerPrint();
             }
         } catch {
-            // Cross-origin edge case — ignore; load handler may still run.
+            // Cross-origin edge case - ignore; load handler may still run.
         }
     }, 250);
 }

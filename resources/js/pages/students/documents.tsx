@@ -77,7 +77,7 @@ export default function StudentDocumentsPage({
 
     return (
         <>
-            <Head title={`Documents — ${fiche.name}`} />
+            <Head title={`Documents : ${fiche.name}`} />
             <PageHeader
                 className="no-print"
                 title="Documents"

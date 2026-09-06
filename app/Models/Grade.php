@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToSchool;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -19,9 +20,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'assessment_id',
     'subject_id',
     'score',
+    'school_id',
 ])]
 class Grade extends Model
 {
+    use BelongsToSchool;
+
     public $incrementing = false;
 
     protected $keyType = 'string';

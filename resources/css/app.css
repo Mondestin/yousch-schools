@@ -219,6 +219,115 @@
     }
 }
 
+/* Yousch marketing landing */
+.welcome-saas {
+    --font-welcome:
+        'Poppins', 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+    font-family: var(--font-welcome);
+}
+
+.welcome-hero p:first-of-type {
+    animation: welcome-rise 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.welcome-hero p:not(.sr-only):nth-of-type(2),
+.welcome-hero .mt-8 {
+    animation: welcome-rise 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.12s both;
+}
+
+.welcome-stage {
+    animation: welcome-rise 1s cubic-bezier(0.22, 1, 0.36, 1) 0.22s both;
+}
+
+.welcome-icon-float {
+    animation: welcome-float 4.5s ease-in-out infinite;
+}
+
+.welcome-icon-float:nth-child(odd),
+li:nth-child(odd) .welcome-icon-float {
+    animation-delay: 0.4s;
+}
+
+.welcome-icon-float:nth-child(3n),
+li:nth-child(3n) .welcome-icon-float {
+    animation-delay: 0.9s;
+}
+
+.welcome-reveal {
+    animation: welcome-rise 0.75s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.welcome-reveal-delay-1 {
+    animation-delay: 0.08s;
+}
+
+.welcome-reveal-delay-2 {
+    animation-delay: 0.16s;
+}
+
+.welcome-reveal-delay-3 {
+    animation-delay: 0.24s;
+}
+
+.welcome-reveal-delay-4 {
+    animation-delay: 0.32s;
+}
+
+.welcome-reveal-delay-5 {
+    animation-delay: 0.4s;
+}
+
+.welcome-check {
+    animation: welcome-check-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes welcome-rise {
+    from {
+        opacity: 0;
+        transform: translateY(18px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes welcome-float {
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-8px);
+    }
+}
+
+@keyframes welcome-check-in {
+    from {
+        opacity: 0;
+        transform: scale(0.7);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .welcome-hero p:first-of-type,
+    .welcome-hero p:not(.sr-only):nth-of-type(2),
+    .welcome-hero .mt-8,
+    .welcome-stage,
+    .welcome-icon-float,
+    .welcome-reveal,
+    .welcome-check {
+        animation: none;
+    }
+}
+
 @media print {
     @page {
         margin: 12mm;

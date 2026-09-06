@@ -86,10 +86,10 @@ export function gradeGrid(catalog: SchoolDataset, assessmentId: string) {
             return {
                 enrollmentId: enrollment.id,
                 studentId: enrollment.studentId,
-                matricule: student?.matricule ?? '—',
+                matricule: student?.matricule ?? '-',
                 lastName: student?.lastName ?? '',
                 firstName: student?.firstName ?? '',
-                name: student ? personName(student) : '—',
+                name: student ? personName(student) : '-',
                 photoUrl: student?.photoUrl ?? null,
                 gradeId: grade?.id ?? null,
                 score: grade?.score ?? null,
@@ -104,9 +104,9 @@ export function gradeGrid(catalog: SchoolDataset, assessmentId: string) {
     return {
         assessment,
         classroom,
-        classroomName: classroom?.name ?? '—',
-        subjectName: subject?.name ?? '—',
-        termName: term?.name ?? '—',
+        classroomName: classroom?.name ?? '-',
+        subjectName: subject?.name ?? '-',
+        termName: term?.name ?? '-',
         rows,
     };
 }
@@ -281,7 +281,7 @@ export function bulletinFiche(
         name: personName(student),
         classroomName: classroom.name,
         cycleName: cycleLabel(classroom.cycle),
-        yearLabel: year?.label ?? '—',
+        yearLabel: year?.label ?? '-',
         trackCode: track?.code ?? null,
         lines,
         average,

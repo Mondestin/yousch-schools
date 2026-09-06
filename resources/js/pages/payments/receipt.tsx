@@ -37,7 +37,7 @@ export default function PaymentReceiptPage({
 
     return (
         <>
-            <Head title={`Reçu — ${slip.name}`} />
+            <Head title={`Reçu : ${slip.name}`} />
             <PageShell>
                 <PageHeader
                     className="no-print"

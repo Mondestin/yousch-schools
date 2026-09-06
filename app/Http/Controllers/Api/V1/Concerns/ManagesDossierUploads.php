@@ -6,18 +6,17 @@ use App\Models\Contracts\HasDossierDocuments;
 use App\Models\Contracts\HasDossierFiles;
 use App\Models\DossierFile;
 use App\Support\Api\ResourceId;
+use App\Support\Storage\SchoolStorage;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Storage;
-use RuntimeException;
 
 trait ManagesDossierUploads
 {
     protected function storePhoto(Request $request, string $directory, ?string $currentUrl = null): ?string
     {
         if ($request->boolean('removePhoto')) {
-            $this->deleteStoredPublicUrl($currentUrl);
+            SchoolStorage::deleteUrl($currentUrl);
 
             return null;
         }
@@ -32,14 +31,9 @@ trait ManagesDossierUploads
             return $currentUrl;
         }
 
-        $this->deleteStoredPublicUrl($currentUrl);
-        $path = $photo->store($directory, 'public');
+        SchoolStorage::deleteUrl($currentUrl);
 
-        if ($path === false) {
-            throw new RuntimeException('Impossible d’enregistrer la photo.');
-        }
-
-        return Storage::disk('public')->url($path);
+        return SchoolStorage::store($photo, $directory);
     }
 
     /**
@@ -58,18 +52,12 @@ trait ManagesDossierUploads
                 continue;
             }
 
-            $path = $file->store($directory, 'public');
-
-            if ($path === false) {
-                throw new RuntimeException('Impossible d’enregistrer le fichier.');
-            }
-
             DossierFile::query()->create([
                 'id' => ResourceId::make('df'),
                 'fileable_type' => $fileable::class,
                 'fileable_id' => $fileable->getKey(),
                 'name' => $file->getClientOriginalName(),
-                'url' => Storage::disk('public')->url($path),
+                'url' => SchoolStorage::store($file, $directory),
                 'mime' => $file->getClientMimeType() ?: 'application/octet-stream',
             ]);
         }
@@ -99,17 +87,6 @@ trait ManagesDossierUploads
 
     protected function deleteStoredPublicUrl(?string $url): void
     {
-        if ($url === null || $url === '') {
-            return;
-        }
-
-        $prefix = '/storage/';
-        $position = strpos($url, $prefix);
-
-        if ($position === false) {
-            return;
-        }
-
-        Storage::disk('public')->delete(substr($url, $position + strlen($prefix)));
+        SchoolStorage::deleteUrl($url);
     }
 }

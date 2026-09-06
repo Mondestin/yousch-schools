@@ -27,7 +27,7 @@ final class SchoolCatalog
     }
 
     /**
-     * Live SchoolDataset: Eloquent when seeded, otherwise the fixture.
+     * Live SchoolDataset for the current tenant, or the demo fixture when no school is bound.
      *
      * @return array<string, mixed>
      *

@@ -615,7 +615,7 @@ test('home page uses the school profile', function () {
         ->assertInertia(fn ($page) => $page
             ->component('welcome')
             ->where('catalog.profile.name', 'Complexe Scolaire Les Palmiers')
-            ->where('catalog.profile.motto', 'Rigueur — Travail — Réussite')
+            ->where('catalog.profile.motto', 'Rigueur - Travail - Réussite')
             ->where('catalog.profile.phone', '06 521 12 34 / 05 551 23 45')
             ->where('catalog.profile.email', 'contact@palmiers.cg')
             ->where('catalog.profile.address', 'Quartier Moungali, avenue de la Paix')

@@ -125,7 +125,7 @@ export default function StructureClassesPage({
             )
             .map((classroom) => ({
                 ...classroom,
-                level: levelMap.get(classroom.gradeLevelId)?.code ?? '—',
+                level: levelMap.get(classroom.gradeLevelId)?.code ?? '-',
                 track: classroom.trackId
                     ? (trackMap.get(classroom.trackId)?.code ?? null)
                     : null,
@@ -351,11 +351,11 @@ export default function StructureClassesPage({
                                 </TableCell>
                                 <TableCell>{classroom.level}</TableCell>
                                 <TableCell>
-                                    {classroom.section ?? '—'}
+                                    {classroom.section ?? '-'}
                                 </TableCell>
                                 {lycee ? (
                                     <TableCell>
-                                        {classroom.track ?? '—'}
+                                        {classroom.track ?? '-'}
                                     </TableCell>
                                 ) : null}
                                 <TableCell>{classroom.capacity}</TableCell>
@@ -406,7 +406,7 @@ export default function StructureClassesPage({
                               },
                               {
                                   label: 'Série',
-                                  value: viewing.track ?? '—',
+                                  value: viewing.track ?? '-',
                               },
                               {
                                   label: 'Capacité',

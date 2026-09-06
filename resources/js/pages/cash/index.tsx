@@ -261,7 +261,7 @@ export default function CashIndex({ catalog }: { catalog: SchoolDataset }) {
 
     return (
         <>
-            <Head title="Caisse — Mouvements" />
+            <Head title="Caisse : Mouvements" />
             <div className="grid gap-3 px-6 py-4 sm:grid-cols-2 xl:grid-cols-4">
                 <KpiCard
                     icon={Scale}
@@ -295,7 +295,7 @@ export default function CashIndex({ catalog }: { catalog: SchoolDataset }) {
             <ListPage
                 embedded
                 title="Mouvements"
-                description={`Journal de caisse — espèces, mobile money, virement.`}
+                description={`Journal de caisse : espèces, mobile money, virement.`}
                 icon={Banknote}
                 searchPlaceholder="Rechercher un libellé, une description..."
                 search={search}
@@ -411,7 +411,7 @@ export default function CashIndex({ catalog }: { catalog: SchoolDataset }) {
                                 </TableCell>
                                 <TableCell className="text-muted-foreground max-w-[22rem]">
                                     <span className="line-clamp-2">
-                                        {item.description || '—'}
+                                        {item.description || '-'}
                                     </span>
                                 </TableCell>
                                 <TableCell className="capitalize">

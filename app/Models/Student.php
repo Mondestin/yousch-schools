@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\Gender;
+use App\Models\Concerns\BelongsToSchool;
 use App\Models\Contracts\HasDossierDocuments;
 use Database\Factories\StudentFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -46,9 +47,12 @@ use Illuminate\Support\Carbon;
     'email',
     'enrolled_on',
     'photo_url',
+    'school_id',
 ])]
 class Student extends Model implements HasDossierDocuments
 {
+    use BelongsToSchool;
+
     /** @use HasFactory<StudentFactory> */
     use HasFactory;
 

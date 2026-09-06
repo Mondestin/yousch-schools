@@ -111,7 +111,7 @@ final class BulletinCalculator
             'name' => trim($student->first_name.' '.$student->last_name),
             'classroomName' => $classroom->name,
             'cycleName' => $classroom->cycle->label(),
-            'yearLabel' => $year !== null ? $year->label : '—',
+            'yearLabel' => $year !== null ? $year->label : '-',
             'trackCode' => $track?->code,
             'lines' => $lines->all(),
             'average' => $average,
