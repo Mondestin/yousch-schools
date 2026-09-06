@@ -12,6 +12,7 @@ import SchoolLayout from '@/layouts/school/layout';
 import SettingsLayout from '@/layouts/settings/layout';
 import StudentLayout from '@/layouts/student/layout';
 import StructureLayout from '@/layouts/structure/layout';
+import TeacherLayout from '@/layouts/teacher/layout';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Yousch';
 
@@ -53,6 +54,10 @@ void createInertiaApp({
                 name !== 'students/admissions' &&
                 name !== 'students/reenrollments':
                 return [AppLayout, StudentLayout];
+            case name === 'teachers/identity' ||
+                name === 'teachers/dossier' ||
+                name === 'teachers/assignments':
+                return [AppLayout, TeacherLayout];
             default:
                 return AppLayout;
         }

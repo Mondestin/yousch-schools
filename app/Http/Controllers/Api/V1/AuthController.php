@@ -57,6 +57,12 @@ class AuthController extends Controller
             ]);
         }
 
+        if ($user->isBlocked()) {
+            throw ValidationException::withMessages([
+                'email' => ['Ce compte a été bloqué. Contactez l’administration.'],
+            ]);
+        }
+
         CurrentSchool::set($school);
 
         $abilities = StaffAccess::abilitiesFor($user->role);

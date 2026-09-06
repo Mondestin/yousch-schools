@@ -46,7 +46,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('tuteurs/{guardian}', [SchoolPagesController::class, 'showGuardian'])->name('guardians.show');
     Route::get('enseignants', [SchoolPagesController::class, 'teachers'])->name('teachers.index');
     Route::get('enseignants/nouveau', [SchoolPagesController::class, 'createTeacher'])->name('teachers.create');
-    Route::get('enseignants/{teacher}', [SchoolPagesController::class, 'showTeacher'])->name('teachers.show');
+    Route::get('enseignants/{teacher}', [SchoolPagesController::class, 'teacher']);
+    Route::get('enseignants/{teacher}/identite', [SchoolPagesController::class, 'showTeacher'])->name('teachers.show');
+    Route::get('enseignants/{teacher}/dossier', [SchoolPagesController::class, 'teacherDossier'])->name('teachers.dossier');
+    Route::get('enseignants/{teacher}/affectations', [SchoolPagesController::class, 'teacherAssignments'])->name('teachers.assignments');
     Route::get('matieres', [SchoolPagesController::class, 'subjects'])->name('subjects.index');
     Route::get('emploi-du-temps', [SchoolPagesController::class, 'timetable'])->name('timetable.index');
     Route::get('presences', [SchoolPagesController::class, 'attendance'])->name('attendance.index');

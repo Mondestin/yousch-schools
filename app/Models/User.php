@@ -26,6 +26,7 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property StaffRole $role
  * @property list<string>|null $cycles
  * @property Carbon|null $last_seen_at
+ * @property Carbon|null $blocked_at
  * @property Carbon|null $email_verified_at
  * @property string $password
  * @property string|null $two_factor_secret
@@ -35,7 +36,7 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['name', 'email', 'avatar_url', 'password', 'phone', 'role', 'cycles', 'last_seen_at', 'school_id', 'is_platform_admin'])]
+#[Fillable(['name', 'email', 'avatar_url', 'password', 'phone', 'role', 'cycles', 'last_seen_at', 'blocked_at', 'school_id', 'is_platform_admin'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -67,8 +68,14 @@ class User extends Authenticatable
             'role' => StaffRole::class,
             'cycles' => 'array',
             'last_seen_at' => 'datetime',
+            'blocked_at' => 'datetime',
             'is_platform_admin' => 'boolean',
         ];
+    }
+
+    public function isBlocked(): bool
+    {
+        return $this->blocked_at !== null;
     }
 
     /**
@@ -95,6 +102,8 @@ class User extends Authenticatable
      *     role: string,
      *     cycles: list<string>,
      *     lastSeenAt: string|null,
+     *     blocked: bool,
+     *     blockedAt: string|null,
      *     abilities: list<string>
      * }
      */
@@ -108,6 +117,8 @@ class User extends Authenticatable
             'role' => $this->role->value,
             'cycles' => $this->cycles ?? [],
             'lastSeenAt' => $this->last_seen_at?->toIso8601String(),
+            'blocked' => $this->isBlocked(),
+            'blockedAt' => $this->blocked_at?->toIso8601String(),
             'abilities' => StaffAccess::abilitiesFor($this->role),
         ];
     }

@@ -2,6 +2,8 @@
 
 use App\Models\User;
 use App\Support\SchoolCatalog;
+use Database\Seeders\SchoolPeopleSeeder;
+use Database\Seeders\SchoolTaxonomySeeder;
 use Illuminate\Http\Request;
 
 test('guests cannot visit school stub pages', function (string $uri) {
@@ -20,7 +22,9 @@ test('guests cannot visit school stub pages', function (string $uri) {
     '/tuteurs/gd-1',
     '/enseignants',
     '/enseignants/nouveau',
-    '/enseignants/tc-4',
+    '/enseignants/tc-4/identite',
+    '/enseignants/tc-4/dossier',
+    '/enseignants/tc-4/affectations',
     '/matieres',
     '/emploi-du-temps',
     '/evaluations',
@@ -75,7 +79,9 @@ test('authenticated staff can visit school stub pages', function (string $uri, s
     ['/tuteurs/gd-1', 'guardians/show'],
     ['/enseignants', 'teachers/index'],
     ['/enseignants/nouveau', 'teachers/create'],
-    ['/enseignants/tc-4', 'teachers/show'],
+    ['/enseignants/tc-4/identite', 'teachers/identity'],
+    ['/enseignants/tc-4/dossier', 'teachers/dossier'],
+    ['/enseignants/tc-4/affectations', 'teachers/assignments'],
     ['/matieres', 'subjects/index'],
     ['/emploi-du-temps', 'timetable/index'],
     ['/evaluations', 'assessments/index'],
@@ -330,20 +336,44 @@ test('one guardian can be linked to several students', function () {
 });
 
 test('unknown teacher fiche returns 404', function () {
+    $this->seed(SchoolTaxonomySeeder::class);
+    $this->seed(SchoolPeopleSeeder::class);
     $this->actingAs(User::factory()->create());
 
     $this->get('/enseignants/inconnu')->assertNotFound();
 });
 
-test('teacher fiche receives the catalog teacher id', function () {
+test('teacher base url redirects to identity', function () {
+    $this->seed(SchoolTaxonomySeeder::class);
+    $this->seed(SchoolPeopleSeeder::class);
     $this->actingAs(User::factory()->create());
 
-    $this->get('/enseignants/tc-4')
+    $this->get('/enseignants/tc-4')->assertRedirect('/enseignants/tc-4/identite');
+});
+
+test('teacher fiche receives the catalog teacher id', function () {
+    $this->seed(SchoolTaxonomySeeder::class);
+    $this->seed(SchoolPeopleSeeder::class);
+    $this->actingAs(User::factory()->create());
+
+    $this->get('/enseignants/tc-4/identite')
         ->assertOk()
         ->assertInertia(fn ($page) => $page
-            ->component('teachers/show')
+            ->component('teachers/identity')
             ->where('teacherId', 'tc-4')
             ->has('catalog.teacherAssignments'));
+
+    $this->get('/enseignants/tc-4/affectations')
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('teachers/assignments')
+            ->where('teacherId', 'tc-4'));
+
+    $this->get('/enseignants/tc-4/dossier')
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('teachers/dossier')
+            ->where('teacherId', 'tc-4'));
 });
 
 test('pascal kouassi is assigned to terminale F2', function () {

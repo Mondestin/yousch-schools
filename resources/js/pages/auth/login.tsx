@@ -25,6 +25,7 @@ const loginSchema = z.object({
 type Props = {
     status?: string;
     canResetPassword: boolean;
+    email?: string | null;
     school: {
         id: string;
         name: string;
@@ -50,8 +51,13 @@ function schoolInitials(name: string): string {
     return `${parts[0][0] ?? ''}${parts[1][0] ?? ''}`.toUpperCase();
 }
 
-export default function Login({ status, canResetPassword, school }: Props) {
-    const [email, setEmail] = useState('');
+export default function Login({
+    status,
+    canResetPassword,
+    email: initialEmail = null,
+    school,
+}: Props) {
+    const [email, setEmail] = useState(initialEmail ?? '');
     const [password, setPassword] = useState('');
     const { errors, clearErrors, validate } = useFieldErrors();
     const initials = schoolInitials(school.name);

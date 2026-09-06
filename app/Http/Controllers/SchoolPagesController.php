@@ -139,17 +139,29 @@ class SchoolPagesController extends Controller
         return Inertia::render('teachers/create', SchoolCatalog::page());
     }
 
+    public function teacher(Request $request, string $teacher): RedirectResponse
+    {
+        $this->ensureTeacher($teacher);
+
+        return redirect()->route('teachers.show', [
+            'teacher' => $teacher,
+            ...$request->query(),
+        ]);
+    }
+
     public function showTeacher(string $teacher): Response
     {
-        $teachers = SchoolCatalog::dataset()['teachers'] ?? [];
-        $exists = is_array($teachers) && collect($teachers)->contains('id', $teacher);
+        return $this->teacherPage($teacher, 'teachers/identity');
+    }
 
-        abort_unless($exists, 404);
+    public function teacherDossier(string $teacher): Response
+    {
+        return $this->teacherPage($teacher, 'teachers/dossier');
+    }
 
-        return Inertia::render('teachers/show', [
-            ...SchoolCatalog::page(),
-            'teacherId' => $teacher,
-        ]);
+    public function teacherAssignments(string $teacher): Response
+    {
+        return $this->teacherPage($teacher, 'teachers/assignments');
     }
 
     public function subjects(): Response
@@ -367,10 +379,28 @@ class SchoolPagesController extends Controller
         ]);
     }
 
+    private function teacherPage(string $teacher, string $component): Response
+    {
+        $this->ensureTeacher($teacher);
+
+        return Inertia::render($component, [
+            ...SchoolCatalog::page(),
+            'teacherId' => $teacher,
+        ]);
+    }
+
     private function ensureStudent(string $student): void
     {
         $students = SchoolCatalog::dataset()['students'] ?? [];
         $exists = is_array($students) && collect($students)->contains('id', $student);
+
+        abort_unless($exists, 404);
+    }
+
+    private function ensureTeacher(string $teacher): void
+    {
+        $teachers = SchoolCatalog::dataset()['teachers'] ?? [];
+        $exists = is_array($teachers) && collect($teachers)->contains('id', $teacher);
 
         abort_unless($exists, 404);
     }

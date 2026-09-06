@@ -305,6 +305,12 @@ Route::prefix('v1')->group(function (): void {
             ->name('api.v1.staff.update');
         Route::delete('/staff/{staff}', [StaffController::class, 'destroy'])
             ->name('api.v1.staff.destroy');
+        Route::post('/staff/{staff}/resend-credentials', [StaffController::class, 'resendCredentials'])
+            ->name('api.v1.staff.resend-credentials');
+        Route::post('/staff/{staff}/block', [StaffController::class, 'block'])
+            ->name('api.v1.staff.block');
+        Route::post('/staff/{staff}/unblock', [StaffController::class, 'unblock'])
+            ->name('api.v1.staff.unblock');
 
         Route::get('/students/{student}/documents', [DocumentController::class, 'show'])
             ->name('api.v1.students.documents');
