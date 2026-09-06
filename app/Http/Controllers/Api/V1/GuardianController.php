@@ -10,6 +10,7 @@ use App\Models\Guardian;
 use App\Models\Student;
 use App\Models\User;
 use App\Support\Api\ResourceId;
+use Illuminate\Database\Eloquent\Relations\Pivot;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -59,7 +60,10 @@ class GuardianController extends Controller
         $payload = $model->toApiArray();
         $payload['students'] = $model->students->map(static function (Student $student): array {
             $row = $student->toApiArray();
-            $row['relation'] = $student->pivot->relation;
+            $pivot = $student->getRelation('pivot');
+            $row['relation'] = $pivot instanceof Pivot
+                ? $pivot->getAttribute('relation')
+                : null;
 
             return $row;
         })->values()->all();

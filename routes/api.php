@@ -56,10 +56,8 @@ Route::prefix('v1')->group(function (): void {
 
         Route::get('/school/profile', [SchoolProfileController::class, 'show'])
             ->name('api.v1.school.profile.show');
-        Route::put('/school/profile', [SchoolProfileController::class, 'update'])
+        Route::match(['put', 'post'], '/school/profile', [SchoolProfileController::class, 'update'])
             ->name('api.v1.school.profile.update');
-        Route::post('/school/profile', [SchoolProfileController::class, 'update'])
-            ->name('api.v1.school.profile.update.post');
 
         Route::get('/school/fees', [FeeTariffController::class, 'index'])
             ->name('api.v1.school.fees.index');
@@ -122,10 +120,8 @@ Route::prefix('v1')->group(function (): void {
             ->name('api.v1.students.store');
         Route::get('/students/{student}', [StudentController::class, 'show'])
             ->name('api.v1.students.show');
-        Route::put('/students/{student}', [StudentController::class, 'update'])
+        Route::match(['put', 'post'], '/students/{student}', [StudentController::class, 'update'])
             ->name('api.v1.students.update');
-        Route::post('/students/{student}', [StudentController::class, 'update'])
-            ->name('api.v1.students.update.post');
         Route::delete('/students/{student}', [StudentController::class, 'destroy'])
             ->name('api.v1.students.destroy');
 
@@ -185,10 +181,8 @@ Route::prefix('v1')->group(function (): void {
             ->name('api.v1.teachers.store');
         Route::get('/teachers/{teacher}', [TeacherController::class, 'show'])
             ->name('api.v1.teachers.show');
-        Route::put('/teachers/{teacher}', [TeacherController::class, 'update'])
+        Route::match(['put', 'post'], '/teachers/{teacher}', [TeacherController::class, 'update'])
             ->name('api.v1.teachers.update');
-        Route::post('/teachers/{teacher}', [TeacherController::class, 'update'])
-            ->name('api.v1.teachers.update.post');
         Route::delete('/teachers/{teacher}', [TeacherController::class, 'destroy'])
             ->name('api.v1.teachers.destroy');
 
@@ -198,10 +192,8 @@ Route::prefix('v1')->group(function (): void {
             ->name('api.v1.subjects.store');
         Route::get('/subjects/{subject}', [SubjectController::class, 'show'])
             ->name('api.v1.subjects.show');
-        Route::put('/subjects/{subject}', [SubjectController::class, 'update'])
+        Route::match(['put', 'post'], '/subjects/{subject}', [SubjectController::class, 'update'])
             ->name('api.v1.subjects.update');
-        Route::post('/subjects/{subject}', [SubjectController::class, 'update'])
-            ->name('api.v1.subjects.update.post');
         Route::delete('/subjects/{subject}', [SubjectController::class, 'destroy'])
             ->name('api.v1.subjects.destroy');
 

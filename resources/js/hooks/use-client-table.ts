@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 
-export const TABLE_PAGE_SIZES = [10, 20, 50] as const;
+export const TABLE_PAGE_SIZES = [10, 20, 50, 100] as const;
 
 export type ClientTable<T> = {
     pageRows: T[];

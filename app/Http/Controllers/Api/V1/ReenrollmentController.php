@@ -14,6 +14,7 @@ use App\Models\User;
 use App\Support\Api\ResourceId;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -227,7 +228,16 @@ class ReenrollmentController extends Controller
     }
 
     /**
-     * @return array<string, mixed>
+     * @return array{
+     *     academicYearId: string,
+     *     studentId: string,
+     *     previousClass: string,
+     *     classroomId: string,
+     *     trackId?: string|null,
+     *     submittedOn?: string|null,
+     *     notes?: string|null,
+     *     files?: list<UploadedFile>|null
+     * }
      */
     private function validatedReenrollment(Request $request, ?Reenrollment $existing = null): array
     {

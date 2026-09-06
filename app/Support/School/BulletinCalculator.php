@@ -111,7 +111,7 @@ final class BulletinCalculator
             'name' => trim($student->first_name.' '.$student->last_name),
             'classroomName' => $classroom->name,
             'cycleName' => $classroom->cycle->label(),
-            'yearLabel' => $year?->label ?? '—',
+            'yearLabel' => $year !== null ? $year->label : '—',
             'trackCode' => $track?->code,
             'lines' => $lines->all(),
             'average' => $average,
@@ -122,7 +122,7 @@ final class BulletinCalculator
             'classSize' => $standings->count(),
             'appreciation' => $this->appreciationForMention($mention),
             'profile' => $profile?->toApiArray() ?? SchoolCatalog::fixture()['profile'],
-            'issuedOn' => now()->locale('fr')->translatedFormat('j F Y'),
+            'issuedOn' => $this->formatIssuedOn(),
         ];
     }
 
@@ -206,15 +206,14 @@ final class BulletinCalculator
     {
         $typeValues = array_map(static fn (AssessmentType $type): string => $type->value, $types);
 
-        return $notes
+        return array_values($notes
             ->filter(function (Grade $grade) use ($termAssessments, $typeValues): bool {
                 $assessment = $termAssessments->firstWhere('id', $grade->assessment_id);
 
                 return $assessment !== null && in_array($assessment->type->value, $typeValues, true);
             })
             ->map(fn (Grade $grade): float => (float) $grade->score)
-            ->values()
-            ->all();
+            ->all());
     }
 
     /**
@@ -331,5 +330,13 @@ final class BulletinCalculator
         }
 
         return $lines->sum(fn (array $line): float => ((float) $line['average']) * ((float) $line['coefficient'])) / $weightSum;
+    }
+
+    private function formatIssuedOn(): string
+    {
+        $issuedOn = now();
+        $issuedOn->locale('fr');
+
+        return $issuedOn->translatedFormat('j F Y');
     }
 }

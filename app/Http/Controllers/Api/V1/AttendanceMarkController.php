@@ -140,6 +140,13 @@ class AttendanceMarkController extends Controller
                 if ($document instanceof UploadedFile) {
                     $this->deleteStoredPublicUrl($documentUrl);
                     $path = $document->store('attendance/excuses', 'public');
+
+                    if ($path === false) {
+                        throw ValidationException::withMessages([
+                            "marks.{$index}.document" => ['Impossible d’enregistrer le justificatif.'],
+                        ]);
+                    }
+
                     $documentUrl = Storage::disk('public')->url($path);
                     $documentName = $document->getClientOriginalName();
                 }
@@ -156,7 +163,7 @@ class AttendanceMarkController extends Controller
 
                 if ($existing !== null) {
                     $existing->update($payload);
-                    $rows[] = $existing->fresh();
+                    $rows[] = $existing->refresh();
                 } else {
                     $rows[] = AttendanceMark::query()->create([
                         'id' => ResourceId::make('at'),
@@ -171,7 +178,10 @@ class AttendanceMarkController extends Controller
         });
 
         return response()->json([
-            'data' => collect($saved)->map->toApiArray()->values()->all(),
+            'data' => collect($saved)
+                ->map(static fn (AttendanceMark $mark): array => $mark->toApiArray())
+                ->values()
+                ->all(),
         ]);
     }
 

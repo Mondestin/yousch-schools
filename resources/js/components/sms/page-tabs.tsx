@@ -25,7 +25,7 @@ export function PageTabs({
     return (
         <nav
             className={cn(
-                'border-border flex shrink-0 overflow-x-auto border-b',
+                'border-border after:from-background relative flex shrink-0 overflow-x-auto border-b after:pointer-events-none after:absolute after:inset-y-0 after:right-0 after:w-10 after:bg-linear-to-l after:to-transparent md:after:hidden',
                 flush && 'px-6',
             )}
             aria-label="Sections"

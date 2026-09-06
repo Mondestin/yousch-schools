@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\ReenrollmentStatus;
+use App\Models\Contracts\HasDossierFiles;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -19,6 +20,8 @@ use Illuminate\Support\Carbon;
  * @property Carbon $submitted_on
  * @property ReenrollmentStatus $status
  * @property string|null $notes
+ *
+ * @implements HasDossierFiles<$this>
  */
 #[Fillable([
     'id',
@@ -31,7 +34,7 @@ use Illuminate\Support\Carbon;
     'status',
     'notes',
 ])]
-class Reenrollment extends Model
+class Reenrollment extends Model implements HasDossierFiles
 {
     public $incrementing = false;
 
@@ -64,9 +67,6 @@ class Reenrollment extends Model
         return $this->belongsTo(Classroom::class);
     }
 
-    /**
-     * @return MorphMany<DossierFile, $this>
-     */
     public function files(): MorphMany
     {
         return $this->morphMany(DossierFile::class, 'fileable');

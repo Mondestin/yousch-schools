@@ -88,7 +88,7 @@ class SchoolSubscription extends Model
             'renewsOn' => $this->renews_on->format('Y-m-d'),
             'monthlyAmount' => $this->monthly_amount,
             'receipts' => $this->relationLoaded('receipts')
-                ? $this->receipts->map->toApiArray()->values()->all()
+                ? array_values($this->receipts->map->toApiArray()->all())
                 : [],
         ];
     }

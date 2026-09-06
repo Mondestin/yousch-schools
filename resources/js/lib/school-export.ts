@@ -16,13 +16,7 @@ export function downloadTextFile(
 }
 
 export function printHtmlDocument(title: string, bodyHtml: string): void {
-    const popup = window.open('', '_blank', 'noopener,noreferrer,width=900,height=700');
-
-    if (!popup) {
-        return;
-    }
-
-    popup.document.write(`<!doctype html>
+    const html = `<!doctype html>
 <html lang="fr">
 <head>
 <meta charset="utf-8" />
@@ -38,8 +32,33 @@ export function printHtmlDocument(title: string, bodyHtml: string): void {
 </head>
 <body>
 ${bodyHtml}
-<script>window.onload = function () { window.print(); };<\/script>
 </body>
-</html>`);
-    popup.document.close();
+</html>`;
+
+    const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const popup = window.open(url, '_blank');
+
+    if (!popup) {
+        URL.revokeObjectURL(url);
+
+        return;
+    }
+
+    const triggerPrint = (): void => {
+        popup.focus();
+        popup.print();
+        window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    };
+
+    popup.addEventListener('load', triggerPrint);
+    window.setTimeout(() => {
+        try {
+            if (popup.document?.readyState === 'complete') {
+                triggerPrint();
+            }
+        } catch {
+            // ignore
+        }
+    }, 250);
 }

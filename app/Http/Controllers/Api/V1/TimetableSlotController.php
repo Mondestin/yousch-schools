@@ -158,7 +158,15 @@ class TimetableSlotController extends Controller
     }
 
     /**
-     * @return array<string, mixed>
+     * @return array{
+     *     academicYearId: string,
+     *     classroomId: string,
+     *     weekday: string,
+     *     periodId: string,
+     *     subjectId: string,
+     *     teacherId: string,
+     *     room?: string|null
+     * }
      */
     private function validatedSlot(Request $request, ?TimetableSlot $existing = null): array
     {
@@ -180,7 +188,15 @@ class TimetableSlotController extends Controller
     }
 
     /**
-     * @param  array<string, mixed>  $validated
+     * @param  array{
+     *     academicYearId: string,
+     *     classroomId: string,
+     *     weekday: string,
+     *     periodId: string,
+     *     subjectId: string,
+     *     teacherId: string,
+     *     room?: string|null
+     * }  $validated
      */
     private function assertPeriodBelongsToClassroom(array $validated): void
     {
@@ -193,7 +209,9 @@ class TimetableSlotController extends Controller
         }
 
         $schedule = CycleSchedule::query()->where('cycle', $classroom->cycle->value)->first();
-        $periodIds = collect($schedule?->periods ?? [])->pluck('id')->all();
+        $periodIds = $schedule === null
+            ? []
+            : collect($schedule->periods)->pluck('id')->all();
 
         if ($periodIds !== [] && ! in_array($validated['periodId'], $periodIds, true)) {
             throw ValidationException::withMessages([
@@ -203,7 +221,15 @@ class TimetableSlotController extends Controller
     }
 
     /**
-     * @param  array<string, mixed>  $validated
+     * @param  array{
+     *     academicYearId: string,
+     *     classroomId: string,
+     *     weekday: string,
+     *     periodId: string,
+     *     subjectId: string,
+     *     teacherId: string,
+     *     room?: string|null
+     * }  $validated
      */
     private function assertNoConflict(array $validated, ?string $ignoreId = null): void
     {

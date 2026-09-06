@@ -95,10 +95,7 @@ export default function SchoolSubscriptionPage({
     }
 
     function downloadReceipt(receipt: SubscriptionReceipt): void {
-        downloadTextFile(
-            `recu-${receipt.reference}.txt`,
-            receiptText(receipt),
-        );
+        downloadTextFile(`recu-${receipt.reference}.txt`, receiptText(receipt));
         toastSaved('Reçu téléchargé');
     }
 

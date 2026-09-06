@@ -1,8 +1,7 @@
 import { Head } from '@inertiajs/react';
-import { FileText, Printer } from 'lucide-react';
+import { Printer } from 'lucide-react';
 import { BulletinLetterhead } from '@/components/sms/bulletin-letterhead';
 import { DocumentStamp } from '@/components/sms/document-stamp';
-import { PageHeader } from '@/components/sms/page-header';
 import { PageShell } from '@/components/sms/page-shell';
 import { Button } from '@/components/ui/button';
 import { useSchoolContext } from '@/hooks/use-school-context';
@@ -53,18 +52,12 @@ export default function ReportShowPage({
         <>
             <Head title={`Bulletin — ${fiche.name}`} />
             <PageShell>
-                <PageHeader
-                    className="no-print"
-                    title="Bulletin"
-                    icon={FileText}
-                    description={`${fiche.classroomName} · ${fiche.term.name}.`}
-                    actions={
-                        <Button type="button" onClick={() => window.print()}>
-                            <Printer />
-                            Imprimer
-                        </Button>
-                    }
-                />
+                <div className="no-print mb-4 flex justify-end">
+                    <Button type="button" onClick={() => window.print()}>
+                        <Printer />
+                        Imprimer
+                    </Button>
+                </div>
 
                 <article className="print-bulletin mx-auto max-w-[210mm] bg-white p-8 text-black">
                     <header className="grid grid-cols-2 items-start gap-8">

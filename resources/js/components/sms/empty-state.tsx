@@ -1,10 +1,10 @@
 import type { LucideIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { Inbox } from 'lucide-react';
+import { EmptyStateIcon } from '@/components/sms/empty-state-icon';
 import { cn } from '@/lib/utils';
 
 export function EmptyState({
-    icon: Icon = Inbox,
+    icon,
     title,
     description,
     action,
@@ -19,14 +19,14 @@ export function EmptyState({
     return (
         <div
             className={cn(
-                'flex flex-col items-center justify-center gap-2 px-6 py-16 text-center',
+                'flex min-h-full flex-1 flex-col items-center justify-center gap-4 px-6 py-12 text-center',
                 className,
             )}
         >
-            <Icon className="text-muted-foreground mb-1 size-5" />
-            <p className="text-[13px] font-medium">{title}</p>
+            <EmptyStateIcon icon={icon} />
+            <p className="text-[14px] font-medium">{title}</p>
             {description && (
-                <p className="text-muted-foreground max-w-sm text-[13px]">
+                <p className="text-muted-foreground max-w-md text-[14px]">
                     {description}
                 </p>
             )}

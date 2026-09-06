@@ -39,7 +39,11 @@ import {
 } from '@/components/ui/table';
 import { useSchoolContext } from '@/hooks/use-school-context';
 import { apiData } from '@/lib/api';
-import { downloadTextFile, printHtmlDocument } from '@/lib/school-export';
+import {
+    downloadBulletinPdf,
+    printBulletinDocument,
+    type BulletinApiFiche,
+} from '@/lib/school-bulletin-pdf';
 import { defaultTermId } from '@/lib/school-grades';
 import { cycleLabel, studentRows } from '@/lib/school-rows';
 import { toastApiError, toastSaved } from '@/lib/school-toast';
@@ -96,8 +100,8 @@ export default function ReportsIndex({ catalog }: { catalog: SchoolDataset }) {
         );
     }
 
-    async function fetchBulletin(studentId: string): Promise<unknown> {
-        return apiData(
+    async function fetchBulletin(studentId: string): Promise<BulletinApiFiche> {
+        return apiData<BulletinApiFiche>(
             studentBulletin.url(studentId, {
                 query: { termId },
             }),
@@ -109,17 +113,15 @@ export default function ReportsIndex({ catalog }: { catalog: SchoolDataset }) {
         name: string,
     ): Promise<void> {
         try {
-            const data = await fetchBulletin(studentId);
+            const fiche = await fetchBulletin(studentId);
             const slug = name
                 .toLowerCase()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
                 .replace(/\s+/g, '-')
                 .replace(/[^a-z0-9-]/gi, '');
-            downloadTextFile(
-                `bulletin-${slug || studentId}.json`,
-                JSON.stringify(data, null, 2),
-                'application/json;charset=utf-8',
-            );
-            toastSaved('Bulletin téléchargé');
+            downloadBulletinPdf(fiche, `bulletin-${slug || studentId}.pdf`);
+            toastSaved('Bulletin PDF téléchargé');
         } catch (error) {
             toastApiError(error, 'Impossible de télécharger le bulletin');
         }
@@ -128,19 +130,10 @@ export default function ReportsIndex({ catalog }: { catalog: SchoolDataset }) {
     async function printBulletin(
         studentId: string,
         name: string,
-        matricule: string,
-        classroom: string,
     ): Promise<void> {
         try {
-            const data = await fetchBulletin(studentId);
-            const termName = currentTerm?.name ?? termId;
-            printHtmlDocument(
-                `Bulletin — ${name}`,
-                `<h1>Bulletin scolaire</h1>
-<p class="meta"><strong>${name}</strong> · ${matricule}</p>
-<p class="meta">${classroom} · ${termName} · ${academicYearLabel}</p>
-<pre style="white-space:pre-wrap;font-size:12px;margin-top:16px;">${JSON.stringify(data, null, 2).replace(/</g, '&lt;')}</pre>`,
-            );
+            const fiche = await fetchBulletin(studentId);
+            printBulletinDocument(`Bulletin — ${name}`, fiche);
         } catch (error) {
             toastApiError(error, 'Impossible d’imprimer le bulletin');
         }
@@ -291,7 +284,7 @@ export default function ReportsIndex({ catalog }: { catalog: SchoolDataset }) {
                                                     ),
                                             },
                                             {
-                                                label: 'Télécharger',
+                                                label: 'Télécharger le PDF',
                                                 icon: Download,
                                                 onSelect: () => {
                                                     void downloadBulletin(
@@ -307,8 +300,6 @@ export default function ReportsIndex({ catalog }: { catalog: SchoolDataset }) {
                                                     void printBulletin(
                                                         row.studentId,
                                                         row.name,
-                                                        row.matricule,
-                                                        row.classroom,
                                                     );
                                                 },
                                             },

@@ -15,8 +15,10 @@ use App\Models\Student;
 use App\Models\User;
 use App\Support\Api\ResourceId;
 use App\Support\School\MatriculeGenerator;
+use Illuminate\Database\Eloquent\Relations\Pivot;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -70,9 +72,12 @@ class StudentController extends Controller
 
         $payload = $model->toApiArray();
         $payload['enrollments'] = $model->enrollments->map->toApiArray()->values()->all();
-        $payload['guardians'] = $model->guardians->map(static function ($guardian): array {
+        $payload['guardians'] = $model->guardians->map(static function (Guardian $guardian): array {
             $row = $guardian->toApiArray();
-            $row['relation'] = $guardian->pivot->relation;
+            $pivot = $guardian->getRelation('pivot');
+            $row['relation'] = $pivot instanceof Pivot
+                ? $pivot->getAttribute('relation')
+                : null;
 
             return $row;
         })->values()->all();
@@ -202,9 +207,12 @@ class StudentController extends Controller
     {
         $payload = $student->toApiArray();
         $payload['enrollments'] = $student->enrollments->map->toApiArray()->values()->all();
-        $payload['guardians'] = $student->guardians->map(static function ($guardian): array {
+        $payload['guardians'] = $student->guardians->map(static function (Guardian $guardian): array {
             $row = $guardian->toApiArray();
-            $row['relation'] = $guardian->pivot->relation;
+            $pivot = $guardian->getRelation('pivot');
+            $row['relation'] = $pivot instanceof Pivot
+                ? $pivot->getAttribute('relation')
+                : null;
 
             return $row;
         })->values()->all();
@@ -213,7 +221,31 @@ class StudentController extends Controller
     }
 
     /**
-     * @return array<string, mixed>
+     * @return array{
+     *     matricule?: string,
+     *     firstName: string,
+     *     lastName: string,
+     *     gender: string,
+     *     bornOn: string,
+     *     city: string,
+     *     neighborhood: string,
+     *     address?: string|null,
+     *     phone?: string|null,
+     *     email?: string|null,
+     *     enrolledOn?: string|null,
+     *     classroomId?: string|null,
+     *     academicYearId?: string|null,
+     *     trackId?: string|null,
+     *     guardianFirstName?: string|null,
+     *     guardianLastName?: string|null,
+     *     guardianPhone?: string|null,
+     *     guardianProfession?: string|null,
+     *     guardianGender?: string|null,
+     *     guardianRelation?: string|null,
+     *     photo?: mixed,
+     *     removePhoto?: bool,
+     *     files?: list<UploadedFile>|null
+     * }
      */
     private function validatedStudent(Request $request, ?Student $existing = null): array
     {

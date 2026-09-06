@@ -13,12 +13,16 @@ export function toastRemoved(message = 'Supprimé'): void {
 /** Blue: action not yet wired to the API. */
 export function toastStub(message = 'Action de maquette'): void {
     toast.info(message, {
-        description: 'Maquette — les modifications ne sont pas encore enregistrées.',
+        description:
+            'Maquette — les modifications ne sont pas encore enregistrées.',
     });
 }
 
 /** Red: API or validation failure. */
-export function toastApiError(error: unknown, fallback = 'Échec de l’enregistrement'): void {
+export function toastApiError(
+    error: unknown,
+    fallback = 'Échec de l’enregistrement',
+): void {
     const message =
         error instanceof Error && error.message.trim() !== ''
             ? error.message

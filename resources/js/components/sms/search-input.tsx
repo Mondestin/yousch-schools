@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 export function SearchInput({
     className,
     wrapperClassName,
+    'aria-label': ariaLabel,
     ...props
 }: ComponentProps<typeof Input> & { wrapperClassName?: string }) {
     return (
@@ -20,6 +21,7 @@ export function SearchInput({
                 aria-hidden
             />
             <Input
+                aria-label={ariaLabel ?? 'Rechercher'}
                 className={cn(
                     'h-8 rounded-[8px] pl-8 text-[13px] shadow-none',
                     className,

@@ -185,55 +185,6 @@ export default function AttendanceIndex({
     }, [search, source]);
     const table = useClientTable(rows);
 
-    function upsertMark(
-        enrollmentId: string,
-        patch: {
-            status: AttendanceStatus;
-            note: string | null;
-            documentUrl: string | null;
-            documentName: string | null;
-        },
-    ): void {
-        setMarks((current) => {
-            if (!slot) {
-                return current;
-            }
-
-            const existing = current.find(
-                (item) =>
-                    item.enrollmentId === enrollmentId &&
-                    item.date === date &&
-                    (item.slotId === slot.id ||
-                        (item.periodId ?? null) === slot.periodId),
-            );
-            const next: AttendanceMark = {
-                id:
-                    existing?.id ??
-                    `at-local-${enrollmentId}-${date}-${slot.id}`,
-                enrollmentId,
-                date,
-                slotId: slot.id,
-                periodId: slot.periodId,
-                subjectId: slot.subjectId,
-                status: patch.status,
-                note: patch.status === 'excuse' ? patch.note : null,
-                documentUrl:
-                    patch.status === 'excuse' ? patch.documentUrl : null,
-                documentName:
-                    patch.status === 'excuse' ? patch.documentName : null,
-            };
-
-            if (existing) {
-                return current.map((item) =>
-                    item.id === existing.id ? next : item,
-                );
-            }
-
-            return [...current, next];
-        });
-    }
-
-
     async function persistMarks(
         markRows: {
             enrollmentId: string;
@@ -437,7 +388,9 @@ export default function AttendanceIndex({
                                 type="button"
                                 variant="outline"
                                 disabled={!rollReady}
-                                onClick={() => { void markAllPresent(); }}
+                                onClick={() => {
+                                    void markAllPresent();
+                                }}
                             >
                                 Tous présents
                             </Button>
@@ -459,7 +412,9 @@ export default function AttendanceIndex({
                                     );
                                 }}
                             >
-                                {saving ? 'Enregistrement…' : 'Enregistrer l’appel'}
+                                {saving
+                                    ? 'Enregistrement…'
+                                    : 'Enregistrer l’appel'}
                             </Button>
                         </div>
                     }
@@ -728,7 +683,12 @@ export default function AttendanceIndex({
                         >
                             Annuler
                         </Button>
-                        <Button type="button" onClick={() => { void confirmExcuse(); }}>
+                        <Button
+                            type="button"
+                            onClick={() => {
+                                void confirmExcuse();
+                            }}
+                        >
                             Valider
                         </Button>
                     </DialogFooter>

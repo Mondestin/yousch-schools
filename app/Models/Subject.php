@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\Cycle;
+use App\Models\Contracts\HasDossierFiles;
 use Database\Factories\SubjectFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -23,6 +24,8 @@ use Illuminate\Support\Carbon;
  * @property string|null $track_id
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ *
+ * @implements HasDossierFiles<$this>
  */
 #[Fillable([
     'id',
@@ -34,7 +37,7 @@ use Illuminate\Support\Carbon;
     'grade_level_id',
     'track_id',
 ])]
-class Subject extends Model
+class Subject extends Model implements HasDossierFiles
 {
     /** @use HasFactory<SubjectFactory> */
     use HasFactory;
@@ -78,9 +81,6 @@ class Subject extends Model
         return $this->hasMany(TeacherAssignment::class);
     }
 
-    /**
-     * @return MorphMany<DossierFile, $this>
-     */
     public function files(): MorphMany
     {
         return $this->morphMany(DossierFile::class, 'fileable');
@@ -113,10 +113,9 @@ class Subject extends Model
         ];
 
         if ($this->relationLoaded('files')) {
-            $payload['files'] = $this->files
-                ->map->toApiArray()
-                ->values()
-                ->all();
+            $payload['files'] = array_values(
+                $this->files->map->toApiArray()->all(),
+            );
         }
 
         return $payload;

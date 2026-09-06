@@ -212,11 +212,11 @@ export default function StructureHoursPage({
             );
 
             setSchedules((current) => {
-                const byCycle = new Map(saved.map((item) => [item.cycle, item]));
-
-                return current.map(
-                    (item) => byCycle.get(item.cycle) ?? item,
+                const byCycle = new Map(
+                    saved.map((item) => [item.cycle, item]),
                 );
+
+                return current.map((item) => byCycle.get(item.cycle) ?? item);
             });
 
             if (!options?.silent) {
@@ -264,17 +264,6 @@ export default function StructureHoursPage({
         patchCurrent((item) => ({
             ...item,
             hours: typeof next === 'function' ? next(item.hours) : next,
-        }));
-    }
-
-    function setPeriods(
-        next:
-            | TimetablePeriod[]
-            | ((current: TimetablePeriod[]) => TimetablePeriod[]),
-    ): void {
-        patchCurrent((item) => ({
-            ...item,
-            periods: typeof next === 'function' ? next(item.periods) : next,
         }));
     }
 

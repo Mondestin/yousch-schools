@@ -28,8 +28,14 @@ export function DataTable({
             )}
         >
             {toolbar}
-            <div className="bg-background min-h-0 flex-1 overflow-auto">
-                {empty ?? children}
+            <div className="bg-background flex min-h-0 flex-1 flex-col overflow-auto">
+                {empty ? (
+                    <div className="flex min-h-full flex-1 flex-col">
+                        {empty}
+                    </div>
+                ) : (
+                    children
+                )}
             </div>
             {footer}
         </div>

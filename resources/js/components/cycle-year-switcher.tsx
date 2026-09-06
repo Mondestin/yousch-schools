@@ -21,7 +21,7 @@ export function CycleYearSwitcher() {
     const options = cycles.length > 0 ? cycles : SCHOOL_CYCLES;
 
     return (
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex shrink-0 items-center gap-1.5 sm:gap-2">
             <Select
                 value={cycle}
                 onValueChange={(value) => {
@@ -35,10 +35,10 @@ export function CycleYearSwitcher() {
                 <SelectTrigger
                     size="sm"
                     aria-label="Cycle"
-                    className="min-w-[10.5rem]"
+                    className="w-[7.5rem] min-w-0 sm:w-auto sm:min-w-[10.5rem]"
                 >
                     <GitBranch className="text-muted-foreground size-3.5" />
-                    <SelectValue />
+                    <SelectValue className="min-w-0 truncate" />
                 </SelectTrigger>
                 <SelectContent align="end">
                     {options.map((item) => (
@@ -61,10 +61,10 @@ export function CycleYearSwitcher() {
                 <SelectTrigger
                     size="sm"
                     aria-label="Année académique"
-                    className="min-w-[8.5rem]"
+                    className="w-[6.75rem] min-w-0 sm:w-auto sm:min-w-[8.5rem]"
                 >
                     <CalendarDays className="text-muted-foreground size-3.5" />
-                    <SelectValue />
+                    <SelectValue className="min-w-0 truncate" />
                 </SelectTrigger>
                 <SelectContent align="end">
                     {schoolDataset.academicYears.map((year) => (

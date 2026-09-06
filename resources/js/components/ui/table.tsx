@@ -12,10 +12,13 @@ function Table({
         <div
             data-slot="table-container"
             className={cn(
-                'relative w-full overflow-x-auto rounded-[8px] border',
+                'relative w-full overflow-x-auto overscroll-x-contain rounded-[8px] border',
                 containerClassName,
             )}
         >
+            <p className="text-muted-foreground border-b px-3 py-1.5 text-[11px] md:hidden">
+                Faites défiler horizontalement pour voir toutes les colonnes.
+            </p>
             <table
                 data-slot="table"
                 className={cn(

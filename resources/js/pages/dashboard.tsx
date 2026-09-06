@@ -311,6 +311,12 @@ export default function Dashboard({ catalog }: { catalog: SchoolDataset }) {
                         className="xl:col-span-2"
                         title="Recouvrement par cycle"
                         description={`Scolarité de ${snapshot.monthLabel} : encaissé et reste dû.`}
+                        summary={collection
+                            .map(
+                                (row) =>
+                                    `${cycleLabel(row.cycle)} : ${formatFcfa(row.collected)} encaissés et ${formatFcfa(row.outstanding)} restant dû`,
+                            )
+                            .join('. ')}
                         icon={Wallet}
                         loading={loading}
                         legend={
@@ -364,6 +370,7 @@ export default function Dashboard({ catalog }: { catalog: SchoolDataset }) {
                                 name="Encaissé"
                                 stackId="fees"
                                 fill="var(--chart-1)"
+                                isAnimationActive={false}
                             />
                             <Bar
                                 dataKey="outstanding"
@@ -371,6 +378,7 @@ export default function Dashboard({ catalog }: { catalog: SchoolDataset }) {
                                 stackId="fees"
                                 fill="var(--chart-3)"
                                 radius={[4, 4, 0, 0]}
+                                isAnimationActive={false}
                             />
                         </BarChart>
                     </ChartCard>
@@ -378,6 +386,9 @@ export default function Dashboard({ catalog }: { catalog: SchoolDataset }) {
                     <ChartCard
                         title="Répartition des effectifs"
                         description="Élèves inscrits par cycle."
+                        summary={headcount
+                            .map((row) => `${row.label} : ${row.count} élèves`)
+                            .join('. ')}
                         icon={PieChartIcon}
                         loading={loading}
                         legend={headcount.map((row) => (
@@ -402,6 +413,7 @@ export default function Dashboard({ catalog }: { catalog: SchoolDataset }) {
                                 outerRadius={88}
                                 paddingAngle={2}
                                 strokeWidth={0}
+                                isAnimationActive={false}
                             >
                                 {headcount.map((row) => (
                                     <Cell key={row.cycle} fill={row.fill} />
@@ -415,6 +427,12 @@ export default function Dashboard({ catalog }: { catalog: SchoolDataset }) {
                     <ChartCard
                         title="Assiduité"
                         description="Taux de présence par journée d’appel."
+                        summary={trend
+                            .map(
+                                (row) =>
+                                    `${row.label} : ${row.rate} % de présence`,
+                            )
+                            .join('. ')}
                         icon={CalendarCheck}
                         loading={loading}
                         height={200}
@@ -456,6 +474,7 @@ export default function Dashboard({ catalog }: { catalog: SchoolDataset }) {
                                 stroke="var(--chart-1)"
                                 strokeWidth={2}
                                 dot={{ r: 3, fill: 'var(--chart-1)' }}
+                                isAnimationActive={false}
                             />
                         </LineChart>
                     </ChartCard>
@@ -467,6 +486,9 @@ export default function Dashboard({ catalog }: { catalog: SchoolDataset }) {
                                 ? `Relevé du ${formatFrDate(lastRollCall)}.`
                                 : 'Aucun appel enregistré.'
                         }
+                        summary={rollCall
+                            .map((row) => `${row.label} : ${row.count} élèves`)
+                            .join('. ')}
                         icon={UserCheck}
                         loading={loading}
                         height={200}
@@ -492,6 +514,7 @@ export default function Dashboard({ catalog }: { catalog: SchoolDataset }) {
                                 outerRadius={76}
                                 paddingAngle={2}
                                 strokeWidth={0}
+                                isAnimationActive={false}
                             >
                                 {rollCall.map((row) => (
                                     <Cell key={row.status} fill={row.fill} />
@@ -503,6 +526,12 @@ export default function Dashboard({ catalog }: { catalog: SchoolDataset }) {
                     <ChartCard
                         title="Remplissage des classes"
                         description="Effectif inscrit face à la capacité."
+                        summary={occupancy
+                            .map(
+                                (row) =>
+                                    `${row.label} : ${row.count} inscrits sur ${row.capacity} places`,
+                            )
+                            .join('. ')}
                         icon={GraduationCap}
                         loading={loading}
                         height={200}
@@ -552,6 +581,7 @@ export default function Dashboard({ catalog }: { catalog: SchoolDataset }) {
                                 name="Inscrits"
                                 stackId="seats"
                                 fill="var(--chart-1)"
+                                isAnimationActive={false}
                             />
                             <Bar
                                 dataKey="free"
@@ -559,6 +589,7 @@ export default function Dashboard({ catalog }: { catalog: SchoolDataset }) {
                                 stackId="seats"
                                 fill="var(--chart-3)"
                                 radius={[0, 4, 4, 0]}
+                                isAnimationActive={false}
                             />
                         </BarChart>
                     </ChartCard>

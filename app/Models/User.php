@@ -73,15 +73,13 @@ class User extends Authenticatable
      */
     public function toStaffApiArray(): array
     {
-        $cycles = $this->cycles ?? [];
-
         return [
             'id' => (string) $this->id,
             'name' => $this->name,
             'email' => $this->email,
             'phone' => $this->phone ?? '',
             'role' => $this->role->value,
-            'cycles' => array_values($cycles),
+            'cycles' => $this->cycles ?? [],
             'lastSeenAt' => $this->last_seen_at?->toIso8601String(),
             'abilities' => StaffAccess::abilitiesFor($this->role),
         ];

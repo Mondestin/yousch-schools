@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\Gender;
+use App\Models\Contracts\HasDossierDocuments;
 use Database\Factories\StudentFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -28,6 +29,8 @@ use Illuminate\Support\Carbon;
  * @property string|null $photo_url
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ *
+ * @implements HasDossierDocuments<$this>
  */
 #[Fillable([
     'id',
@@ -44,7 +47,7 @@ use Illuminate\Support\Carbon;
     'enrolled_on',
     'photo_url',
 ])]
-class Student extends Model
+class Student extends Model implements HasDossierDocuments
 {
     /** @use HasFactory<StudentFactory> */
     use HasFactory;
@@ -83,9 +86,6 @@ class Student extends Model
         return $this->hasMany(Enrollment::class);
     }
 
-    /**
-     * @return MorphMany<DossierFile, $this>
-     */
     public function dossierFiles(): MorphMany
     {
         return $this->morphMany(DossierFile::class, 'fileable');
@@ -128,10 +128,9 @@ class Student extends Model
         ];
 
         if ($this->relationLoaded('dossierFiles')) {
-            $payload['files'] = $this->dossierFiles
-                ->map->toApiArray()
-                ->values()
-                ->all();
+            $payload['files'] = array_values(
+                $this->dossierFiles->map->toApiArray()->all(),
+            );
         }
 
         return $payload;
