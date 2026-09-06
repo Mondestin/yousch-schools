@@ -62,6 +62,7 @@ class SchoolDomainLoginController extends Controller
         return Inertia::render('auth/login', [
             'canResetPassword' => true,
             'status' => session('status'),
+            'email' => $request->string('email')->toString() ?: null,
             'school' => [
                 'id' => $school->id,
                 'name' => $school->profile?->name ?? $school->name,

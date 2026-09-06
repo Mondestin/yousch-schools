@@ -102,6 +102,10 @@ class FortifyServiceProvider extends ServiceProvider
                 return null;
             }
 
+            if ($user->isBlocked()) {
+                return null;
+            }
+
             $school = $user->school()->first();
             if ($school !== null) {
                 CurrentSchool::set($school);

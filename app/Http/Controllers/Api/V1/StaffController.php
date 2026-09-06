@@ -7,11 +7,11 @@ use App\Enums\StaffRole;
 use App\Http\Controllers\Api\V1\Concerns\EnsuresStaffAbility;
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Support\Auth\StaffCredentialsMailer;
 use App\Support\Tenancy\CurrentSchool;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
@@ -60,14 +60,25 @@ class StaffController extends Controller
             'phone' => $validated['phone'],
             'role' => $validated['role'],
             'cycles' => $validated['cycles'],
-            'password' => Hash::make($validated['password'] ?? 'password'),
+            'password' => $validated['password'] ?? 'temporary',
             'email_verified_at' => now(),
         ]);
 
-        $payload = $staff->toStaffApiArray();
+        StaffCredentialsMailer::send(
+            $staff,
+            resend: false,
+            plainPassword: $validated['password'] ?? null,
+        );
+
+        $payload = $staff->fresh()->toStaffApiArray();
         unset($payload['abilities']);
 
-        return response()->json(['data' => $payload], 201);
+        return response()->json([
+            'data' => $payload,
+            'meta' => [
+                'credentialsEmailed' => true,
+            ],
+        ], 201);
     }
 
     public function update(Request $request, string $staff): JsonResponse
@@ -91,7 +102,7 @@ class StaffController extends Controller
         ];
 
         if (! empty($validated['password'])) {
-            $attributes['password'] = Hash::make($validated['password']);
+            $attributes['password'] = $validated['password'];
         }
 
         $model->update($attributes);
@@ -122,6 +133,89 @@ class StaffController extends Controller
         $model->delete();
 
         return response()->json(['message' => 'Compte utilisateur supprimé.']);
+    }
+
+    public function resendCredentials(Request $request, string $staff): JsonResponse
+    {
+        /** @var User $user */
+        $user = $request->user();
+
+        if ($denied = $this->denyUnlessCan($user, 'staff')) {
+            return $denied;
+        }
+
+        $model = $this->staffQuery()->findOrFail($staff);
+
+        if ($model->isBlocked()) {
+            throw ValidationException::withMessages([
+                'id' => 'Impossible d’envoyer les identifiants : ce compte est bloqué.',
+            ]);
+        }
+
+        StaffCredentialsMailer::send($model, resend: true);
+
+        $payload = $model->fresh()->toStaffApiArray();
+        unset($payload['abilities']);
+
+        return response()->json([
+            'data' => $payload,
+            'meta' => [
+                'credentialsEmailed' => true,
+                'passwordRotated' => true,
+            ],
+            'message' => 'Nouveaux identifiants envoyés par e-mail.',
+        ]);
+    }
+
+    public function block(Request $request, string $staff): JsonResponse
+    {
+        /** @var User $user */
+        $user = $request->user();
+
+        if ($denied = $this->denyUnlessCan($user, 'staff')) {
+            return $denied;
+        }
+
+        $model = $this->staffQuery()->findOrFail($staff);
+
+        if ((string) $model->id === (string) $user->id) {
+            throw ValidationException::withMessages([
+                'id' => 'Vous ne pouvez pas bloquer votre propre compte.',
+            ]);
+        }
+
+        $model->forceFill(['blocked_at' => now()])->save();
+        $model->tokens()->delete();
+
+        $payload = $model->fresh()->toStaffApiArray();
+        unset($payload['abilities']);
+
+        return response()->json([
+            'data' => $payload,
+            'message' => 'Compte bloqué.',
+        ]);
+    }
+
+    public function unblock(Request $request, string $staff): JsonResponse
+    {
+        /** @var User $user */
+        $user = $request->user();
+
+        if ($denied = $this->denyUnlessCan($user, 'staff')) {
+            return $denied;
+        }
+
+        $model = $this->staffQuery()->findOrFail($staff);
+
+        $model->forceFill(['blocked_at' => null])->save();
+
+        $payload = $model->fresh()->toStaffApiArray();
+        unset($payload['abilities']);
+
+        return response()->json([
+            'data' => $payload,
+            'message' => 'Compte débloqué.',
+        ]);
     }
 
     /**

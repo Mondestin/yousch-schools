@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\AuthenticateStaffApi;
+use App\Http\Middleware\EnsureUserNotBlocked;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\SetCurrentSchool;
@@ -44,8 +45,13 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             HandleAppearance::class,
             SetCurrentSchool::class,
+            EnsureUserNotBlocked::class,
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
+        ]);
+
+        $middleware->api(append: [
+            EnsureUserNotBlocked::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

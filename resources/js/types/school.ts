@@ -397,6 +397,8 @@ export type StaffUser = {
     cycles: Cycle[];
     /** ISO 8601 timestamp of the last authenticated request, null if never seen. */
     lastSeenAt: string | null;
+    blocked: boolean;
+    blockedAt: string | null;
 };
 
 export type AttendanceStatus = 'present' | 'absent' | 'retard' | 'excuse';

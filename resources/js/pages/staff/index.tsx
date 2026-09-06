@@ -1,12 +1,15 @@
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import {
+    Ban,
     Clock,
     EllipsisVertical,
     Layers,
     Mail,
     Phone,
     Plus,
+    Send,
     Shield,
+    ShieldCheck,
     User,
     UserCog,
 } from 'lucide-react';
@@ -30,6 +33,7 @@ import {
     StaffCycleBadges,
     StaffRoleBadge,
 } from '@/components/sms/code-badge';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
@@ -58,11 +62,15 @@ import { formatFrDateTime, formatLastSeen } from '@/lib/school-rows';
 import { staffCycleSummary, staffRoleLabel } from '@/lib/school-staff';
 import { toastApiError, toastRemoved, toastSaved } from '@/lib/school-toast';
 import {
+    block as blockStaff,
     destroy as destroyStaff,
+    resendCredentials,
     store as storeStaff,
+    unblock as unblockStaff,
     update as updateStaff,
 } from '@/routes/api/v1/staff';
 import { index as staff } from '@/routes/staff';
+import type { Auth } from '@/types';
 import type { SchoolDataset, StaffRole, StaffUser } from '@/types/school';
 
 const staffSchema = z.object({
@@ -74,8 +82,17 @@ const staffSchema = z.object({
 });
 
 export default function StaffIndex({ catalog }: { catalog: SchoolDataset }) {
+    const { auth } = usePage<{ auth: Auth }>().props;
+    const currentUserId = auth.user ? String(auth.user.id) : null;
     const [search, setSearch] = useState('');
-    const [items, setItems] = useState<StaffUser[]>(catalog.staffUsers);
+    const [items, setItems] = useState<StaffUser[]>(
+        catalog.staffUsers.map((user) => ({
+            ...user,
+            blocked: user.blocked ?? false,
+            blockedAt: user.blockedAt ?? null,
+        })),
+    );
+    const [busyId, setBusyId] = useState<string | null>(null);
     const [open, setOpen] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [viewing, setViewing] = useState<StaffUser | null>(null);
@@ -158,6 +175,49 @@ export default function StaffIndex({ catalog }: { catalog: SchoolDataset }) {
         }
     }
 
+    async function resend(user: StaffUser): Promise<void> {
+        setBusyId(user.id);
+
+        try {
+            await apiData(resendCredentials.url(user.id), { method: 'POST' });
+            toastSaved('Nouveaux identifiants envoyés par e-mail');
+        } catch (error) {
+            toastApiError(error, 'Impossible de renvoyer les identifiants');
+        } finally {
+            setBusyId(null);
+        }
+    }
+
+    async function toggleBlock(user: StaffUser): Promise<void> {
+        setBusyId(user.id);
+
+        try {
+            const updated = await apiData<StaffUser>(
+                user.blocked
+                    ? unblockStaff.url(user.id)
+                    : blockStaff.url(user.id),
+                { method: 'POST' },
+            );
+            setItems((current) =>
+                current.map((item) =>
+                    item.id === user.id ? { ...item, ...updated } : item,
+                ),
+            );
+            toastSaved(
+                updated.blocked ? 'Compte bloqué' : 'Compte débloqué',
+            );
+        } catch (error) {
+            toastApiError(
+                error,
+                user.blocked
+                    ? 'Impossible de débloquer le compte'
+                    : 'Impossible de bloquer le compte',
+            );
+        } finally {
+            setBusyId(null);
+        }
+    }
+
     function toggleCycle(
         cycle: StaffUser['cycles'][number],
         on: boolean,
@@ -217,7 +277,7 @@ export default function StaffIndex({ catalog }: { catalog: SchoolDataset }) {
             toastSaved(
                 editingId
                     ? undefined
-                    : 'Compte créé : mot de passe initial : password',
+                    : 'Compte créé : identifiants envoyés par e-mail',
             );
         } catch (error) {
             if (error instanceof ApiError) {
@@ -310,6 +370,7 @@ export default function StaffIndex({ catalog }: { catalog: SchoolDataset }) {
                                         Dernière activité
                                     </DataTableColumnHeader>
                                 </TableHead>
+                                <TableHead>Statut</TableHead>
                                 <TableHead className="w-14 text-center">
                                     <DataTableColumnHeader
                                         icon={EllipsisVertical}
@@ -354,6 +415,19 @@ export default function StaffIndex({ catalog }: { catalog: SchoolDataset }) {
                                             </span>
                                         </span>
                                     </TableCell>
+                                    <TableCell>
+                                        <Badge
+                                            variant={
+                                                user.blocked
+                                                    ? 'danger'
+                                                    : 'success'
+                                            }
+                                        >
+                                            {user.blocked
+                                                ? 'Bloqué'
+                                                : 'Actif'}
+                                        </Badge>
+                                    </TableCell>
                                     <TableCell className="px-3 py-1.5 text-center">
                                         <RowMenu
                                             items={crudItems({
@@ -364,10 +438,49 @@ export default function StaffIndex({ catalog }: { catalog: SchoolDataset }) {
                                                 onDelete: () => {
                                                     void remove(user);
                                                 },
+                                                deleteDisabled:
+                                                    user.id === currentUserId,
                                                 confirm: {
                                                     title: 'Supprimer le compte ?',
                                                     description: `${user.name} perdra l’accès à Yousch.`,
                                                 },
+                                                extras: [
+                                                    {
+                                                        label: 'Renvoyer les identifiants',
+                                                        icon: Send,
+                                                        disabled:
+                                                            user.blocked ||
+                                                            busyId === user.id,
+                                                        onSelect: () => {
+                                                            void resend(user);
+                                                        },
+                                                    },
+                                                    {
+                                                        label: user.blocked
+                                                            ? 'Débloquer'
+                                                            : 'Bloquer',
+                                                        icon: user.blocked
+                                                            ? ShieldCheck
+                                                            : Ban,
+                                                        disabled:
+                                                            user.id ===
+                                                                currentUserId ||
+                                                            busyId === user.id,
+                                                        destructive:
+                                                            !user.blocked,
+                                                        confirm: user.blocked
+                                                            ? undefined
+                                                            : {
+                                                                  title: 'Bloquer ce compte ?',
+                                                                  description: `${user.name} ne pourra plus se connecter.`,
+                                                              },
+                                                        onSelect: () => {
+                                                            void toggleBlock(
+                                                                user,
+                                                            );
+                                                        },
+                                                    },
+                                                ],
                                             })}
                                         />
                                     </TableCell>
@@ -418,6 +531,22 @@ export default function StaffIndex({ catalog }: { catalog: SchoolDataset }) {
                               },
                               {
                                   label: 'Statut',
+                                  value: (
+                                      <Badge
+                                          variant={
+                                              viewing.blocked
+                                                  ? 'danger'
+                                                  : 'success'
+                                          }
+                                      >
+                                          {viewing.blocked
+                                              ? 'Bloqué'
+                                              : 'Actif'}
+                                      </Badge>
+                                  ),
+                              },
+                              {
+                                  label: 'Présence',
                                   value: (
                                       <PresenceBadge
                                           lastSeenAt={viewing.lastSeenAt}
