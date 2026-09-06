@@ -61,20 +61,21 @@ export default function TwoFactorChallenge() {
                     resetOnSuccess={!showRecoveryInput}
                 >
                     {({ errors, processing, clearErrors }) => (
-                        <>
+                        <div className="mx-auto w-full max-w-[18rem] space-y-4">
                             {showRecoveryInput ? (
-                                <>
+                                <div className="space-y-2">
                                     <Input
                                         name="recovery_code"
                                         type="text"
                                         placeholder="Code de récupération"
                                         autoFocus={showRecoveryInput}
                                         required
+                                        className="w-full"
                                     />
                                     <InputError
                                         message={errors.recovery_code}
                                     />
-                                </>
+                                </div>
                             ) : (
                                 <div className="flex flex-col items-center justify-center space-y-3 text-center">
                                     <div className="flex items-center justify-center">
@@ -106,15 +107,13 @@ export default function TwoFactorChallenge() {
                                 </div>
                             )}
 
-                            <div className="flex justify-center">
-                                <Button
-                                    type="submit"
-                                    className="min-w-[12rem] px-8"
-                                    disabled={processing}
-                                >
-                                    Continuer
-                                </Button>
-                            </div>
+                            <Button
+                                type="submit"
+                                className="w-full"
+                                disabled={processing}
+                            >
+                                Continuer
+                            </Button>
 
                             <div className="text-muted-foreground text-center text-sm">
                                 <span>ou vous pouvez </span>
@@ -128,7 +127,7 @@ export default function TwoFactorChallenge() {
                                     {authConfigContent.toggleText}
                                 </button>
                             </div>
-                        </>
+                        </div>
                     )}
                 </Form>
             </div>

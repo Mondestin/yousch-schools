@@ -10,8 +10,8 @@ export default function AuthSimpleLayout({
     const { name } = usePage().props;
 
     return (
-        <div className="bg-background flex min-h-svh flex-col items-center justify-center gap-8 p-6 md:p-10">
-            <div className="w-full max-w-lg">
+        <div className="bg-background text-foreground flex min-h-svh flex-col">
+            <main className="mx-auto flex w-full max-w-lg flex-1 flex-col justify-center px-6 py-12">
                 <div className="flex flex-col gap-8">
                     <div className="flex flex-col items-center gap-6">
                         <Link
@@ -37,7 +37,12 @@ export default function AuthSimpleLayout({
                     </div>
                     {children}
                 </div>
-            </div>
+            </main>
+
+            <footer className="text-muted-foreground px-6 py-5 text-center text-[11px] tracking-wide">
+                Powered by{' '}
+                <span className="text-foreground/80 font-medium">Phoenone</span>
+            </footer>
         </div>
     );
 }

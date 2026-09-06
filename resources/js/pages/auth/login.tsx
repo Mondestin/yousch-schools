@@ -213,7 +213,7 @@ export default function Login({ status, canResetPassword, school }: Props) {
                 <footer className="text-muted-foreground px-6 py-5 text-center text-[11px] tracking-wide">
                     Powered by{' '}
                     <span className="text-foreground/80 font-medium">
-                        Yousch
+                        Phoenone
                     </span>
                 </footer>
             </div>
