@@ -2,6 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\DocumentRequest;
+use App\Models\DocumentTemplate;
+use App\Models\IssuedDocument;
+use App\Support\Documents\IssuedDocumentService;
 use App\Support\SchoolCatalog;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -72,7 +76,34 @@ class SchoolPagesController extends Controller
 
     public function studentDocuments(string $student): Response
     {
-        return $this->studentPage($student, 'students/documents');
+        $this->ensureStudent($student);
+
+        $documents = IssuedDocument::query()
+            ->with(['student', 'academicYear'])
+            ->where('student_id', $student)
+            ->orderByDesc('issued_on')
+            ->orderByDesc('created_at')
+            ->get()
+            ->map->toApiArray()
+            ->values()
+            ->all();
+
+        $requests = DocumentRequest::query()
+            ->with(['student', 'academicYear', 'requester'])
+            ->where('student_id', $student)
+            ->orderByDesc('created_at')
+            ->limit(50)
+            ->get()
+            ->map->toApiArray()
+            ->values()
+            ->all();
+
+        return Inertia::render('students/documents', [
+            ...SchoolCatalog::page(),
+            'studentId' => $student,
+            'issuedDocuments' => $documents,
+            'documentRequests' => $requests,
+        ]);
     }
 
     public function studentDiscipline(string $student): Response
@@ -159,6 +190,62 @@ class SchoolPagesController extends Controller
     public function announcements(): Response
     {
         return Inertia::render('announcements/index', SchoolCatalog::page());
+    }
+
+    public function documents(IssuedDocumentService $issuedDocuments): Response
+    {
+        $issuedDocuments->ensureDefaultTemplates();
+
+        $documents = IssuedDocument::query()
+            ->with(['student', 'academicYear'])
+            ->orderByDesc('issued_on')
+            ->orderByDesc('created_at')
+            ->limit(200)
+            ->get()
+            ->map->toApiArray()
+            ->values()
+            ->all();
+
+        return Inertia::render('documents/index', [
+            ...SchoolCatalog::page(),
+            'issuedDocuments' => $documents,
+        ]);
+    }
+
+    public function documentRequests(): Response
+    {
+        $requests = DocumentRequest::query()
+            ->with(['student', 'academicYear', 'requester'])
+            ->orderByRaw("case when status = 'pending' then 0 else 1 end")
+            ->orderByDesc('created_at')
+            ->limit(200)
+            ->get()
+            ->map->toApiArray()
+            ->values()
+            ->all();
+
+        return Inertia::render('documents/requests', [
+            ...SchoolCatalog::page(),
+            'documentRequests' => $requests,
+        ]);
+    }
+
+    public function documentTemplates(IssuedDocumentService $issuedDocuments): Response
+    {
+        $issuedDocuments->ensureDefaultTemplates();
+
+        $templates = DocumentTemplate::query()
+            ->orderBy('kind')
+            ->orderBy('title')
+            ->get()
+            ->map->toApiArray()
+            ->values()
+            ->all();
+
+        return Inertia::render('documents/templates', [
+            ...SchoolCatalog::page(),
+            'documentTemplates' => $templates,
+        ]);
     }
 
     public function assessments(): Response

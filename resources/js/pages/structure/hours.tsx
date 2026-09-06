@@ -185,7 +185,7 @@ export default function StructureHoursPage({
     const periods = schedule.periods;
     const [form, setForm] = useState<PeriodForm>({
         startsAt: hours.startsAt,
-        endsAt: addMinutes(hours.startsAt, 55),
+        endsAt: addMinutes(hours.startsAt, 30),
     });
     const [savingHours, setSavingHours] = useState(false);
     const [savingPeriod, setSavingPeriod] = useState(false);
@@ -304,7 +304,7 @@ export default function StructureHoursPage({
         setEditingId(null);
         setForm({
             startsAt,
-            endsAt: addMinutes(startsAt, 55),
+            endsAt: addMinutes(startsAt, 30),
         });
         clearErrors();
         setOpen(true);

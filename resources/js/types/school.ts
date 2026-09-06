@@ -473,6 +473,65 @@ export type Sanction = {
     reason: string;
 };
 
+export type DocumentTemplate = {
+    id: string;
+    kind: string;
+    code: string;
+    title: string;
+    body: string | null;
+    isActive: boolean;
+    isSystem: boolean;
+};
+
+export type IssuedDocumentStatus = 'issued' | 'revoked';
+
+export type IssuedDocument = {
+    id: string;
+    templateId: string | null;
+    studentId: string;
+    enrollmentId: string | null;
+    academicYearId: string | null;
+    kind: 'attestation' | 'certificat' | string;
+    number: string;
+    title: string;
+    status: IssuedDocumentStatus;
+    statusLabel: string;
+    issuedOn: string;
+    issuedBy: number | null;
+    revokedAt: string | null;
+    revokeReason: string | null;
+    fileUrl: string | null;
+    fileMime: string | null;
+    payload: Record<string, unknown>;
+    studentName: string | null;
+    studentMatricule: string | null;
+    yearLabel: string | null;
+    verifyUrl?: string;
+};
+
+export type DocumentRequestStatus = 'pending' | 'approved' | 'rejected';
+
+export type DocumentRequest = {
+    id: string;
+    studentId: string;
+    academicYearId: string | null;
+    kind: string;
+    kindLabel: string;
+    status: DocumentRequestStatus;
+    statusLabel: string;
+    note: string | null;
+    requestedBy: number | null;
+    requesterName: string | null;
+    reviewedBy: number | null;
+    reviewedAt: string | null;
+    reviewNote: string | null;
+    issuedDocumentId: string | null;
+    createdAt: string | null;
+    studentName: string | null;
+    studentMatricule: string | null;
+    yearLabel: string | null;
+};
+
 export type SchoolContext = {
     cycle: Cycle;
     annee: string;

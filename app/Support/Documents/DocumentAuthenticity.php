@@ -4,6 +4,7 @@ namespace App\Support\Documents;
 
 use App\Enums\DocumentKind;
 use App\Models\AcademicYear;
+use App\Models\IssuedDocument;
 use App\Models\Payment;
 use App\Models\School;
 use App\Models\Student;
@@ -174,6 +175,56 @@ final class DocumentAuthenticity
             ];
         }
 
+        $documentNumber = null;
+        $documentStatus = null;
+        $documentStatusLabel = null;
+        $documentTitle = null;
+
+        if (
+            $refId !== null
+            && $kind->isIssuable()
+        ) {
+            $issued = IssuedDocument::query()->find($refId);
+
+            if (
+                $issued === null
+                || $issued->student_id !== $student->id
+                || $issued->kind !== $kind
+            ) {
+                return ['valid' => false, 'reason' => 'Document émis introuvable.'];
+            }
+
+            if ($issued->isRevoked()) {
+                return [
+                    'valid' => false,
+                    'reason' => 'Ce document a été révoqué.',
+                    'kind' => $kind,
+                    'kindLabel' => $kind->label(),
+                    'issuedOn' => $issued->issued_on->format('Y-m-d'),
+                    'school' => [
+                        'id' => $school->id,
+                        'name' => $school->name,
+                        'domain' => $school->domain,
+                    ],
+                    'student' => [
+                        'id' => $student->id,
+                        'matricule' => $student->matricule,
+                        'name' => trim($student->last_name.' '.$student->first_name),
+                    ],
+                    'documentNumber' => $issued->number,
+                    'documentStatus' => $issued->status->value,
+                    'documentStatusLabel' => $issued->status->label(),
+                    'documentTitle' => $issued->title,
+                ];
+            }
+
+            $documentNumber = $issued->number;
+            $documentStatus = $issued->status->value;
+            $documentStatusLabel = $issued->status->label();
+            $documentTitle = $issued->title;
+            $issuedOn = $issued->issued_on->format('Y-m-d');
+        }
+
         return [
             'valid' => true,
             'kind' => $kind,
@@ -192,6 +243,10 @@ final class DocumentAuthenticity
             'term' => $term,
             'academicYear' => $academicYear,
             'payment' => $payment,
+            'documentNumber' => $documentNumber,
+            'documentStatus' => $documentStatus,
+            'documentStatusLabel' => $documentStatusLabel,
+            'documentTitle' => $documentTitle,
         ];
     }
 

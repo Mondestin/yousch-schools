@@ -70,6 +70,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
     Route::get('materiel', [SchoolPagesController::class, 'inventory'])->name('inventory.index');
     Route::get('annonces', [SchoolPagesController::class, 'announcements'])->name('announcements.index');
+    Route::get('documents', [SchoolPagesController::class, 'documents'])->name('documents.index');
+    Route::get('documents/demandes', [SchoolPagesController::class, 'documentRequests'])->name('documents.requests');
+    Route::get('documents/modeles', [SchoolPagesController::class, 'documentTemplates'])->name('documents.templates');
     Route::get('utilisateurs', [SchoolPagesController::class, 'staffUsers'])->name('staff.index');
     Route::get('structure', [SchoolPagesController::class, 'structure']);
     Route::get('structure/annees', [SchoolPagesController::class, 'years'])->name('structure.index');

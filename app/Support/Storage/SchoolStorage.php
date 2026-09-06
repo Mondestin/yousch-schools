@@ -53,6 +53,21 @@ final class SchoolStorage
         return self::url($path);
     }
 
+    /**
+     * Store raw contents under the current school root and return the public URL.
+     */
+    public static function put(string $contents, string $directory, string $filename): string
+    {
+        $filename = ltrim(str_replace('\\', '/', $filename), '/');
+        $path = self::path($directory).'/'.$filename;
+
+        if (! self::disk()->put($path, $contents)) {
+            throw new RuntimeException('Impossible d’enregistrer le fichier.');
+        }
+
+        return self::url($path);
+    }
+
     public static function url(string $path): string
     {
         return self::disk()->url($path);

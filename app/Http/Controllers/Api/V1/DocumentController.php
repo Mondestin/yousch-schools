@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Enums\DocumentKind;
 use App\Http\Controllers\Api\V1\Concerns\EnsuresStaffAbility;
 use App\Http\Controllers\Controller;
 use App\Models\Student;
@@ -27,11 +28,11 @@ class DocumentController extends Controller
         }
 
         $validated = $request->validate([
-            'kind' => ['required', 'string', Rule::in(['attestation', 'certificat'])],
+            'kind' => ['required', 'string', Rule::in(DocumentKind::issuableValues())],
             'academicYearId' => ['nullable', 'string', 'exists:academic_years,id'],
         ], [
             'kind.required' => 'Le type de document est obligatoire.',
-            'kind.in' => 'Le document doit être une attestation ou un certificat.',
+            'kind.in' => 'Type de document non pris en charge.',
         ]);
 
         $payload = $this->documents->forStudent(

@@ -2,6 +2,7 @@
 
 namespace App\Support\School;
 
+use App\Enums\DocumentKind;
 use App\Models\AcademicYear;
 use App\Models\Classroom;
 use App\Models\Enrollment;
@@ -11,7 +12,7 @@ use App\Models\Track;
 use App\Support\SchoolCatalog;
 
 /**
- * Generated school document payload for attestation / certificat preview.
+ * Generated school document payload for official issuable documents.
  */
 final class SchoolDocumentBuilder
 {
@@ -20,10 +21,11 @@ final class SchoolDocumentBuilder
      */
     public function forStudent(string $studentId, string $kind, ?string $academicYearId = null): ?array
     {
-        if (! in_array($kind, ['attestation', 'certificat'], true)) {
+        if (! in_array($kind, DocumentKind::issuableValues(), true)) {
             return null;
         }
 
+        $documentKind = DocumentKind::from($kind);
         $student = Student::query()->with('dossierFiles')->find($studentId);
 
         if ($student === null) {
@@ -51,10 +53,6 @@ final class SchoolDocumentBuilder
         $profile = SchoolProfile::query()->first();
         $profilePayload = $profile?->toApiArray() ?? SchoolCatalog::fixture()['profile'];
 
-        $title = $kind === 'attestation'
-            ? 'Attestation de scolarité'
-            : 'Certificat de fréquentation';
-
         $issuedOn = now();
         $issuedOn->locale('fr');
         $bornOn = $student->born_on;
@@ -62,7 +60,7 @@ final class SchoolDocumentBuilder
 
         return [
             'kind' => $kind,
-            'title' => $title,
+            'title' => $documentKind->label(),
             'issuedOn' => $issuedOn->translatedFormat('j F Y'),
             'name' => trim($student->first_name.' '.$student->last_name),
             'classroomName' => $classroom !== null ? $classroom->name : '-',

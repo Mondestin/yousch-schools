@@ -11,11 +11,14 @@ use App\Http\Controllers\Api\V1\CatalogController;
 use App\Http\Controllers\Api\V1\ClassroomController;
 use App\Http\Controllers\Api\V1\CycleScheduleController;
 use App\Http\Controllers\Api\V1\DocumentController;
+use App\Http\Controllers\Api\V1\DocumentTemplateController;
 use App\Http\Controllers\Api\V1\EnrollmentController;
 use App\Http\Controllers\Api\V1\FeeTariffController;
 use App\Http\Controllers\Api\V1\GradeController;
 use App\Http\Controllers\Api\V1\GuardianController;
 use App\Http\Controllers\Api\V1\InventoryItemController;
+use App\Http\Controllers\Api\V1\DocumentRequestController;
+use App\Http\Controllers\Api\V1\IssuedDocumentController;
 use App\Http\Controllers\Api\V1\MetaController;
 use App\Http\Controllers\Api\V1\PaymentController;
 use App\Http\Controllers\Api\V1\ReenrollmentController;
@@ -307,5 +310,30 @@ Route::prefix('v1')->group(function (): void {
             ->name('api.v1.students.documents');
         Route::get('/students/{student}/files', [DocumentController::class, 'files'])
             ->name('api.v1.students.files');
+
+        Route::get('/issued-documents', [IssuedDocumentController::class, 'index'])
+            ->name('api.v1.issued-documents.index');
+        Route::post('/issued-documents', [IssuedDocumentController::class, 'store'])
+            ->name('api.v1.issued-documents.store');
+        Route::post('/issued-documents/bulk', [IssuedDocumentController::class, 'bulk'])
+            ->name('api.v1.issued-documents.bulk');
+        Route::get('/issued-documents/{issuedDocument}', [IssuedDocumentController::class, 'show'])
+            ->name('api.v1.issued-documents.show');
+        Route::post('/issued-documents/{issuedDocument}/revoke', [IssuedDocumentController::class, 'revoke'])
+            ->name('api.v1.issued-documents.revoke');
+
+        Route::get('/document-requests', [DocumentRequestController::class, 'index'])
+            ->name('api.v1.document-requests.index');
+        Route::post('/document-requests', [DocumentRequestController::class, 'store'])
+            ->name('api.v1.document-requests.store');
+        Route::post('/document-requests/{documentRequest}/approve', [DocumentRequestController::class, 'approve'])
+            ->name('api.v1.document-requests.approve');
+        Route::post('/document-requests/{documentRequest}/reject', [DocumentRequestController::class, 'reject'])
+            ->name('api.v1.document-requests.reject');
+
+        Route::get('/document-templates', [DocumentTemplateController::class, 'index'])
+            ->name('api.v1.document-templates.index');
+        Route::put('/document-templates/{documentTemplate}', [DocumentTemplateController::class, 'update'])
+            ->name('api.v1.document-templates.update');
     });
 });

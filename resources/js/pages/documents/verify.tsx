@@ -14,6 +14,10 @@ type VerifyResult = {
     term: { id: string; name: string } | null;
     academicYear: { id: string; label: string } | null;
     payment: { id: string; amount: number; paidOn: string | null } | null;
+    documentNumber: string | null;
+    documentStatus: string | null;
+    documentStatusLabel: string | null;
+    documentTitle: string | null;
 };
 
 export default function DocumentVerifyPage({ result }: { result: VerifyResult }) {
@@ -57,6 +61,9 @@ export default function DocumentVerifyPage({ result }: { result: VerifyResult })
                         {result.valid ? (
                             <dl className="space-y-4 text-sm">
                                 <Row label="Type" value={result.kindLabel} />
+                                <Row label="Titre" value={result.documentTitle} />
+                                <Row label="N°" value={result.documentNumber} />
+                                <Row label="Statut" value={result.documentStatusLabel} />
                                 <Row label="Établissement" value={result.school?.name} />
                                 <Row label="Élève" value={result.student?.name} />
                                 <Row

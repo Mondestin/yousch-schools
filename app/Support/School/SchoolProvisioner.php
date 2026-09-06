@@ -77,6 +77,8 @@ final class SchoolProvisioner
 
             FrenchAcademicCalendar::createCurrentYear(isCurrent: true);
 
+            app(SchoolStructureProvisioner::class)->ensureDefaults();
+
             $user = User::query()->create([
                 'school_id' => $school->id,
                 'name' => $input['adminName'],
