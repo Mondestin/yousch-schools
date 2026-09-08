@@ -7,6 +7,7 @@ import {
     DataTableColumnHeader,
 } from '@/components/sms/data-table';
 import { EmptyState } from '@/components/sms/empty-state';
+import { KpiCard, KpiGrid } from '@/components/sms/kpi-card';
 import { PageHeader } from '@/components/sms/page-header';
 import { PageShell } from '@/components/sms/page-shell';
 import { PageToolbar } from '@/components/sms/page-toolbar';
@@ -78,8 +79,9 @@ export default function ResultsIndex({ catalog }: { catalog: SchoolDataset }) {
                     }
                 />
                 {report && report.rows.length > 0 ? (
-                    <div className="grid shrink-0 gap-3 px-6 pb-3 sm:grid-cols-3">
-                        <Stat
+                    <KpiGrid className="mx-6 mb-3 sm:grid-cols-3 xl:grid-cols-3">
+                        <KpiCard
+                            icon={Hash}
                             label="Moyenne de classe"
                             value={
                                 report.classAverage === null
@@ -87,9 +89,17 @@ export default function ResultsIndex({ catalog }: { catalog: SchoolDataset }) {
                                     : `${formatNote(report.classAverage)} / 20`
                             }
                         />
-                        <Stat label="Admis" value={String(report.admitted)} />
-                        <Stat label="Échoués" value={String(report.failed)} />
-                    </div>
+                        <KpiCard
+                            icon={Trophy}
+                            label="Admis"
+                            value={String(report.admitted)}
+                        />
+                        <KpiCard
+                            icon={User}
+                            label="Échoués"
+                            value={String(report.failed)}
+                        />
+                    </KpiGrid>
                 ) : null}
                 <DataTable
                     className="min-h-0"
@@ -250,15 +260,6 @@ export default function ResultsIndex({ catalog }: { catalog: SchoolDataset }) {
                 </DataTable>
             </PageShell>
         </>
-    );
-}
-
-function Stat({ label, value }: { label: string; value: string }) {
-    return (
-        <div className="rounded-[8px] border px-4 py-3">
-            <p className="text-muted-foreground text-[12px]">{label}</p>
-            <p className="text-[18px] font-semibold">{value}</p>
-        </div>
     );
 }
 

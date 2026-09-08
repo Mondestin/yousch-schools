@@ -24,6 +24,7 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { useFieldErrors } from '@/hooks/use-field-errors';
+import { useYearLock } from '@/hooks/use-year-lock';
 import { useSchoolContext } from '@/hooks/use-school-context';
 import { requiredText, parseFields } from '@/lib/school-form';
 import { isLyceeCycle } from '@/lib/school-rows';
@@ -49,6 +50,8 @@ export default function TeacherAssignmentsPage({
     catalog: SchoolDataset;
     teacherId: string;
 }) {
+    const { locked, canMutate, lockHint } = useYearLock();
+
     const { filter } = useSchoolContext();
     const teacher = catalog.teachers.find((item) => item.id === teacherId);
     const [assignments, setAssignments] = useState<TeacherAssignment[]>(
@@ -215,10 +218,12 @@ export default function TeacherAssignmentsPage({
             <Head title={`${fiche.name} : Affectations`} />
             <div className="flex items-center justify-between gap-3">
                 <h2 className="text-[15px] font-semibold">Affectations</h2>
+                {canMutate ? (
                 <Button type="button" onClick={openAssign}>
                     <Plus />
                     Ajouter
                 </Button>
+            ) : null}
             </div>
             <div className="mt-4 overflow-hidden rounded-[8px] border">
                 {fiche.assignments.length === 0 ? (
@@ -270,6 +275,7 @@ export default function TeacherAssignmentsPage({
                                                 {
                                                     label: 'Modifier l’affectation',
                                                     icon: Pencil,
+                                                    disabled: locked,
                                                     onSelect: () =>
                                                         openEditAssign(row.id),
                                                 },
@@ -277,6 +283,7 @@ export default function TeacherAssignmentsPage({
                                                     label: 'Retirer',
                                                     icon: UserMinus,
                                                     destructive: true,
+                                                    disabled: locked,
                                                     confirm: {
                                                         title: 'Retirer cette affectation ?',
                                                         description: `${row.subject} en ${row.classroom} ne sera plus assigné à cet enseignant.`,

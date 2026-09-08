@@ -25,7 +25,7 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { useSchoolContext } from '@/hooks/use-school-context';
-import { crudItems } from '@/lib/school-crud';
+import { useCrudItems } from '@/hooks/use-crud-items';
 import { personName } from '@/lib/school-rows';
 import {
     GUARDIAN_RELATIONS,
@@ -56,6 +56,8 @@ export default function StudentGuardiansPage({
     catalog: SchoolDataset;
     studentId: string;
 }) {
+    const crudItems = useCrudItems();
+
     const { filter, query } = useSchoolContext();
     const [links, setLinks] = useState<StudentGuardian[]>(() =>
         catalog.studentGuardians.filter((link) => link.studentId === studentId),

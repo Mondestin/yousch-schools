@@ -37,7 +37,7 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { useSchoolContext } from '@/hooks/use-school-context';
-import { crudItems } from '@/lib/school-crud';
+import { useCrudItems } from '@/hooks/use-crud-items';
 import { guardianPersonSchema } from '@/lib/school-form';
 import { guardianRows } from '@/lib/school-rows';
 import { genderLabel } from '@/lib/school-students';
@@ -56,6 +56,8 @@ export default function GuardiansIndex({
 }: {
     catalog: SchoolDataset;
 }) {
+    const crudItems = useCrudItems();
+
     const { query } = useSchoolContext();
     const [search, setSearch] = useState('');
     const [items, setItems] = useState<Guardian[]>(catalog.guardians);

@@ -27,7 +27,7 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { useSchoolContext } from '@/hooks/use-school-context';
-import { crudItems } from '@/lib/school-crud';
+import { useCrudItems } from '@/hooks/use-crud-items';
 import { requiredText } from '@/lib/school-form';
 import { cycleLabel, isLyceeCycle } from '@/lib/school-rows';
 import { toastApiError, toastRemoved, toastSaved } from '@/lib/school-toast';
@@ -55,6 +55,8 @@ export default function StructureTracksPage({
 }: {
     catalog: SchoolDataset;
 }) {
+    const crudItems = useCrudItems();
+
     const { cycle } = useSchoolContext();
     const [search, setSearch] = useState('');
     const [tracks, setTracks] = useState<Track[]>(catalog.tracks);

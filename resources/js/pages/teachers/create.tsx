@@ -18,6 +18,7 @@ import {
 } from '@/components/sms/teacher-form';
 import { Badge } from '@/components/ui/badge';
 import { useFieldErrors } from '@/hooks/use-field-errors';
+import { useYearLock } from '@/hooks/use-year-lock';
 import { useSchoolContext } from '@/hooks/use-school-context';
 import { formatFrDate } from '@/lib/school-rows';
 import { nextTeacherCode, teacherStatusLabel } from '@/lib/school-staff';
@@ -32,6 +33,8 @@ export default function TeachersCreate({
 }: {
     catalog: SchoolDataset;
 }) {
+    const { locked, canMutate, lockHint } = useYearLock();
+
     const { query, academicYearLabel } = useSchoolContext();
     const [form, setForm] = useState(() =>
         blankTeacherForm(nextTeacherCode(catalog), catalog.profile.city),
@@ -99,6 +102,10 @@ export default function TeachersCreate({
     }
 
     async function submit(): Promise<void> {
+        if (locked) {
+            return;
+        }
+
         if (!validate(teacherFormSchema, form)) {
             return;
         }
@@ -137,7 +144,10 @@ export default function TeachersCreate({
                 <PageHeader
                     title="Nouvel enseignant"
                     icon={Briefcase}
-                    description={`Fiche complète · ${academicYearLabel}. Le résumé se met à jour au fil de la saisie.`}
+                    description={
+                        lockHint ??
+                        `Fiche complète · ${academicYearLabel}. Le résumé se met à jour au fil de la saisie.`
+                    }
                 />
                 <form
                     className="flex min-h-0 flex-1 flex-col gap-6"
@@ -248,7 +258,7 @@ export default function TeachersCreate({
                             current={step}
                             total={TEACHER_FORM_STEPS.length}
                             submitLabel={saving ? 'Enregistrement…' : 'Créer'}
-                            disabled={saving}
+                            disabled={saving || locked}
                             onCancel={() => router.visit(teachers({ query }))}
                             onBack={() =>
                                 setStep((current) => Math.max(current - 1, 0))

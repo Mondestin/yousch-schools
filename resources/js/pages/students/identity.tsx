@@ -12,6 +12,7 @@ import { PhotoField } from '@/components/sms/photo-field';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useFieldErrors } from '@/hooks/use-field-errors';
+import { useYearLock } from '@/hooks/use-year-lock';
 import { useSchoolContext } from '@/hooks/use-school-context';
 import { studentContactSchema, studentIdentitySchema } from '@/lib/school-form';
 import { formatFrDate } from '@/lib/school-rows';
@@ -42,6 +43,8 @@ export default function StudentIdentityPage({
     catalog: SchoolDataset;
     studentId: string;
 }) {
+    const { locked, canMutate, lockHint } = useYearLock();
+
     const { filter } = useSchoolContext();
     const fiche = studentFiche(catalog, studentId, filter.academicYearId);
     const [student, setStudent] = useState(fiche?.student ?? null);
@@ -197,9 +200,11 @@ export default function StudentIdentityPage({
             <Head title={fiche.name} />
             <div className="flex items-center justify-between gap-3">
                 <h2 className="text-[15px] font-semibold">Identité</h2>
+                {canMutate ? (
                 <Button type="button" onClick={openEdit}>
                     Modifier
                 </Button>
+            ) : null}
             </div>
             <div className="mt-4 grid max-w-3xl gap-4 sm:grid-cols-2">
                 <InfoField label="Matricule" value={student.matricule} />

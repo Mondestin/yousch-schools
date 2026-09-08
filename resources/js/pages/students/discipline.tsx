@@ -23,7 +23,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useFieldErrors } from '@/hooks/use-field-errors';
 import { useSchoolContext } from '@/hooks/use-school-context';
 import { ApiError, apiData, apiJson } from '@/lib/api';
-import { crudItems } from '@/lib/school-crud';
+import { useCrudItems } from '@/hooks/use-crud-items';
 import { requiredText } from '@/lib/school-form';
 import { formatFrDate, todayIso } from '@/lib/school-rows';
 import { studentFiche } from '@/lib/school-students';
@@ -60,6 +60,8 @@ export default function StudentDisciplinePage({
     catalog: SchoolDataset;
     studentId: string;
 }) {
+    const crudItems = useCrudItems();
+
     const { filter } = useSchoolContext();
     const [items, setItems] = useState<Sanction[]>(() =>
         catalog.sanctions.filter((item) => item.studentId === studentId),

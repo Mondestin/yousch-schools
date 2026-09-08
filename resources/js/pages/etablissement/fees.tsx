@@ -15,6 +15,7 @@ import {
 import { formatFcfa } from '@/lib/school-rows';
 import { toastApiError, toastSaved } from '@/lib/school-toast';
 import { apiData } from '@/lib/api';
+import { useYearLock } from '@/hooks/use-year-lock';
 import { upsert as upsertFees } from '@/routes/api/v1/school/fees';
 import { fees as schoolFees, index as school } from '@/routes/etablissement';
 import type { Cycle, FeeTariff, SchoolDataset } from '@/types/school';
@@ -59,6 +60,7 @@ export default function SchoolFeesPage({
 }: {
     catalog: SchoolDataset;
 }) {
+    const { locked, canMutate, lockHint } = useYearLock();
     const [amounts, setAmounts] = useState<FeeAmounts>(() =>
         toAmounts(catalog.fees),
     );
@@ -91,6 +93,10 @@ export default function SchoolFeesPage({
     }
 
     async function save(): Promise<void> {
+        if (locked) {
+            return;
+        }
+
         const fees = catalog.cycles.map((cycle) => ({
             cycle: cycle.value,
             monthlyAmount: amounts[cycle.value]?.monthlyAmount ?? 0,
@@ -210,10 +216,15 @@ export default function SchoolFeesPage({
                     <Button type="button" variant="outline" onClick={reset}>
                         Annuler
                     </Button>
-                    <Button type="submit" disabled={saving}>
-                        {saving ? 'Enregistrement…' : 'Enregistrer'}
-                    </Button>
+                    {canMutate ? (
+                        <Button type="submit" disabled={saving}>
+                            {saving ? 'Enregistrement…' : 'Enregistrer'}
+                        </Button>
+                    ) : null}
                 </div>
+                {lockHint ? (
+                    <p className="text-amber-800 text-[12px]">{lockHint}</p>
+                ) : null}
             </form>
         </>
     );

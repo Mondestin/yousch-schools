@@ -22,6 +22,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { useFieldErrors } from '@/hooks/use-field-errors';
+import { useYearLock } from '@/hooks/use-year-lock';
 import { useSchoolContext } from '@/hooks/use-school-context';
 import { requiredText } from '@/lib/school-form';
 import { classroomSubjects } from '@/lib/school-grades';
@@ -101,6 +102,8 @@ export default function TimetableIndex({
 }: {
     catalog: SchoolDataset;
 }) {
+    const { locked, canMutate, lockHint } = useYearLock();
+
     const { filter, academicYearLabel } = useSchoolContext();
     const classrooms = useMemo(
         () => classroomsForTimetable(catalog, filter),
@@ -167,6 +170,10 @@ export default function TimetableIndex({
         : 0;
 
     function openCreate(weekday?: Weekday, periodId?: string): void {
+        if (locked) {
+            return;
+        }
+
         if (!classroomId) {
             toast.error('Choisissez une classe.');
 
@@ -180,6 +187,10 @@ export default function TimetableIndex({
     }
 
     function openEdit(slot: TimetableSlot): void {
+        if (locked) {
+            return;
+        }
+
         setEditingId(slot.id);
         setForm({
             classroomId: slot.classroomId,

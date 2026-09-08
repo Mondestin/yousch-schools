@@ -30,9 +30,12 @@ export function ChartCard({
 }) {
     return (
         <section
-            className={cn('overflow-hidden rounded-[8px] border', className)}
+            className={cn(
+                'shrink-0 overflow-hidden rounded-[8px] border',
+                className,
+            )}
         >
-            <div className="flex items-start justify-between gap-3 border-b px-4 py-3">
+            <div className="flex items-start justify-between gap-3 px-4 py-3">
                 <div>
                     <h2 className="flex items-center gap-2 text-[13px] font-semibold">
                         {Icon && <Icon className="text-primary size-4" />}
@@ -65,7 +68,7 @@ export function ChartCard({
                 )}
             </div>
             {legend && (
-                <div className="text-muted-foreground flex flex-wrap items-center gap-x-4 gap-y-1.5 border-t px-4 py-2.5 text-[12px]">
+                <div className="text-muted-foreground flex flex-wrap items-center gap-x-4 gap-y-1.5 px-4 py-2.5 text-[12px]">
                     {legend}
                 </div>
             )}

@@ -42,7 +42,7 @@ import {
 } from '@/components/ui/table';
 import { useFieldErrors } from '@/hooks/use-field-errors';
 import { useSchoolContext } from '@/hooks/use-school-context';
-import { crudItems } from '@/lib/school-crud';
+import { useCrudItems } from '@/hooks/use-crud-items';
 import { dossierFilesOf } from '@/lib/school-files';
 import { cycleLabel } from '@/lib/school-rows';
 import {
@@ -61,6 +61,8 @@ import { index as teachers, create, show } from '@/routes/teachers';
 import type { DossierFile, SchoolDataset, Teacher } from '@/types/school';
 
 export default function TeachersIndex({ catalog }: { catalog: SchoolDataset }) {
+    const crudItems = useCrudItems();
+
     const { filter, query, academicYearLabel } = useSchoolContext();
     const [search, setSearch] = useState('');
     const [items, setItems] = useState<Teacher[]>(catalog.teachers);

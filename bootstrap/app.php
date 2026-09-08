@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\AuthenticateStaffApi;
+use App\Http\Middleware\EnsureCurrentAcademicYear;
 use App\Http\Middleware\EnsureUserNotBlocked;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
@@ -52,6 +53,8 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->api(append: [
             EnsureUserNotBlocked::class,
+            SetCurrentSchool::class,
+            EnsureCurrentAcademicYear::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

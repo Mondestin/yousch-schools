@@ -31,7 +31,7 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { useSchoolContext } from '@/hooks/use-school-context';
-import { crudItems } from '@/lib/school-crud';
+import { useCrudItems } from '@/hooks/use-crud-items';
 import { apiJson } from '@/lib/api';
 import {
     cycleLabel,
@@ -46,6 +46,8 @@ import { create, index as students, show } from '@/routes/students';
 import type { SchoolDataset } from '@/types/school';
 
 export default function StudentsIndex({ catalog }: { catalog: SchoolDataset }) {
+    const crudItems = useCrudItems();
+
     const { filter, query, academicYearLabel } = useSchoolContext();
     const [search, setSearch] = useState('');
     const [classroomId, setClassroomId] = useState('all');

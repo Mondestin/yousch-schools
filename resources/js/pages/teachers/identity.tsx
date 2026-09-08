@@ -14,6 +14,7 @@ import {
 } from '@/components/sms/teacher-form';
 import { Button } from '@/components/ui/button';
 import { useFieldErrors } from '@/hooks/use-field-errors';
+import { useYearLock } from '@/hooks/use-year-lock';
 import { formatFrDate } from '@/lib/school-rows';
 import { genderLabel } from '@/lib/school-students';
 import { teacherFiche } from '@/lib/school-staff';
@@ -34,6 +35,8 @@ export default function TeacherIdentityPage({
     catalog: SchoolDataset;
     teacherId: string;
 }) {
+    const { locked, canMutate, lockHint } = useYearLock();
+
     const fiche = teacherFiche(catalog, teacherId);
     const [teacher, setTeacher] = useState<Teacher | null>(
         fiche?.teacher ?? null,
@@ -104,9 +107,11 @@ export default function TeacherIdentityPage({
             <Head title={fiche.name} />
             <div className="flex items-center justify-between gap-3">
                 <h2 className="text-[15px] font-semibold">Identité</h2>
+                {canMutate ? (
                 <Button type="button" onClick={openEdit}>
                     Modifier
                 </Button>
+            ) : null}
             </div>
             <div className="mt-4 grid max-w-3xl gap-4 sm:grid-cols-2">
                 <InfoField label="Matricule" value={teacher.code} />

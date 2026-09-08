@@ -54,7 +54,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { crudItems } from '@/lib/school-crud';
+import { useCrudItems } from '@/hooks/use-crud-items';
 import { requiredEmail, requiredText } from '@/lib/school-form';
 import { DetailDialog } from '@/components/sms/detail-dialog';
 import { ApiError, apiData, apiJson } from '@/lib/api';
@@ -82,6 +82,8 @@ const staffSchema = z.object({
 });
 
 export default function StaffIndex({ catalog }: { catalog: SchoolDataset }) {
+    const crudItems = useCrudItems();
+
     const { auth } = usePage<{ auth: Auth }>().props;
     const currentUserId = auth.user ? String(auth.user.id) : null;
     const [search, setSearch] = useState('');

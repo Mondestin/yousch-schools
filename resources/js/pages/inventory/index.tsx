@@ -21,7 +21,7 @@ import { DatePicker } from '@/components/sms/date-picker';
 import { DetailDialog } from '@/components/sms/detail-dialog';
 import { Field } from '@/components/sms/field';
 import { FormSheet } from '@/components/sms/form-sheet';
-import { KpiCard } from '@/components/sms/kpi-card';
+import { KpiCard, KpiGrid } from '@/components/sms/kpi-card';
 import { ListPage } from '@/components/sms/list-page';
 import { PageHeader } from '@/components/sms/page-header';
 import { PageShell } from '@/components/sms/page-shell';
@@ -47,7 +47,7 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
-import { crudItems } from '@/lib/school-crud';
+import { useCrudItems } from '@/hooks/use-crud-items';
 import { requiredText } from '@/lib/school-form';
 import {
     INVENTORY_CONDITIONS,
@@ -125,6 +125,8 @@ export default function InventoryIndex({
 }: {
     catalog: SchoolDataset;
 }) {
+    const crudItems = useCrudItems();
+
     const [search, setSearch] = useState('');
     const [category, setCategory] = useState('all');
     const [status, setStatus] = useState<'all' | InventoryStatus>('all');
@@ -342,7 +344,7 @@ export default function InventoryIndex({
                     description="Registre des biens de l’établissement : références, valeur, état, affectation et seuils de réapprovisionnement."
                 />
 
-                <div className="grid gap-3 px-6 pb-4 sm:grid-cols-2 xl:grid-cols-4">
+                <KpiGrid className="mx-6 mb-4">
                     <KpiCard
                         icon={Boxes}
                         label="Unités en parc"
@@ -369,7 +371,7 @@ export default function InventoryIndex({
                         value={String(stats.low)}
                         hint="Réapprovisionnement à déclencher"
                     />
-                </div>
+                </KpiGrid>
 
                 <ListPage
                     embedded

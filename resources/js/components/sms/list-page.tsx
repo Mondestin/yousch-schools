@@ -8,6 +8,7 @@ import { PageToolbar } from '@/components/sms/page-toolbar';
 import { SearchInput } from '@/components/sms/search-input';
 import { TablePagination } from '@/components/sms/table-pagination';
 import type { ClientTable } from '@/hooks/use-client-table';
+import { useYearLock } from '@/hooks/use-year-lock';
 
 export function ListPage({
     title,
@@ -31,6 +32,7 @@ export function ListPage({
     paging,
     onExport,
     embedded = false,
+    allowWhenReadOnly = false,
 }: {
     title: string;
     description: string;
@@ -63,7 +65,10 @@ export function ListPage({
     >;
     onExport?: (() => void) | false;
     embedded?: boolean;
+    /** Keep create actions on past years (e.g. structure / années). */
+    allowWhenReadOnly?: boolean;
 }) {
+    const { locked } = useYearLock({ allowWhenReadOnly });
     const count = paging?.total ?? total ?? 0;
     const body = (
         <DataTable
@@ -85,7 +90,7 @@ export function ListPage({
                             {onExport === false ? null : (
                                 <ExportButton onExport={onExport} />
                             )}
-                            {actions}
+                            {locked ? null : actions}
                         </>
                     }
                 />

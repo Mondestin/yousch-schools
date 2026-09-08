@@ -47,7 +47,7 @@ final class SchoolCatalog
     }
 
     /**
-     * @return array{cycle: string, annee: string, academicYearId: string, academicYearLabel: string, staffRole: string, rolePreview: bool, allowedCycles: list<string>}
+     * @return array{cycle: string, annee: string, academicYearId: string, academicYearLabel: string, isCurrentYear: bool, readOnly: bool, staffRole: string, rolePreview: bool, allowedCycles: list<string>}
      */
     public static function context(?Request $request = null): array
     {
@@ -83,11 +83,15 @@ final class SchoolCatalog
             throw new RuntimeException('School catalog has no academic year.');
         }
 
+        $isCurrentYear = (bool) ($year['isCurrent'] ?? false);
+
         return [
             'cycle' => $cycle,
             'annee' => self::yearQuery((string) $year['label']),
             'academicYearId' => (string) $year['id'],
             'academicYearLabel' => (string) $year['label'],
+            'isCurrentYear' => $isCurrentYear,
+            'readOnly' => ! $isCurrentYear,
             'staffRole' => $staffRole,
             'rolePreview' => $rolePreview,
             'allowedCycles' => $allowedCycles,

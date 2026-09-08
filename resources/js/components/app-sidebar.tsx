@@ -7,6 +7,7 @@ import {
     CalendarDays,
     ClipboardCheck,
     ClipboardList,
+    CreditCard,
     FileText,
     FileBadge2,
     GraduationCap,
@@ -41,6 +42,7 @@ import { dashboard } from '@/routes';
 import { index as school } from '@/routes/etablissement';
 import { index as guardians } from '@/routes/guardians';
 import { index as inventory } from '@/routes/inventory';
+import { subscription } from '@/routes/organisation';
 import { index as payments } from '@/routes/payments';
 import { edit as profile } from '@/routes/profile';
 import { index as reports } from '@/routes/reports';
@@ -165,7 +167,7 @@ export function AppSidebar() {
             icon: UserCog,
         },
     ]);
-    const reglages = items([
+    const organisation = items([
         {
             key: 'school',
             title: 'Établissement',
@@ -178,6 +180,13 @@ export function AppSidebar() {
             title: 'Structure',
             href: structure({ query }),
             icon: School,
+            match: 'prefix',
+        },
+        {
+            key: 'subscription',
+            title: 'Abonnement',
+            href: subscription({ query }),
+            icon: CreditCard,
             match: 'prefix',
         },
         {
@@ -213,8 +222,8 @@ export function AppSidebar() {
                 {administration.length > 0 ? (
                     <NavMain label="Administration" items={administration} />
                 ) : null}
-                {reglages.length > 0 ? (
-                    <NavMain label="Réglages" items={reglages} />
+                {organisation.length > 0 ? (
+                    <NavMain label="Organisation" items={organisation} />
                 ) : null}
             </SidebarContent>
 

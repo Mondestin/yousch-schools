@@ -19,7 +19,7 @@ import { DatePicker } from '@/components/sms/date-picker';
 import { Field } from '@/components/sms/field';
 import { FileListField } from '@/components/sms/file-list-field';
 import { FormSheet } from '@/components/sms/form-sheet';
-import { KpiCard } from '@/components/sms/kpi-card';
+import { KpiCard, KpiGrid } from '@/components/sms/kpi-card';
 import { ListPage } from '@/components/sms/list-page';
 import { RowMenu } from '@/components/sms/row-menu';
 import { SearchSelect } from '@/components/sms/search-select';
@@ -45,7 +45,7 @@ import {
 } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
 import { useSchoolContext } from '@/hooks/use-school-context';
-import { crudItems } from '@/lib/school-crud';
+import { useCrudItems } from '@/hooks/use-crud-items';
 import {
     reenrollmentStatusLabel,
     reenrollmentStatusVariant,
@@ -126,6 +126,8 @@ export default function StudentsReenrollments({
 }: {
     catalog: SchoolDataset;
 }) {
+    const crudItems = useCrudItems();
+
     const { filter, academicYearLabel } = useSchoolContext();
     const lycee = isLyceeCycle(filter.cycle);
     const classrooms = catalog.classrooms.filter(
@@ -362,7 +364,7 @@ export default function StudentsReenrollments({
     return (
         <>
             <Head title="Réinscriptions" />
-            <div className="grid gap-3 px-6 py-4 sm:grid-cols-2 xl:grid-cols-4">
+            <KpiGrid className="mx-6 my-4">
                 <KpiCard
                     icon={RefreshCcw}
                     label="Dossiers"
@@ -387,7 +389,7 @@ export default function StudentsReenrollments({
                     value={String(stats.refused)}
                     hint="Non reconduites"
                 />
-            </div>
+            </KpiGrid>
             <ListPage
                 embedded
                 title="Réinscriptions"
