@@ -29,7 +29,7 @@ import {
     ChartLegendItem,
     ChartTooltipContent,
 } from '@/components/sms/chart-card';
-import { KpiCard } from '@/components/sms/kpi-card';
+import { KpiCard, KpiGrid } from '@/components/sms/kpi-card';
 import { PageHeader } from '@/components/sms/page-header';
 import { PageShell } from '@/components/sms/page-shell';
 import { useSchoolContext } from '@/hooks/use-school-context';
@@ -126,7 +126,7 @@ export default function Dashboard({ catalog }: { catalog: SchoolDataset }) {
                     description={`${catalog.profile.name} · ${catalog.profile.city} · ${cycleLabel(filter.cycle)} · ${academicYearLabel}.`}
                 />
 
-                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+                <KpiGrid className="xl:grid-cols-5">
                     <KpiCard
                         className="h-full"
                         icon={GraduationCap}
@@ -207,10 +207,10 @@ export default function Dashboard({ catalog }: { catalog: SchoolDataset }) {
                             loading={loading}
                         />
                     </Link>
-                </div>
+                </KpiGrid>
 
-                <section className="overflow-hidden rounded-[8px] border">
-                    <div className="flex items-start justify-between gap-3 border-b px-4 py-3">
+                <section className="shrink-0 overflow-hidden rounded-[8px] border">
+                    <div className="flex items-start justify-between gap-3 px-4 py-3">
                         <div>
                             <h2 className="flex items-center gap-2 text-[13px] font-semibold">
                                 <GraduationCap className="text-primary size-4" />
@@ -238,7 +238,7 @@ export default function Dashboard({ catalog }: { catalog: SchoolDataset }) {
                             ))}
                         </div>
                     ) : (
-                        <div className="bg-border grid gap-px sm:grid-cols-2 xl:grid-cols-5">
+                        <KpiGrid className="border-0 xl:grid-cols-5">
                             {cycleOverview.map((item) => {
                                 const selected = item.cycle === filter.cycle;
 
@@ -251,58 +251,55 @@ export default function Dashboard({ catalog }: { catalog: SchoolDataset }) {
                                             setContext({ cycle: item.cycle })
                                         }
                                         className={cn(
-                                            'bg-background hover:bg-muted/40 flex flex-col items-start gap-3 p-4 text-left transition-colors',
-                                            selected && 'bg-primary/5',
+                                            'bg-background hover:bg-muted/40 text-left transition-colors',
+                                            selected &&
+                                                'ring-primary ring-1 ring-inset',
                                         )}
                                     >
-                                        <div className="flex w-full items-center justify-between gap-2">
-                                            <span className="flex items-center gap-2 text-[13px] font-semibold">
-                                                <span
-                                                    className="size-2.5 rounded-full"
-                                                    style={{
-                                                        background: item.fill,
-                                                    }}
-                                                />
-                                                {item.label}
-                                            </span>
-                                            <span className="text-muted-foreground text-[12px]">
-                                                {item.share} %
-                                            </span>
-                                        </div>
-                                        <p className="text-[22px] font-semibold tracking-tight">
-                                            {item.count}
-                                            <span className="text-muted-foreground ml-1.5 text-[12px] font-medium">
-                                                élève{item.count > 1 ? 's' : ''}
-                                            </span>
-                                        </p>
-                                        <div className="w-full space-y-1.5">
-                                            <div className="flex justify-between text-[12px]">
-                                                <span className="text-muted-foreground">
-                                                    Recouvrement
-                                                </span>
-                                                <span className="font-medium">
-                                                    {item.rate} %
-                                                </span>
+                                        <KpiCard
+                                            icon={GraduationCap}
+                                            label={item.label}
+                                            value={String(item.count)}
+                                            hint={
+                                                item.share + ' % des effectifs'
+                                            }
+                                            className={
+                                                selected
+                                                    ? 'ring-primary ring-1 ring-inset'
+                                                    : undefined
+                                            }
+                                        >
+                                            <div className="w-full space-y-1.5">
+                                                <div className="flex justify-between text-[12px]">
+                                                    <span className="text-muted-foreground">
+                                                        Recouvrement
+                                                    </span>
+                                                    <span className="font-medium">
+                                                        {item.rate} %
+                                                    </span>
+                                                </div>
+                                                <div className="bg-muted h-1.5 overflow-hidden rounded-full">
+                                                    <div
+                                                        className="bg-primary h-full rounded-full"
+                                                        style={{
+                                                            width: `${Math.min(item.rate, 100)}%`,
+                                                        }}
+                                                    />
+                                                </div>
+                                                <p className="text-muted-foreground text-[11px]">
+                                                    {formatFcfa(item.collected)}{' '}
+                                                    encaissés ·{' '}
+                                                    {formatFcfa(
+                                                        item.outstanding,
+                                                    )}{' '}
+                                                    dû
+                                                </p>
                                             </div>
-                                            <div className="bg-muted h-1.5 overflow-hidden rounded-full">
-                                                <div
-                                                    className="bg-primary h-full rounded-full"
-                                                    style={{
-                                                        width: `${Math.min(item.rate, 100)}%`,
-                                                    }}
-                                                />
-                                            </div>
-                                            <p className="text-muted-foreground text-[11px]">
-                                                {formatFcfa(item.collected)}{' '}
-                                                encaissés ·{' '}
-                                                {formatFcfa(item.outstanding)}{' '}
-                                                dû
-                                            </p>
-                                        </div>
+                                        </KpiCard>
                                     </button>
                                 );
                             })}
-                        </div>
+                        </KpiGrid>
                     )}
                 </section>
 

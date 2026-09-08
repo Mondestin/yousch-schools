@@ -12,6 +12,7 @@ export function crudItems({
     onDuplicate,
     onDelete,
     deleteDisabled = false,
+    locked = false,
     confirm,
     extras = [],
 }: {
@@ -21,6 +22,8 @@ export function crudItems({
     onDelete?: () => void;
     /** Keeps the entry visible but greyed out, e.g. a record still in use. */
     deleteDisabled?: boolean;
+    /** Past academic year: keep view, lock mutations. */
+    locked?: boolean;
     confirm?: ConfirmCopy;
     extras?: RowMenuItem[];
 }): RowMenuItem[] {
@@ -31,21 +34,37 @@ export function crudItems({
     }
 
     if (onEdit) {
-        items.push({ label: 'Modifier', icon: Pencil, onSelect: onEdit });
+        items.push({
+            label: 'Modifier',
+            icon: Pencil,
+            disabled: locked,
+            onSelect: onEdit,
+        });
     }
 
     if (onDuplicate) {
-        items.push({ label: 'Dupliquer', icon: Copy, onSelect: onDuplicate });
+        items.push({
+            label: 'Dupliquer',
+            icon: Copy,
+            disabled: locked,
+            onSelect: onDuplicate,
+        });
     }
 
-    items.push(...extras);
+    items.push(
+        ...extras.map((item) =>
+            locked && !item.disabled
+                ? { ...item, disabled: true }
+                : item,
+        ),
+    );
 
     if (onDelete) {
         items.push({
             label: 'Supprimer',
             icon: Trash2,
             destructive: true,
-            disabled: deleteDisabled,
+            disabled: locked || deleteDisabled,
             confirm,
             onSelect: onDelete,
         });

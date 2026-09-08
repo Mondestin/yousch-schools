@@ -42,7 +42,7 @@ test('guests cannot visit school stub pages', function (string $uri) {
     '/structure/horaires',
     '/etablissement/identite',
     '/etablissement/frais',
-    '/etablissement/abonnement',
+    '/organisation/abonnement',
     '/presences',
     '/resultats',
     '/materiel',
@@ -98,7 +98,7 @@ test('authenticated staff can visit school stub pages', function (string $uri, s
     ['/structure/horaires', 'structure/hours'],
     ['/etablissement/identite', 'etablissement/profile'],
     ['/etablissement/frais', 'etablissement/fees'],
-    ['/etablissement/abonnement', 'etablissement/subscription'],
+    ['/organisation/abonnement', 'organisation/subscription'],
     ['/presences', 'attendance/index'],
     ['/resultats', 'results/index'],
     ['/materiel', 'inventory/index'],
@@ -108,6 +108,13 @@ test('authenticated staff can visit school stub pages', function (string $uri, s
     ['/eleves/st-8/discipline', 'students/discipline'],
     ['/caisse/frais/st-8/recu/py-5', 'payments/receipt'],
 ]);
+
+test('the legacy subscription URL redirects to organisation billing', function () {
+    $this->actingAs(User::factory()->create());
+
+    $this->get('/etablissement/abonnement')
+        ->assertRedirect('/organisation/abonnement');
+});
 
 test('catalog includes a lycee technique student enrolled in serie F2', function () {
     $catalog = SchoolCatalog::dataset();

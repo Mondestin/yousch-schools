@@ -31,7 +31,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { crudItems } from '@/lib/school-crud';
+import { useCrudItems } from '@/hooks/use-crud-items';
 import { formatFrDate } from '@/lib/school-rows';
 import { toastApiError, toastRemoved, toastSaved } from '@/lib/school-toast';
 import {
@@ -68,6 +68,8 @@ export default function StructureYearsPage({
 }: {
     catalog: SchoolDataset;
 }) {
+    const crudItems = useCrudItems({ allowWhenReadOnly: true });
+
     const [search, setSearch] = useState('');
     const [years, setYears] = useState<AcademicYear[]>(catalog.academicYears);
     const [terms, setTerms] = useState<Term[]>(catalog.terms);
@@ -229,6 +231,7 @@ export default function StructureYearsPage({
         <>
             <Head title="Années scolaires" />
             <ListPage
+                allowWhenReadOnly
                 embedded
                 title="Années scolaires"
                 icon={CalendarRange}
@@ -402,6 +405,7 @@ export default function StructureYearsPage({
             />
 
             <FormSheet
+                allowWhenReadOnly
                 open={open}
                 onOpenChange={setOpen}
                 title={

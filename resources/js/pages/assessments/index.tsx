@@ -47,7 +47,7 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { useSchoolContext } from '@/hooks/use-school-context';
-import { crudItems } from '@/lib/school-crud';
+import { useCrudItems } from '@/hooks/use-crud-items';
 import { requiredDate, requiredText } from '@/lib/school-form';
 import { ASSESSMENT_TYPES, classroomSubjects } from '@/lib/school-grades';
 import {
@@ -125,6 +125,8 @@ export default function AssessmentsIndex({
 }: {
     catalog: SchoolDataset;
 }) {
+    const crudItems = useCrudItems();
+
     const { filter, query, academicYearLabel } = useSchoolContext();
     const [search, setSearch] = useState('');
     const [typeFilter, setTypeFilter] = useState<'all' | AssessmentType>('all');

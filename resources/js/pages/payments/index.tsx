@@ -21,7 +21,7 @@ import {
 } from '@/components/sms/data-table';
 import { Field } from '@/components/sms/field';
 import { FormSheet } from '@/components/sms/form-sheet';
-import { KpiCard } from '@/components/sms/kpi-card';
+import { KpiCard, KpiGrid } from '@/components/sms/kpi-card';
 import { ListPage } from '@/components/sms/list-page';
 import { PersonCell } from '@/components/sms/person-cell';
 import { RowMenu } from '@/components/sms/row-menu';
@@ -49,7 +49,7 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { useSchoolContext } from '@/hooks/use-school-context';
-import { crudItems } from '@/lib/school-crud';
+import { useCrudItems } from '@/hooks/use-crud-items';
 import { parseFields, requiredAmount, requiredText } from '@/lib/school-form';
 import { cashMethodLabel } from '@/lib/school-office';
 import {
@@ -104,6 +104,8 @@ const paymentSchema = z.object({
 });
 
 export default function PaymentsIndex({ catalog }: { catalog: SchoolDataset }) {
+    const crudItems = useCrudItems();
+
     const { filter, query, academicYearLabel } = useSchoolContext();
     const [search, setSearch] = useState('');
     const [classroomId, setClassroomId] = useState('all');
@@ -425,7 +427,7 @@ export default function PaymentsIndex({ catalog }: { catalog: SchoolDataset }) {
     return (
         <>
             <Head title="Caisse : Frais" />
-            <div className="grid gap-3 px-6 py-4 sm:grid-cols-2 xl:grid-cols-4">
+            <KpiGrid className="mx-6 my-4">
                 <KpiCard
                     icon={CircleDollarSign}
                     label="Attendu"
@@ -449,7 +451,9 @@ export default function PaymentsIndex({ catalog }: { catalog: SchoolDataset }) {
                 >
                     <KpiCard
                         className={
-                            status === 'impaye' ? 'border-primary' : undefined
+                            status === 'impaye'
+                                ? 'ring-primary ring-1 ring-inset'
+                                : undefined
                         }
                         icon={AlertTriangle}
                         label="Reste dû"
@@ -473,7 +477,7 @@ export default function PaymentsIndex({ catalog }: { catalog: SchoolDataset }) {
                         />
                     </div>
                 </KpiCard>
-            </div>
+            </KpiGrid>
             <ListPage
                 embedded
                 title="Frais scolaires"

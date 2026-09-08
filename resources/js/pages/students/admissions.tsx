@@ -20,7 +20,7 @@ import { Field } from '@/components/sms/field';
 import { FileListField } from '@/components/sms/file-list-field';
 import { FormSheet } from '@/components/sms/form-sheet';
 import { GenderSelect } from '@/components/sms/gender-select';
-import { KpiCard } from '@/components/sms/kpi-card';
+import { KpiCard, KpiGrid } from '@/components/sms/kpi-card';
 import { ListPage } from '@/components/sms/list-page';
 import { RowMenu } from '@/components/sms/row-menu';
 import { SearchSelect } from '@/components/sms/search-select';
@@ -46,7 +46,7 @@ import {
 } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
 import { useSchoolContext } from '@/hooks/use-school-context';
-import { crudItems } from '@/lib/school-crud';
+import { useCrudItems } from '@/hooks/use-crud-items';
 import {
     admissionStatusLabel,
     admissionStatusVariant,
@@ -165,6 +165,8 @@ export default function StudentsAdmissions({
 }: {
     catalog: SchoolDataset;
 }) {
+    const crudItems = useCrudItems();
+
     const { filter, academicYearLabel } = useSchoolContext();
     const lycee = isLyceeCycle(filter.cycle);
     const classrooms = catalog.classrooms.filter(
@@ -384,7 +386,7 @@ export default function StudentsAdmissions({
     return (
         <>
             <Head title="Demandes d’admission" />
-            <div className="grid gap-3 px-6 py-4 sm:grid-cols-2 xl:grid-cols-4">
+            <KpiGrid className="mx-6 my-4">
                 <KpiCard
                     icon={Inbox}
                     label="Demandes"
@@ -409,7 +411,7 @@ export default function StudentsAdmissions({
                     value={String(stats.enrolled)}
                     hint="Devenues élèves"
                 />
-            </div>
+            </KpiGrid>
             <ListPage
                 embedded
                 title="Demandes d’admission"

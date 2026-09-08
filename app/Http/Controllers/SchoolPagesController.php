@@ -366,7 +366,7 @@ class SchoolPagesController extends Controller
 
     public function subscription(): Response
     {
-        return Inertia::render('etablissement/subscription', SchoolCatalog::page());
+        return Inertia::render('organisation/subscription', SchoolCatalog::page());
     }
 
     private function studentPage(string $student, string $component): Response

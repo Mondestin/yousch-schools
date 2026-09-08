@@ -13,6 +13,7 @@ export function PhotoField({
     hint,
     size = 'sm',
     previewClassName,
+    imageClassName,
     onFile,
 }: {
     id?: string;
@@ -24,6 +25,7 @@ export function PhotoField({
     hint?: string;
     size?: 'sm' | 'lg';
     previewClassName?: string;
+    imageClassName?: string;
     onFile: (file: File | null) => void;
 }) {
     const large = size === 'lg';
@@ -46,7 +48,10 @@ export function PhotoField({
                     <img
                         src={preview}
                         alt={alt}
-                        className="size-full object-cover"
+                        className={cn(
+                            'size-full',
+                            imageClassName ?? 'object-cover',
+                        )}
                     />
                 ) : Icon ? (
                     <Icon className="text-muted-foreground size-8" />

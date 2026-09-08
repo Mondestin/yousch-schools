@@ -539,6 +539,10 @@ export type SchoolContext = {
     annee: string;
     academicYearId: string;
     academicYearLabel: string;
+    /** True when the selected year is the school’s année en cours. */
+    isCurrentYear: boolean;
+    /** True when the selected year is not current - UI and API must not mutate. */
+    readOnly: boolean;
     staffRole: StaffRole;
     rolePreview: boolean;
     allowedCycles: Cycle[];

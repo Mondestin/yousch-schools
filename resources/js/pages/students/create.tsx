@@ -28,6 +28,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { useFieldErrors } from '@/hooks/use-field-errors';
+import { useYearLock } from '@/hooks/use-year-lock';
 import { useSchoolContext } from '@/hooks/use-school-context';
 import {
     studentContactSchema,
@@ -77,6 +78,8 @@ export default function StudentsCreate({
 }: {
     catalog: SchoolDataset;
 }) {
+    const { locked, canMutate, lockHint } = useYearLock();
+
     const { filter, query, academicYearLabel, annee } = useSchoolContext();
     const lycee = isLyceeCycle(filter.cycle);
     const matricule = nextMatricule(catalog, annee);
@@ -203,6 +206,10 @@ export default function StudentsCreate({
     }
 
     async function submit(): Promise<void> {
+        if (locked) {
+            return;
+        }
+
         if (!validate(studentCreateSchema(lycee), form)) {
             return;
         }
@@ -270,7 +277,10 @@ export default function StudentsCreate({
                 <PageHeader
                     title="Nouvelle inscription"
                     icon={GraduationCap}
-                    description={`${cycleLabel(filter.cycle)} · ${academicYearLabel}. Le résumé se met à jour au fil de la saisie.`}
+                    description={
+                        lockHint ??
+                        `${cycleLabel(filter.cycle)} · ${academicYearLabel}. Le résumé se met à jour au fil de la saisie.`
+                    }
                 />
                 <form
                     className="flex min-h-0 flex-1 flex-col gap-6"
@@ -823,7 +833,7 @@ export default function StudentsCreate({
                             current={step}
                             total={STEPS.length}
                             submitLabel={saving ? 'Enregistrement…' : 'Créer'}
-                            disabled={saving}
+                            disabled={saving || locked}
                             onCancel={() => router.visit(students({ query }))}
                             onBack={() =>
                                 setStep((current) => Math.max(current - 1, 0))

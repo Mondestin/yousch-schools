@@ -28,6 +28,7 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { useFieldErrors } from '@/hooks/use-field-errors';
+import { useYearLock } from '@/hooks/use-year-lock';
 import { useSchoolContext } from '@/hooks/use-school-context';
 import { guardianPersonSchema, requiredText } from '@/lib/school-form';
 import { personName, studentRows } from '@/lib/school-rows';
@@ -70,6 +71,8 @@ export default function GuardianShowPage({
     catalog: SchoolDataset;
     guardianId: string;
 }) {
+    const { locked, canMutate, lockHint } = useYearLock();
+
     const { query, filter } = useSchoolContext();
     const [guardian, setGuardian] = useState<Guardian | null>(
         catalog.guardians.find((item) => item.id === guardianId) ?? null,
@@ -298,9 +301,11 @@ export default function GuardianShowPage({
                 <section className="space-y-4">
                     <div className="flex items-center justify-between gap-3">
                         <h2 className="text-[15px] font-semibold">Identité</h2>
-                        <Button type="button" onClick={openEdit}>
-                            Modifier
-                        </Button>
+                        {canMutate ? (
+                <Button type="button" onClick={openEdit}>
+                    Modifier
+                </Button>
+            ) : null}
                     </div>
                     <div className="grid max-w-3xl gap-4 sm:grid-cols-2">
                         <InfoField label="Nom" value={guardian.lastName} />

@@ -8,6 +8,7 @@ import { PhotoField } from '@/components/sms/photo-field';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useFieldErrors } from '@/hooks/use-field-errors';
+import { useYearLock } from '@/hooks/use-year-lock';
 import { ApiError, apiData } from '@/lib/api';
 import { requiredEmail, requiredText } from '@/lib/school-form';
 import { toastApiError, toastSaved } from '@/lib/school-toast';
@@ -51,6 +52,8 @@ export default function SchoolProfilePage({
 }: {
     catalog: SchoolDataset;
 }) {
+    const { locked, canMutate, lockHint } = useYearLock();
+
     const initial: ProfileForm = {
         name: catalog.profile.name,
         motto: catalog.profile.motto,
@@ -102,6 +105,10 @@ export default function SchoolProfilePage({
     }
 
     async function save(): Promise<void> {
+        if (locked) {
+            return;
+        }
+
         if (!validate(profileSchema, form)) {
             return;
         }
@@ -364,7 +371,8 @@ export default function SchoolProfilePage({
                         hint="Une seule image : le cachet de l’établissement et la signature du chef d’établissement. Elle est apposée sur les bulletins, relevés, reçus et attestations."
                         preview={stampPreview}
                         fallback={Stamp}
-                        previewClassName="h-24 w-40 size-auto object-contain bg-muted/40"
+                        previewClassName="h-28 w-44 bg-muted/40"
+                        imageClassName="object-contain p-1.5"
                         onFile={(file) => {
                             revokeBlob(stampPreview);
                             setStampFile(file);
@@ -381,10 +389,15 @@ export default function SchoolProfilePage({
                         <Button type="button" variant="outline" onClick={reset}>
                             Annuler
                         </Button>
-                        <Button type="submit" disabled={saving}>
-                            {saving ? 'Enregistrement…' : 'Enregistrer'}
-                        </Button>
+                        {canMutate ? (
+                            <Button type="submit" disabled={saving}>
+                                {saving ? 'Enregistrement…' : 'Enregistrer'}
+                            </Button>
+                        ) : null}
                     </div>
+                    {lockHint ? (
+                        <p className="text-amber-800 text-[12px]">{lockHint}</p>
+                    ) : null}
                 </div>
 
                 <aside className="lg:sticky lg:top-6">

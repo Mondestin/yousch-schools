@@ -41,7 +41,7 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
-import { crudItems } from '@/lib/school-crud';
+import { useCrudItems } from '@/hooks/use-crud-items';
 import { requiredDate, requiredText } from '@/lib/school-form';
 import {
     ANNOUNCEMENT_AUDIENCES,
@@ -109,6 +109,8 @@ export default function AnnouncementsIndex({
 }: {
     catalog: SchoolDataset;
 }) {
+    const crudItems = useCrudItems();
+
     const [search, setSearch] = useState('');
     const [items, setItems] = useState<Announcement[]>(catalog.announcements);
     const [open, setOpen] = useState(false);

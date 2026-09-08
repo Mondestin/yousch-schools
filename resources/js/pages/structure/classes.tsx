@@ -40,7 +40,7 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { useSchoolContext } from '@/hooks/use-school-context';
-import { crudItems } from '@/lib/school-crud';
+import { useCrudItems } from '@/hooks/use-crud-items';
 import { requiredInt, requiredText } from '@/lib/school-form';
 import { cycleLabel, isLyceeCycle } from '@/lib/school-rows';
 import { classroomLabels } from '@/lib/school-structure';
@@ -86,6 +86,8 @@ export default function StructureClassesPage({
 }: {
     catalog: SchoolDataset;
 }) {
+    const crudItems = useCrudItems();
+
     const { filter, academicYearLabel } = useSchoolContext();
     const [search, setSearch] = useState('');
     const [classrooms, setClassrooms] = useState<Classroom[]>(

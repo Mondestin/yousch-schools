@@ -21,7 +21,7 @@ import { DatePicker } from '@/components/sms/date-picker';
 import { DetailDialog } from '@/components/sms/detail-dialog';
 import { Field } from '@/components/sms/field';
 import { FormSheet } from '@/components/sms/form-sheet';
-import { KpiCard } from '@/components/sms/kpi-card';
+import { KpiCard, KpiGrid } from '@/components/sms/kpi-card';
 import { ListPage } from '@/components/sms/list-page';
 import { RowMenu } from '@/components/sms/row-menu';
 import { SearchSelect } from '@/components/sms/search-select';
@@ -51,7 +51,7 @@ import {
     cashKindLabel,
     cashMethodLabel,
 } from '@/lib/school-office';
-import { crudItems } from '@/lib/school-crud';
+import { useCrudItems } from '@/hooks/use-crud-items';
 import { requiredAmount, requiredText } from '@/lib/school-form';
 import {
     formatFcfa,
@@ -93,6 +93,8 @@ const cashSchema = z.object({
 });
 
 export default function CashIndex({ catalog }: { catalog: SchoolDataset }) {
+    const crudItems = useCrudItems();
+
     const [search, setSearch] = useState('');
     const [month, setMonth] = useState('all');
     const [kind, setKind] = useState<'all' | CashKind>('all');
@@ -262,7 +264,7 @@ export default function CashIndex({ catalog }: { catalog: SchoolDataset }) {
     return (
         <>
             <Head title="Caisse : Mouvements" />
-            <div className="grid gap-3 px-6 py-4 sm:grid-cols-2 xl:grid-cols-4">
+            <KpiGrid className="mx-6 my-4">
                 <KpiCard
                     icon={Scale}
                     label="Solde du journal"
@@ -291,7 +293,7 @@ export default function CashIndex({ catalog }: { catalog: SchoolDataset }) {
                             : formatFrMonth(month)
                     }
                 />
-            </div>
+            </KpiGrid>
             <ListPage
                 embedded
                 title="Mouvements"

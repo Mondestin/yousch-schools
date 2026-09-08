@@ -23,9 +23,10 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { useClientTable } from '@/hooks/use-client-table';
+import { useCrudItems } from '@/hooks/use-crud-items';
 import { useFieldErrors } from '@/hooks/use-field-errors';
 import { useSchoolContext } from '@/hooks/use-school-context';
-import { crudItems } from '@/lib/school-crud';
+import { useYearLock } from '@/hooks/use-year-lock';
 import { parseFields, requiredText, type FieldErrors } from '@/lib/school-form';
 import { cycleLabel } from '@/lib/school-rows';
 import { toastApiError, toastRemoved, toastSaved } from '@/lib/school-toast';
@@ -152,6 +153,9 @@ export default function StructureHoursPage({
 }: {
     catalog: SchoolDataset;
 }) {
+    const crudItems = useCrudItems();
+    const { locked, canMutate } = useYearLock();
+
     const { filter } = useSchoolContext();
     const cycle = filter.cycle;
     const cycleName = cycleLabel(cycle);
@@ -321,6 +325,9 @@ export default function StructureHoursPage({
     }
 
     async function saveHours(): Promise<void> {
+        if (locked) {
+            return;
+        }
         const day = parseFields(dayHoursSchema, {
             opensAt: hours.startsAt,
             closesAt: hours.endsAt,
@@ -467,203 +474,215 @@ export default function StructureHoursPage({
         <>
             <Head title="Horaires" />
             <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-                <div className="border-border shrink-0 border-b px-6 py-4">
-                    <div className="flex flex-col gap-4">
-                        <div>
-                            <p className="mb-3 text-[13px] font-medium">
-                                Journée scolaire
-                            </p>
-                            <div className="flex flex-wrap items-end gap-3">
-                                <div className="w-[8.5rem]">
-                                    <Field
-                                        id="opensAt"
-                                        label="Ouverture"
-                                        required
-                                        error={errors.opensAt}
-                                    >
-                                        <TimePicker
+                <div className="border-border shrink-0 space-y-3 border-b px-6 py-3">
+                    <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+                        <div className="grid flex-1 gap-3 sm:grid-cols-3">
+                            <div>
+                                <p className="mb-2 text-[13px] font-medium">
+                                    Journée scolaire
+                                </p>
+                                <div className="flex flex-wrap items-end gap-2">
+                                    <div className="w-[7.5rem]">
+                                        <Field
                                             id="opensAt"
-                                            value={hours.startsAt}
-                                            onChange={(value) => {
-                                                clearErrors([
-                                                    'opensAt',
-                                                    'closesAt',
-                                                ]);
-                                                setHours((current) => ({
-                                                    ...current,
-                                                    startsAt: value,
-                                                }));
-                                            }}
-                                        />
-                                    </Field>
-                                </div>
-                                <div className="w-[8.5rem]">
-                                    <Field
-                                        id="closesAt"
-                                        label="Fermeture"
-                                        required
-                                        error={errors.closesAt}
-                                    >
-                                        <TimePicker
+                                            label="Ouverture"
+                                            required
+                                            error={errors.opensAt}
+                                        >
+                                            <TimePicker
+                                                id="opensAt"
+                                                value={hours.startsAt}
+                                                onChange={(value) => {
+                                                    clearErrors([
+                                                        'opensAt',
+                                                        'closesAt',
+                                                    ]);
+                                                    setHours((current) => ({
+                                                        ...current,
+                                                        startsAt: value,
+                                                    }));
+                                                }}
+                                            />
+                                        </Field>
+                                    </div>
+                                    <div className="w-[7.5rem]">
+                                        <Field
                                             id="closesAt"
-                                            value={hours.endsAt}
-                                            onChange={(value) => {
-                                                clearErrors('closesAt');
-                                                setHours((current) => ({
-                                                    ...current,
-                                                    endsAt: value,
-                                                }));
-                                            }}
-                                        />
-                                    </Field>
+                                            label="Fermeture"
+                                            required
+                                            error={errors.closesAt}
+                                        >
+                                            <TimePicker
+                                                id="closesAt"
+                                                value={hours.endsAt}
+                                                onChange={(value) => {
+                                                    clearErrors('closesAt');
+                                                    setHours((current) => ({
+                                                        ...current,
+                                                        endsAt: value,
+                                                    }));
+                                                }}
+                                            />
+                                        </Field>
+                                    </div>
                                 </div>
-                                <Button
-                                    type="button"
-                                    size="sm"
-                                    disabled={savingHours}
-                                    onClick={() => {
-                                        void saveHours();
-                                    }}
-                                >
-                                    {savingHours
-                                        ? 'Enregistrement…'
-                                        : 'Enregistrer'}
-                                </Button>
                             </div>
-                        </div>
-                        <div>
-                            <p className="mb-3 text-[13px] font-medium">
-                                Récréation
-                            </p>
-                            <div className="flex flex-wrap items-end gap-3">
-                                <div className="w-[8.5rem]">
-                                    <Field
-                                        id="recessStartsAt"
-                                        label="Début"
-                                        error={errors.recessStartsAt}
-                                    >
-                                        <TimePicker
+                            <div>
+                                <p className="mb-2 text-[13px] font-medium">
+                                    Récréation
+                                </p>
+                                <div className="flex flex-wrap items-end gap-2">
+                                    <div className="w-[7.5rem]">
+                                        <Field
                                             id="recessStartsAt"
-                                            value={hours.recess?.startsAt ?? ''}
-                                            placeholder="Aucune"
-                                            allowEmpty
-                                            onChange={(value) => {
-                                                clearErrors([
-                                                    'recessStartsAt',
-                                                    'recessEndsAt',
-                                                    'lunchStartsAt',
-                                                ]);
-                                                setHours((current) => ({
-                                                    ...current,
-                                                    recess: patchBreak(
-                                                        current.recess,
-                                                        'startsAt',
-                                                        value,
-                                                    ),
-                                                }));
-                                            }}
-                                        />
-                                    </Field>
-                                </div>
-                                <div className="w-[8.5rem]">
-                                    <Field
-                                        id="recessEndsAt"
-                                        label="Fin"
-                                        error={errors.recessEndsAt}
-                                    >
-                                        <TimePicker
+                                            label="Début"
+                                            error={errors.recessStartsAt}
+                                        >
+                                            <TimePicker
+                                                id="recessStartsAt"
+                                                value={
+                                                    hours.recess?.startsAt ?? ''
+                                                }
+                                                placeholder="Aucune"
+                                                allowEmpty
+                                                onChange={(value) => {
+                                                    clearErrors([
+                                                        'recessStartsAt',
+                                                        'recessEndsAt',
+                                                        'lunchStartsAt',
+                                                    ]);
+                                                    setHours((current) => ({
+                                                        ...current,
+                                                        recess: patchBreak(
+                                                            current.recess,
+                                                            'startsAt',
+                                                            value,
+                                                        ),
+                                                    }));
+                                                }}
+                                            />
+                                        </Field>
+                                    </div>
+                                    <div className="w-[7.5rem]">
+                                        <Field
                                             id="recessEndsAt"
-                                            value={hours.recess?.endsAt ?? ''}
-                                            placeholder="Aucune"
-                                            allowEmpty
-                                            onChange={(value) => {
-                                                clearErrors([
-                                                    'recessStartsAt',
-                                                    'recessEndsAt',
-                                                    'lunchStartsAt',
-                                                ]);
-                                                setHours((current) => ({
-                                                    ...current,
-                                                    recess: patchBreak(
-                                                        current.recess,
-                                                        'endsAt',
-                                                        value,
-                                                    ),
-                                                }));
-                                            }}
-                                        />
-                                    </Field>
+                                            label="Fin"
+                                            error={errors.recessEndsAt}
+                                        >
+                                            <TimePicker
+                                                id="recessEndsAt"
+                                                value={
+                                                    hours.recess?.endsAt ?? ''
+                                                }
+                                                placeholder="Aucune"
+                                                allowEmpty
+                                                onChange={(value) => {
+                                                    clearErrors([
+                                                        'recessStartsAt',
+                                                        'recessEndsAt',
+                                                        'lunchStartsAt',
+                                                    ]);
+                                                    setHours((current) => ({
+                                                        ...current,
+                                                        recess: patchBreak(
+                                                            current.recess,
+                                                            'endsAt',
+                                                            value,
+                                                        ),
+                                                    }));
+                                                }}
+                                            />
+                                        </Field>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div>
-                            <p className="mb-3 text-[13px] font-medium">
-                                Pause de midi
-                            </p>
-                            <div className="flex flex-wrap items-end gap-3">
-                                <div className="w-[8.5rem]">
-                                    <Field
-                                        id="lunchStartsAt"
-                                        label="Début"
-                                        error={errors.lunchStartsAt}
-                                    >
-                                        <TimePicker
+                            <div>
+                                <p className="mb-2 text-[13px] font-medium">
+                                    Pause de midi
+                                </p>
+                                <div className="flex flex-wrap items-end gap-2">
+                                    <div className="w-[7.5rem]">
+                                        <Field
                                             id="lunchStartsAt"
-                                            value={hours.lunch?.startsAt ?? ''}
-                                            placeholder="Aucune"
-                                            allowEmpty
-                                            onChange={(value) => {
-                                                clearErrors([
-                                                    'lunchStartsAt',
-                                                    'lunchEndsAt',
-                                                ]);
-                                                setHours((current) => ({
-                                                    ...current,
-                                                    lunch: patchBreak(
-                                                        current.lunch,
-                                                        'startsAt',
-                                                        value,
-                                                    ),
-                                                }));
-                                            }}
-                                        />
-                                    </Field>
-                                </div>
-                                <div className="w-[8.5rem]">
-                                    <Field
-                                        id="lunchEndsAt"
-                                        label="Fin"
-                                        error={errors.lunchEndsAt}
-                                    >
-                                        <TimePicker
+                                            label="Début"
+                                            error={errors.lunchStartsAt}
+                                        >
+                                            <TimePicker
+                                                id="lunchStartsAt"
+                                                value={
+                                                    hours.lunch?.startsAt ?? ''
+                                                }
+                                                placeholder="Aucune"
+                                                allowEmpty
+                                                onChange={(value) => {
+                                                    clearErrors([
+                                                        'lunchStartsAt',
+                                                        'lunchEndsAt',
+                                                    ]);
+                                                    setHours((current) => ({
+                                                        ...current,
+                                                        lunch: patchBreak(
+                                                            current.lunch,
+                                                            'startsAt',
+                                                            value,
+                                                        ),
+                                                    }));
+                                                }}
+                                            />
+                                        </Field>
+                                    </div>
+                                    <div className="w-[7.5rem]">
+                                        <Field
                                             id="lunchEndsAt"
-                                            value={hours.lunch?.endsAt ?? ''}
-                                            placeholder="Aucune"
-                                            allowEmpty
-                                            onChange={(value) => {
-                                                clearErrors([
-                                                    'lunchStartsAt',
-                                                    'lunchEndsAt',
-                                                ]);
-                                                setHours((current) => ({
-                                                    ...current,
-                                                    lunch: patchBreak(
-                                                        current.lunch,
-                                                        'endsAt',
-                                                        value,
-                                                    ),
-                                                }));
-                                            }}
-                                        />
-                                    </Field>
+                                            label="Fin"
+                                            error={errors.lunchEndsAt}
+                                        >
+                                            <TimePicker
+                                                id="lunchEndsAt"
+                                                value={
+                                                    hours.lunch?.endsAt ?? ''
+                                                }
+                                                placeholder="Aucune"
+                                                allowEmpty
+                                                onChange={(value) => {
+                                                    clearErrors([
+                                                        'lunchStartsAt',
+                                                        'lunchEndsAt',
+                                                    ]);
+                                                    setHours((current) => ({
+                                                        ...current,
+                                                        lunch: patchBreak(
+                                                            current.lunch,
+                                                            'endsAt',
+                                                            value,
+                                                        ),
+                                                    }));
+                                                }}
+                                            />
+                                        </Field>
+                                    </div>
                                 </div>
                             </div>
                         </div>
+                        {canMutate ? (
+                            <Button
+                                type="button"
+                                size="sm"
+                                className="shrink-0 self-start lg:self-end"
+                                disabled={savingHours}
+                                onClick={() => {
+                                    void saveHours();
+                                }}
+                            >
+                                {savingHours
+                                    ? 'Enregistrement…'
+                                    : 'Enregistrer'}
+                            </Button>
+                        ) : null}
                     </div>
-                    <p className="text-muted-foreground mt-3 text-[13px]">
-                        Les créneaux de cours du {cycleName} s’inscrivent entre
-                        l’ouverture et la fermeture, sans empiéter sur la
-                        récréation ni sur la pause de midi.
+                    <p className="text-muted-foreground text-[12px]">
+                        Créneaux du {cycleName} entre ouverture et fermeture,
+                        hors récréation et pause de midi.
                     </p>
                 </div>
                 <ListPage

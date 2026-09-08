@@ -5,7 +5,6 @@ import { cn } from '@/lib/utils';
 export function PageHeader({
     title,
     description,
-    icon: Icon,
     actions,
     className,
     flush = false,
@@ -53,9 +52,6 @@ export function PageHeader({
             )}
         >
             <div className="flex items-start gap-3">
-                {Icon && (
-                    <Icon className="text-primary mt-0.5 size-6 shrink-0" />
-                )}
                 <div className="space-y-1">
                     <h1 className="text-[22px] font-semibold tracking-tight">
                         {title}

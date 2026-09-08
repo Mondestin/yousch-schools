@@ -43,7 +43,7 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { useSchoolContext } from '@/hooks/use-school-context';
-import { crudItems } from '@/lib/school-crud';
+import { useCrudItems } from '@/hooks/use-crud-items';
 import { requiredText } from '@/lib/school-form';
 import { dossierFilesOf } from '@/lib/school-files';
 import { cycleLabel, isLyceeCycle } from '@/lib/school-rows';
@@ -110,6 +110,8 @@ function subjectSchema(coefRequired: boolean, lycee: boolean) {
 }
 
 export default function SubjectsIndex({ catalog }: { catalog: SchoolDataset }) {
+    const crudItems = useCrudItems();
+
     const { cycle, academicYearLabel } = useSchoolContext();
     const [search, setSearch] = useState('');
     const [levelId, setLevelId] = useState('all');

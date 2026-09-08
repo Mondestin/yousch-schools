@@ -1,3 +1,4 @@
+import { useYearLock } from '@/hooks/use-year-lock';
 import { Head } from '@inertiajs/react';
 import { useState } from 'react';
 import { FileListField } from '@/components/sms/file-list-field';
@@ -19,6 +20,8 @@ export default function TeacherDossierPage({
     catalog: SchoolDataset;
     teacherId: string;
 }) {
+    const { locked, canMutate, lockHint } = useYearLock();
+
     const fiche = teacherFiche(catalog, teacherId);
     const [teacher, setTeacher] = useState<Teacher | null>(
         fiche?.teacher ?? null,
@@ -73,9 +76,11 @@ export default function TeacherDossierPage({
             <Head title={`${fiche.name} : Dossier`} />
             <div className="flex items-center justify-between gap-3">
                 <h2 className="text-[15px] font-semibold">Dossier</h2>
+                {canMutate ? (
                 <Button type="button" onClick={openEdit}>
                     Modifier
                 </Button>
+            ) : null}
             </div>
             <div className="mt-4 max-w-3xl">
                 <FileListField files={dossierFilesOf(teacher)} />

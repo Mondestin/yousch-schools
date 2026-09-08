@@ -39,7 +39,7 @@ import {
 } from '@/components/ui/table';
 import { useClientTable } from '@/hooks/use-client-table';
 import { useFieldErrors } from '@/hooks/use-field-errors';
-import { crudItems } from '@/lib/school-crud';
+import { useCrudItems } from '@/hooks/use-crud-items';
 import { requiredText } from '@/lib/school-form';
 import { VENUE_KINDS, venueKindLabel } from '@/lib/school-structure';
 import { toastApiError, toastRemoved, toastSaved } from '@/lib/school-toast';
@@ -77,6 +77,8 @@ export default function StructureVenuesPage({
 }: {
     catalog: SchoolDataset;
 }) {
+    const crudItems = useCrudItems();
+
     const [search, setSearch] = useState('');
     const [venues, setVenues] = useState<Venue[]>(catalog.venues);
     const [editingId, setEditingId] = useState<string | null>(null);

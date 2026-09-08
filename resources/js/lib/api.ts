@@ -50,6 +50,14 @@ function xsrfToken(): string | null {
     return decodeURIComponent(match.slice('XSRF-TOKEN='.length));
 }
 
+function schoolAnneeHeader(): string | null {
+    if (typeof window === 'undefined') {
+        return null;
+    }
+
+    return new URL(window.location.href).searchParams.get('annee');
+}
+
 type ApiJsonOptions = {
     method?: string;
     body?: unknown;
@@ -70,6 +78,12 @@ export async function apiJson<T = unknown>(
 
     if (token) {
         headers['X-XSRF-TOKEN'] = token;
+    }
+
+    const annee = schoolAnneeHeader();
+
+    if (annee) {
+        headers['X-School-Annee'] = annee;
     }
 
     let body: BodyInit | undefined;

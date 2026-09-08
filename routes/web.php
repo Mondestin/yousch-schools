@@ -86,7 +86,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::redirect('etablissement', '/etablissement/identite');
     Route::get('etablissement/identite', [SchoolPagesController::class, 'school'])->name('etablissement.index');
     Route::get('etablissement/frais', [SchoolPagesController::class, 'fees'])->name('etablissement.fees');
-    Route::get('etablissement/abonnement', [SchoolPagesController::class, 'subscription'])->name('etablissement.subscription');
+    Route::redirect('etablissement/abonnement', '/organisation/abonnement');
+    Route::get('organisation/abonnement', [SchoolPagesController::class, 'subscription'])->name('organisation.subscription');
 });
 
 require __DIR__.'/settings.php';
