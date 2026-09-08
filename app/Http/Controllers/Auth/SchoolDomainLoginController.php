@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\School;
+use App\Support\Tenancy\CurrentSchool;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -40,6 +41,9 @@ class SchoolDomainLoginController extends Controller
             ]);
         }
 
+        $request->session()->put('login.school_id', $school->id);
+        $request->session()->put('login.school_domain', $school->domain);
+
         return redirect()->route('login.domain', ['domain' => $school->domain]);
     }
 
@@ -54,6 +58,8 @@ class SchoolDomainLoginController extends Controller
             abort(404);
         }
 
+        // Bind the school before loading the profile (SchoolScope needs CurrentSchool).
+        CurrentSchool::set($school);
         $school->loadMissing('profile');
 
         $request->session()->put('login.school_id', $school->id);

@@ -1,7 +1,9 @@
 <?php
 
 use App\Models\School;
+use App\Models\SchoolProfile;
 use App\Models\User;
+use Database\Seeders\SchoolTaxonomySeeder;
 use Laravel\Fortify\Features;
 
 test('login screen can be rendered', function () {
@@ -19,6 +21,37 @@ test('domain login screen can be rendered', function () {
     $response->assertInertia(fn ($page) => $page
         ->component('auth/login')
         ->where('school.domain', $school->domain));
+});
+
+test('domain login screen shows the school logo above the name', function () {
+    $this->seed(SchoolTaxonomySeeder::class);
+
+    $school = defaultSchool();
+    $profile = $school->profile()->withoutGlobalScopes()->first()
+        ?? SchoolProfile::query()->withoutGlobalScopes()->create([
+            'school_id' => $school->id,
+            'name' => $school->name,
+            'promoter_name' => 'Promoteur',
+            'director_name' => 'Directeur',
+            'city' => 'Brazzaville',
+            'country' => 'Congo',
+            'phone' => '0600000000',
+            'email' => 'contact@'.$school->domain.'.cg',
+            'address' => 'Avenue de la Paix',
+            'motto' => 'Savoir',
+            'currency' => 'FCFA',
+        ]);
+
+    $profile->forceFill([
+        'logo_url' => '/storage/schools/'.$school->domain.'/school/logo.png',
+    ])->save();
+
+    $this->get(route('login.domain', ['domain' => $school->domain]))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('auth/login')
+            ->where('school.name', $profile->name)
+            ->where('school.logoUrl', '/storage/schools/'.$school->domain.'/school/logo.png'));
 });
 
 test('unknown domain returns 404', function () {
