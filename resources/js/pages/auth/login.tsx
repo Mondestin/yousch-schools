@@ -72,8 +72,8 @@ export default function Login({
                         {school.logoUrl ? (
                             <img
                                 src={school.logoUrl}
-                                alt={school.name}
-                                className="h-16 w-auto max-w-[12rem] object-contain md:h-20"
+                                alt=""
+                                className="h-20 w-auto max-w-[14rem] object-contain md:h-24"
                             />
                         ) : (
                             <div
@@ -84,9 +84,12 @@ export default function Login({
                             </div>
                         )}
 
-                        <h1 className="mt-6 text-xl leading-tight font-semibold tracking-tight md:text-2xl">
+                        <h1 className="mt-5 text-xl leading-tight font-semibold tracking-tight md:text-2xl">
                             {school.name}
                         </h1>
+                        <p className="text-muted-foreground mt-1.5 text-[13px]">
+                            Connexion au portail
+                        </p>
                     </div>
 
                     <Form
