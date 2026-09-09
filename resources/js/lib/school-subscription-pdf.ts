@@ -140,7 +140,14 @@ export function buildSubscriptionInvoicePdf({
             2: { cellWidth: 100, halign: 'right' },
             3: { halign: 'right' },
         },
-        head: [['Description', 'Quantité', 'Tarif', 'Montant']],
+        head: [
+            [
+                'Description',
+                'Quantité',
+                { content: 'Tarif', styles: { halign: 'right' } },
+                { content: 'Montant', styles: { halign: 'right' } },
+            ],
+        ],
         body: [
             [
                 'Abonnement ' +

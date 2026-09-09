@@ -24,7 +24,7 @@ export default function ResetPassword({ token, email, passwordRules }: Props) {
                 resetOnSuccess={['password', 'password_confirmation']}
             >
                 {({ processing, errors }) => (
-                    <div className="grid gap-6">
+                    <div className="grid gap-5">
                         <div className="grid gap-2">
                             <Label htmlFor="email">E-mail</Label>
                             <Input
@@ -43,7 +43,7 @@ export default function ResetPassword({ token, email, passwordRules }: Props) {
                         </div>
 
                         <div className="grid gap-2">
-                            <Label htmlFor="password">Mot de passe</Label>
+                            <Label htmlFor="password">Nouveau mot de passe</Label>
                             <PasswordInput
                                 id="password"
                                 name="password"
@@ -53,6 +53,9 @@ export default function ResetPassword({ token, email, passwordRules }: Props) {
                                 placeholder="Mot de passe"
                                 passwordrules={passwordRules}
                             />
+                            {passwordRules && (
+                                <p className="text-muted-foreground text-[12px] leading-relaxed">{passwordRules}</p>
+                            )}
                             <InputError message={errors.password} />
                         </div>
 
@@ -76,12 +79,12 @@ export default function ResetPassword({ token, email, passwordRules }: Props) {
 
                         <Button
                             type="submit"
-                            className="mt-4 w-full"
+                            className="mt-1 h-11 w-full gap-2 rounded-lg text-[13px]"
                             disabled={processing}
                             data-test="reset-password-button"
                         >
                             {processing && <Spinner />}
-                            Réinitialiser
+                            {processing ? 'Enregistrement…' : 'Réinitialiser le mot de passe'}
                         </Button>
                     </div>
                 )}
@@ -92,5 +95,5 @@ export default function ResetPassword({ token, email, passwordRules }: Props) {
 
 ResetPassword.layout = {
     title: 'Nouveau mot de passe',
-    description: 'Choisissez un nouveau mot de passe',
+    description: 'Choisissez un mot de passe unique pour sécuriser votre compte et retrouver votre espace.',
 };

@@ -1,4 +1,5 @@
 import { Form, Head, Link } from '@inertiajs/react';
+import { LogIn } from 'lucide-react';
 import { useState } from 'react';
 import { z } from 'zod';
 import InputError from '@/components/input-error';
@@ -9,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { useFieldErrors } from '@/hooks/use-field-errors';
+import AuthPageFrame from '@/layouts/auth/auth-page-frame';
 import { login as loginEntry } from '@/routes';
 import { store } from '@/routes/login';
 import { request } from '@/routes/password';
@@ -66,29 +68,40 @@ export default function Login({
         <>
             <Head title={`Connexion · ${school.name}`} />
 
-            <div className="bg-background text-foreground flex min-h-svh flex-col">
-                <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-6 py-12">
-                    <div className="flex flex-col items-center text-center">
+            <AuthPageFrame>
+                    <ol aria-label="Étapes de connexion" className="mb-7 flex items-center gap-3 text-[12px]">
+                        <li className="text-muted-foreground flex items-center gap-2">
+                            <span className="bg-muted flex size-6 items-center justify-center rounded-full">1</span>
+                            Établissement
+                        </li>
+                        <li aria-hidden="true" className="bg-border h-px flex-1" />
+                        <li aria-current="step" className="text-primary flex items-center gap-2 font-medium">
+                            <span className="bg-primary/10 flex size-6 items-center justify-center rounded-full">2</span>
+                            Connexion
+                        </li>
+                    </ol>
+                <section className="bg-background border-border/80 rounded-2xl border p-6 shadow-[0_8px_32px_rgba(15,23,42,0.04)] sm:p-8 [&_input]:h-11 [&_input]:rounded-lg [&_input]:text-[14px]" aria-labelledby="school-login-title">
+                    <div className="flex flex-col items-start">
                         {school.logoUrl ? (
                             <img
                                 src={school.logoUrl}
                                 alt=""
-                                className="h-20 w-auto max-w-[14rem] object-contain md:h-24"
+                                className="h-14 w-auto max-w-[10rem] object-contain"
                             />
                         ) : (
                             <div
                                 aria-hidden
-                                className="bg-primary text-primary-foreground flex size-16 items-center justify-center rounded-2xl text-[18px] font-semibold tracking-tight md:size-20 md:text-[22px]"
+                                className="bg-primary/10 text-primary flex size-12 items-center justify-center rounded-xl text-[18px] font-semibold tracking-tight"
                             >
                                 {initials}
                             </div>
                         )}
 
-                        <h1 className="mt-5 text-xl leading-tight font-semibold tracking-tight md:text-2xl">
+                        <h1 id="school-login-title" className="mt-4 text-[24px] leading-tight font-semibold tracking-tight">
                             {school.name}
                         </h1>
                         <p className="text-muted-foreground mt-1.5 text-[13px]">
-                            Connexion au portail
+                            Connectez-vous à votre espace avec vos identifiants.
                         </p>
                     </div>
 
@@ -96,7 +109,7 @@ export default function Login({
                         action={store()}
                         resetOnSuccess={['password']}
                         noValidate
-                        className="mt-10 flex flex-col gap-6"
+                        className="mt-7 flex flex-col gap-6"
                         onBefore={() =>
                             validate(loginSchema, { email, password })
                         }
@@ -179,22 +192,21 @@ export default function Login({
 
                                     <Button
                                         type="submit"
-                                        className="w-full"
-                                        size="lg"
+                                        className="h-11 w-full gap-2 rounded-lg text-[13px]"
                                         tabIndex={4}
                                         disabled={processing}
                                         data-test="login-button"
                                     >
-                                        {processing && <Spinner />}
-                                        Accéder au portail
+                                        {processing ? <Spinner /> : <LogIn aria-hidden="true" className="size-4" />}
+                                        {processing ? 'Connexion…' : 'Accéder au portail'}
                                     </Button>
                                 </div>
 
-                                <div className="flex flex-col items-center gap-2.5 text-center text-[13px]">
+                                <div className="flex items-start justify-between gap-3 text-[12px] sm:text-[13px]">
                                     {canResetPassword && (
                                         <Link
                                             href={request()}
-                                            className="text-muted-foreground hover:text-foreground"
+                                            className="text-muted-foreground hover:text-primary focus-visible:outline-primary rounded hover:underline focus-visible:outline-2"
                                             tabIndex={5}
                                         >
                                             Mot de passe oublié ?
@@ -202,10 +214,10 @@ export default function Login({
                                     )}
                                     <Link
                                         href={loginEntry()}
-                                        className="text-muted-foreground hover:text-foreground"
+                                        className="text-muted-foreground hover:text-primary focus-visible:outline-primary ml-auto rounded text-right hover:underline focus-visible:outline-2"
                                         tabIndex={6}
                                     >
-                                        Ce n’est pas mon établissement
+                                        Changer d’établissement
                                     </Link>
                                 </div>
                             </>
@@ -217,15 +229,8 @@ export default function Login({
                             {status}
                         </div>
                     )}
-                </main>
-
-                <footer className="text-muted-foreground px-6 py-5 text-center text-[11px] tracking-wide">
-                    Powered by{' '}
-                    <span className="text-foreground/80 font-medium">
-                        Phoenone
-                    </span>
-                </footer>
-            </div>
+                </section>
+            </AuthPageFrame>
         </>
     );
 }
