@@ -25,6 +25,8 @@ void createInertiaApp({
             case name === 'documents/verify':
                 return null;
             case name === 'auth/login':
+            case name === 'auth/login-domain':
+            case name === 'auth/register-school':
                 return null;
             case name.startsWith('errors/'):
                 return null;

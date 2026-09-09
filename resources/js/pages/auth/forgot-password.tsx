@@ -14,7 +14,7 @@ export default function ForgotPassword({ status }: { status?: string }) {
             <Head title="Mot de passe oublié" />
 
             {status && (
-                <div className="text-primary mb-4 text-center text-sm font-medium">
+                <div role="status" className="bg-primary/5 text-primary rounded-lg p-3 text-[13px] leading-relaxed">
                     {status}
                 </div>
             )}
@@ -29,24 +29,26 @@ export default function ForgotPassword({ status }: { status?: string }) {
                                     id="email"
                                     type="email"
                                     name="email"
-                                    autoComplete="off"
+                                    autoComplete="email"
                                     autoFocus
-                                    placeholder="email@etablissement.ci"
+                                    placeholder="prenom.nom@ecole.cg"
+                                    aria-invalid={Boolean(errors.email)}
                                 />
 
                                 <InputError message={errors.email} />
                             </div>
 
-                            <div className="my-6 flex items-center justify-start">
+                            <div className="mt-5 flex items-center justify-start">
                                 <Button
-                                    className="w-full"
+                                    type="submit"
+                                    className="h-11 w-full gap-2 rounded-lg text-[13px]"
                                     disabled={processing}
                                     data-test="email-password-reset-link-button"
                                 >
                                     {processing && (
                                         <LoaderCircle className="h-4 w-4 animate-spin" />
                                     )}
-                                    Envoyer le lien
+                                    {processing ? 'Envoi…' : 'Envoyer le lien'}
                                 </Button>
                             </div>
                         </>
@@ -65,5 +67,5 @@ export default function ForgotPassword({ status }: { status?: string }) {
 ForgotPassword.layout = {
     title: 'Mot de passe oublié',
     description:
-        'Indiquez votre e-mail pour recevoir un lien de réinitialisation',
+        'Saisissez l’adresse e-mail de votre compte. Nous vous enverrons un lien pour choisir un nouveau mot de passe.',
 };

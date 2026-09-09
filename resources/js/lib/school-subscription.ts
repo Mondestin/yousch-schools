@@ -9,13 +9,37 @@ export type PlanOffer = {
     label: string;
     monthlyAmount: number;
     seats: number;
+    /** Cycles couverts par la formule. */
+    cycles: string;
+    summary: string;
 };
 
 /** Ordered from the entry offer to the top one. */
 export const PLAN_OFFERS: PlanOffer[] = [
-    { plan: 'gold', label: 'Gold', monthlyAmount: 25000, seats: 10 },
-    { plan: 'platinium', label: 'Platinium', monthlyAmount: 45000, seats: 25 },
-    { plan: 'titanium', label: 'Titanium', monthlyAmount: 75000, seats: 60 },
+    {
+        plan: 'gold',
+        label: 'Gold',
+        monthlyAmount: 25000,
+        seats: 10,
+        cycles: 'Primaire',
+        summary: 'Pour un établissement du primaire.',
+    },
+    {
+        plan: 'platinium',
+        label: 'Platinium',
+        monthlyAmount: 50000,
+        seats: 25,
+        cycles: 'Primaire et collège',
+        summary: 'Pour le primaire et le collège.',
+    },
+    {
+        plan: 'titanium',
+        label: 'Titanium',
+        monthlyAmount: 75000,
+        seats: 60,
+        cycles: 'Primaire, collège et lycée',
+        summary: 'Pour les trois cycles de votre école.',
+    },
 ];
 
 export function planOffer(plan: SubscriptionPlan): PlanOffer {

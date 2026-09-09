@@ -1,5 +1,4 @@
-import { Link, usePage } from '@inertiajs/react';
-import { home } from '@/routes';
+import AuthPageFrame from '@/layouts/auth/auth-page-frame';
 import type { AuthLayoutProps } from '@/types';
 
 export default function AuthSimpleLayout({
@@ -7,42 +6,15 @@ export default function AuthSimpleLayout({
     title,
     description,
 }: AuthLayoutProps) {
-    const { name } = usePage().props;
-
     return (
-        <div className="bg-background text-foreground flex min-h-svh flex-col">
-            <main className="mx-auto flex w-full max-w-lg flex-1 flex-col justify-center px-6 py-12">
-                <div className="flex flex-col gap-8">
-                    <div className="flex flex-col items-center gap-6">
-                        <Link
-                            href={home()}
-                            className="flex flex-col items-center gap-3"
-                        >
-                            <img
-                                src="/logo.png"
-                                alt={String(name)}
-                                className="h-11 w-auto object-contain"
-                            />
-                            <span className="sr-only">{title}</span>
-                        </Link>
-
-                        <div className="space-y-2 text-center">
-                            <h1 className="text-2xl font-semibold tracking-tight">
-                                {title}
-                            </h1>
-                            <p className="text-muted-foreground text-center text-sm">
-                                {description}
-                            </p>
-                        </div>
-                    </div>
-                    {children}
+        <AuthPageFrame>
+            <section className="bg-background border-border/80 flex flex-col gap-7 rounded-2xl border p-6 shadow-[0_8px_32px_rgba(15,23,42,0.04)] sm:p-8 [&_input:not([type=checkbox])]:h-11 [&_input]:rounded-lg [&_input]:text-[14px] [&_button[type=submit]]:min-h-11 [&_button[type=submit]]:rounded-lg" aria-labelledby="auth-title">
+                <div className="flex flex-col gap-3">
+                    <h1 id="auth-title" className="text-[24px] leading-tight font-semibold tracking-tight">{title}</h1>
+                    <p className="text-muted-foreground text-[13px] leading-relaxed">{description}</p>
                 </div>
-            </main>
-
-            <footer className="text-muted-foreground px-6 py-5 text-center text-[11px] tracking-wide">
-                Powered by{' '}
-                <span className="text-foreground/80 font-medium">Phoenone</span>
-            </footer>
-        </div>
+                {children}
+            </section>
+        </AuthPageFrame>
     );
 }

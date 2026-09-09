@@ -1,14 +1,16 @@
 import { Head, router } from '@inertiajs/react';
+import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { z } from 'zod';
 import InputError from '@/components/input-error';
-import { FormSteps } from '@/components/sms/form-steps';
+import PasswordInput from '@/components/password-input';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { useFieldErrors } from '@/hooks/use-field-errors';
+import AuthPageFrame from '@/layouts/auth/auth-page-frame';
 import { store } from '@/routes/register';
 import { login as loginRoute } from '@/routes';
 
@@ -62,11 +64,19 @@ const adminStepSchema = z.object({
         .email('Indiquez une adresse e-mail valide.'),
 });
 
+const passwordChecks = [
+    { label: 'Au moins 8 caractères', valid: (value: string) => value.length >= 8 },
+    { label: 'Au moins une lettre majuscule', valid: (value: string) => /\p{Lu}/u.test(value) },
+    { label: 'Au moins un chiffre', valid: (value: string) => /[0-9]/.test(value) },
+    { label: 'Au moins un caractère spécial', valid: (value: string) => /[^\p{L}\p{N}\s]/u.test(value) },
+];
+
 const accessStepSchema = z
     .object({
         password: z
             .string()
-            .min(8, 'Le mot de passe doit contenir au moins 8 caractères.'),
+            .min(8, 'Le mot de passe doit contenir au moins 8 caractères.')
+            .refine((value) => passwordChecks.every((rule) => rule.valid(value)), 'Ajoutez une majuscule, un chiffre et un caractère spécial.'),
         password_confirmation: z.string(),
     })
     .refine((data) => data.password === data.password_confirmation, {
@@ -183,19 +193,33 @@ export default function RegisterSchool({ passwordRules }: Props) {
         <>
             <Head title="Enregistrer un établissement" />
 
+            <AuthPageFrame>
             <div className="flex flex-col gap-6">
-                <FormSteps
-                    steps={[...STEPS]}
-                    current={step}
-                    onSelect={(index) => {
-                        if (index <= step) {
-                            clearErrors();
-                            setStep(index);
-                        }
-                    }}
-                />
-
-                <p className="text-muted-foreground text-center text-[13px]">
+                <ol aria-label="Étapes d’inscription" className="flex items-center gap-2 text-[12px]">
+                    {STEPS.map((item, index) => (
+                        <li key={item.id} className={`flex items-center gap-2 ${index < STEPS.length - 1 ? 'flex-1' : ''}`}>
+                            <button
+                                type="button"
+                                disabled={index > step || processing}
+                                aria-current={index === step ? 'step' : undefined}
+                                onClick={() => {
+                                    clearErrors();
+                                    setStep(index);
+                                }}
+                                className={`flex items-center gap-1.5 rounded text-[11px] sm:text-[12px] focus-visible:outline-2 focus-visible:outline-primary ${index === step ? 'text-primary font-medium' : 'text-muted-foreground'}`}
+                            >
+                                <span className={`flex size-6 shrink-0 items-center justify-center rounded-full text-[12px] ${index === step ? 'bg-primary/10 text-primary' : 'bg-muted'}`}>
+                                    {index + 1}
+                                </span>
+                                {item.title}
+                            </button>
+                            {index < STEPS.length - 1 && <span aria-hidden="true" className="bg-border h-px flex-1" />}
+                        </li>
+                    ))}
+                </ol>
+                <section className="bg-background border-border/80 flex flex-col gap-6 rounded-2xl border p-6 shadow-[0_8px_32px_rgba(15,23,42,0.04)] sm:p-8 [&_input]:h-11 [&_input]:rounded-lg [&_input]:text-[14px] [&_button[type=submit]]:min-h-11" aria-labelledby="register-title">
+                <h1 id="register-title" className="text-[24px] leading-tight font-semibold tracking-tight">Enregistrer un établissement</h1>
+                <p className="text-muted-foreground text-[13px] leading-relaxed">
                     Étape {step + 1} sur {STEPS.length} : {stepDescription}
                 </p>
 
@@ -249,6 +273,8 @@ export default function RegisterSchool({ passwordRules }: Props) {
                                     }
                                     required
                                     autoComplete="off"
+                                    autoCapitalize="none"
+                                    spellCheck={false}
                                     placeholder="palmiers"
                                     aria-invalid={Boolean(errors.domain)}
                                 />
@@ -339,9 +365,8 @@ export default function RegisterSchool({ passwordRules }: Props) {
                         <div className="grid gap-4">
                             <div className="grid gap-2">
                                 <Label htmlFor="password">Mot de passe</Label>
-                                <Input
+                                <PasswordInput
                                     id="password"
-                                    type="password"
                                     value={form.password}
                                     onChange={(event) =>
                                         patch({
@@ -351,14 +376,24 @@ export default function RegisterSchool({ passwordRules }: Props) {
                                     required
                                     autoFocus
                                     autoComplete="new-password"
+                                    passwordrules={passwordRules}
+                                    aria-describedby="password-checks"
                                     placeholder="••••••••"
                                     aria-invalid={Boolean(errors.password)}
                                 />
-                                {passwordRules ? (
-                                    <p className="text-muted-foreground text-[12px]">
-                                        {passwordRules}
-                                    </p>
-                                ) : null}
+                                <ul id="password-checks" className="mt-1 grid gap-2 text-[12px]">
+                                    {passwordChecks.map((rule) => {
+                                        const validated = rule.valid(form.password);
+                                        return (
+                                            <li key={rule.label} className={`flex items-center gap-2 ${validated ? 'text-primary' : 'text-muted-foreground'}`}>
+                                                <span role="checkbox" aria-checked={validated} aria-readonly="true" aria-label={rule.label} className={`flex size-4 shrink-0 items-center justify-center rounded-full border ${validated ? 'border-primary bg-primary text-primary-foreground' : 'border-input'}`}>
+                                                    {validated && <Check aria-hidden="true" className="size-3" />}
+                                                </span>
+                                                <span>{rule.label}</span>
+                                            </li>
+                                        );
+                                    })}
+                                </ul>
                                 <InputError message={errors.password} />
                             </div>
 
@@ -366,9 +401,8 @@ export default function RegisterSchool({ passwordRules }: Props) {
                                 <Label htmlFor="password_confirmation">
                                     Confirmer le mot de passe
                                 </Label>
-                                <Input
+                                <PasswordInput
                                     id="password_confirmation"
-                                    type="password"
                                     value={form.password_confirmation}
                                     onChange={(event) =>
                                         patch({
@@ -390,44 +424,44 @@ export default function RegisterSchool({ passwordRules }: Props) {
                         </div>
                     ) : null}
 
-                    <div className="flex flex-col gap-3 sm:flex-row sm:justify-between">
+                    <div className={`grid gap-3 ${step > 0 ? 'grid-cols-2' : 'grid-cols-1'}`}>
                         {step > 0 ? (
                             <Button
                                 type="button"
                                 variant="outline"
+                                className="h-11 w-full gap-2 rounded-lg text-[13px]"
                                 disabled={processing}
                                 onClick={goBack}
                             >
+                                <ArrowLeft aria-hidden="true" className="size-4" />
                                 Retour
                             </Button>
-                        ) : (
-                            <span className="hidden sm:block" />
-                        )}
+                        ) : null}
 
                         <Button
                             type="submit"
-                            className="w-full sm:w-auto sm:min-w-40"
+                            className="h-11 w-full gap-2 rounded-lg text-[13px]"
                             disabled={processing}
                             data-test="register-school-button"
                         >
-                            {processing && <Spinner />}
+                            {processing ? <Spinner /> : lastStep ? <Check aria-hidden="true" className="size-4" /> : null}
                             {lastStep
-                                ? 'Enregistrer un établissement'
+                                ? 'Enregistrer'
                                 : 'Continuer'}
+                            {!lastStep && !processing && <ArrowRight aria-hidden="true" className="size-4" />}
                         </Button>
                     </div>
                 </form>
 
-                <div className="text-muted-foreground text-center text-sm">
+                <div className="text-muted-foreground bg-muted/30 rounded-lg px-4 py-3 text-center text-[13px]">
                     Déjà un compte ?{' '}
                     <TextLink href={loginRoute()}>Se connecter</TextLink>
                 </div>
+                </section>
             </div>
+            </AuthPageFrame>
         </>
     );
 }
 
-RegisterSchool.layout = {
-    title: 'Enregistrer un établissement',
-    description: 'Trois étapes pour ouvrir l’espace Yousch de votre école',
-};
+RegisterSchool.layout = null;
