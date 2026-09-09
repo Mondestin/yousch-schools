@@ -768,10 +768,10 @@ function PlanOption({
         period === 'annual' ? offer.monthlyAmount * 10 : offer.monthlyAmount;
     const tier =
         offer.plan === 'gold'
-            ? 'Essentiel'
+            ? 'Primaire'
             : offer.plan === 'platinium'
-              ? 'Pro'
-              : 'Avancé';
+              ? 'Primaire + collège'
+              : 'Les 3 cycles';
     return (
         <button
             type="button"
@@ -795,7 +795,7 @@ function PlanOption({
                 {period === 'annual' ? 'par an' : 'par mois'}
             </p>
             <p className="text-muted-foreground mt-3 text-[12px] leading-relaxed">
-                {offer.seats} sièges inclus pour votre équipe.
+                {offer.cycles}. {offer.seats} sièges inclus.
             </p>
         </button>
     );
