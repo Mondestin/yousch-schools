@@ -16,7 +16,6 @@ import {
     Package,
     School,
     Settings,
-    Trophy,
     UserCog,
     Users,
 } from 'lucide-react';
@@ -32,11 +31,12 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import { useCurrentUrl } from '@/hooks/use-current-url';
 import { useSchoolContext } from '@/hooks/use-school-context';
 import { canAccess, type NavKey } from '@/lib/school-access';
 import { index as announcements } from '@/routes/announcements';
 import { index as documentsHub } from '@/routes/documents';
-import { index as assessments } from '@/routes/assessments';
+import { devoirs as assessments } from '@/routes/assessments';
 import { index as attendance } from '@/routes/attendance';
 import { dashboard } from '@/routes';
 import { index as school } from '@/routes/etablissement';
@@ -46,7 +46,6 @@ import { subscription } from '@/routes/organisation';
 import { index as payments } from '@/routes/payments';
 import { edit as profile } from '@/routes/profile';
 import { index as reports } from '@/routes/reports';
-import { index as results } from '@/routes/results';
 import { index as structure } from '@/routes/structure';
 import { index as students } from '@/routes/students';
 import { index as subjects } from '@/routes/subjects';
@@ -57,6 +56,7 @@ import type { NavItem } from '@/types';
 
 export function AppSidebar() {
     const { query, staffRole } = useSchoolContext();
+    const { currentUrl } = useCurrentUrl();
 
     function items(list: Array<NavItem & { key: NavKey }>): NavItem[] {
         return list
@@ -114,7 +114,7 @@ export function AppSidebar() {
         },
         {
             key: 'assessments',
-            title: 'Devoirs & notes',
+            title: 'Évaluations',
             href: assessments({ query }),
             icon: ClipboardList,
             match: 'prefix',
@@ -124,13 +124,11 @@ export function AppSidebar() {
             title: 'Bulletins',
             href: reports({ query }),
             icon: FileText,
-            match: 'prefix',
-        },
-        {
-            key: 'results',
-            title: 'Résultats',
-            href: results({ query }),
-            icon: Trophy,
+            isActive:
+                currentUrl === '/bulletins' ||
+                currentUrl.startsWith('/bulletins/') ||
+                currentUrl === '/resultats' ||
+                currentUrl.startsWith('/resultats/'),
         },
     ]);
     const administration = items([

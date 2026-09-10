@@ -48,11 +48,21 @@ export function TablePagination({
                         onPageSizeChange?.(Number(event.target.value))
                     }
                 >
-                    {TABLE_PAGE_SIZES.map((size) => (
-                        <option key={size} value={size}>
-                            {size}
-                        </option>
-                    ))}
+                    {[
+                        ...TABLE_PAGE_SIZES,
+                        ...(TABLE_PAGE_SIZES as readonly number[]).includes(
+                            pageSize,
+                        )
+                            ? []
+                            : [pageSize],
+                    ]
+                        .filter((size, index, all) => all.indexOf(size) === index)
+                        .sort((a, b) => a - b)
+                        .map((size) => (
+                            <option key={size} value={size}>
+                                {size}
+                            </option>
+                        ))}
                 </select>
             </div>
             <div className="flex items-center gap-1">

@@ -27,25 +27,21 @@ class StaffAccountCreated extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         $subject = $this->isResend
-            ? "Nouveaux identifiants Yousch - {$this->schoolName}"
-            : "Votre accès Yousch - {$this->schoolName}";
-
-        $intro = $this->isResend
-            ? "Vos identifiants pour **{$this->schoolName}** ({$this->roleLabel}) ont été renouvelés."
-            : "Un compte a été créé pour vous sur **{$this->schoolName}** ({$this->roleLabel}).";
+            ? "Nouveaux identifiants YouSch - {$this->schoolName}"
+            : "Votre accès YouSch - {$this->schoolName}";
 
         return (new MailMessage)
             ->subject($subject)
-            ->greeting('Bonjour '.$notifiable->name.',')
-            ->line($intro)
-            ->line('Voici vos informations de connexion :')
-            ->line("**Établissement (domaine)** : {$this->domain}")
-            ->line("**E-mail** : {$notifiable->email}")
-            ->line("**Mot de passe temporaire** : {$this->plainPassword}")
-            ->action('Se connecter à mon établissement', $this->loginUrl)
-            ->line('Ce bouton ouvre directement la page de connexion de votre établissement (domaine déjà sélectionné).')
-            ->line('Pour votre sécurité, changez ce mot de passe dès la première connexion (Paramètres → Sécurité).')
-            ->salutation('L’équipe Yousch');
+            ->markdown('mail.staff-account-created', [
+                'name' => $notifiable->name,
+                'email' => $notifiable->email,
+                'schoolName' => $this->schoolName,
+                'domain' => $this->domain,
+                'loginUrl' => $this->loginUrl,
+                'plainPassword' => $this->plainPassword,
+                'roleLabel' => $this->roleLabel,
+                'isResend' => $this->isResend,
+            ]);
     }
 
     /**

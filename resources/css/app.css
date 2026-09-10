@@ -27,6 +27,7 @@
     --color-popover-foreground: var(--popover-foreground);
 
     --color-brand: #6425d0;
+    --color-brand-secondary: var(--brand-secondary);
     --color-primary: var(--primary);
     --color-primary-foreground: var(--primary-foreground);
 
@@ -90,6 +91,7 @@
 
 :root {
     --brand: #6425d0;
+    --brand-secondary: #fd7302;
     --background: #ffffff;
     --foreground: #0a0a0a;
     --card: #ffffff;
@@ -134,10 +136,10 @@
     --event-rose-soft: #fff1f2;
     --event-rose-line: #fecdd3;
     --chart-1: #6425d0;
-    --chart-2: color-mix(in srgb, #6425d0 72%, white);
-    --chart-3: color-mix(in srgb, #6425d0 48%, white);
-    --chart-4: color-mix(in srgb, #6425d0 28%, black);
-    --chart-5: color-mix(in srgb, #6425d0 54%, black);
+    --chart-2: #fd7302;
+    --chart-3: color-mix(in srgb, #fd7302 55%, white);
+    --chart-4: color-mix(in srgb, #6425d0 45%, #fd7302);
+    --chart-5: color-mix(in srgb, #fd7302 35%, black);
     --radius: 0.5rem;
     --sidebar: #fafafa;
     --sidebar-foreground: #0a0a0a;
@@ -151,6 +153,7 @@
 
 .dark {
     --brand: #6425d0;
+    --brand-secondary: #fd7302;
     --background: #0a0a0a;
     --foreground: #fafafa;
     --card: #0a0a0a;
@@ -195,10 +198,10 @@
     --event-rose-soft: color-mix(in srgb, #be123c 26%, #0a0a0a);
     --event-rose-line: color-mix(in srgb, #be123c 46%, #0a0a0a);
     --chart-1: #6425d0;
-    --chart-2: color-mix(in srgb, #6425d0 72%, white);
-    --chart-3: color-mix(in srgb, #6425d0 48%, white);
-    --chart-4: color-mix(in srgb, #6425d0 28%, black);
-    --chart-5: color-mix(in srgb, #6425d0 54%, black);
+    --chart-2: #fd7302;
+    --chart-3: color-mix(in srgb, #fd7302 55%, white);
+    --chart-4: color-mix(in srgb, #6425d0 45%, #fd7302);
+    --chart-5: color-mix(in srgb, #fd7302 35%, black);
     --sidebar: #0a0a0a;
     --sidebar-foreground: #fafafa;
     --sidebar-primary: #6425d0;

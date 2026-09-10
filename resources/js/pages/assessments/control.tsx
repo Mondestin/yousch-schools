@@ -1,6 +1,6 @@
 import { Head } from '@inertiajs/react';
 import { GradeSheet } from '@/components/sms/grade-sheet';
-import { index as assessments } from '@/routes/assessments';
+import { control, devoirs } from '@/routes/assessments';
 import type { SchoolDataset } from '@/types/school';
 
 export default function AssessmentControl({
@@ -18,7 +18,7 @@ export default function AssessmentControl({
 
 AssessmentControl.layout = {
     breadcrumbs: [
-        { title: 'Devoirs & notes', href: assessments() },
-        { title: 'Contrôle', href: assessments() },
+        { title: 'Évaluations', href: devoirs() },
+        { title: 'Contrôle', href: control() },
     ],
 };

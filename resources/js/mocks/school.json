@@ -12694,6 +12694,9 @@
             "documentName": null
         }
     ],
+    "staffAttendance": [],
+    "attendanceSessions": [],
+    "markingWindows": [],
     "inventory": [
         {
             "id": "inv-1",

@@ -466,17 +466,7 @@ export default function PaymentsIndex({ catalog }: { catalog: SchoolDataset }) {
                     label="Taux de recouvrement"
                     value={`${stats.rate} %`}
                     hint={`${classHint} · ${monthHint}`}
-                >
-                    <div
-                        className="bg-muted mt-3 h-1.5 overflow-hidden rounded-full"
-                        role="presentation"
-                    >
-                        <div
-                            className="bg-primary h-full rounded-full"
-                            style={{ width: `${Math.min(stats.rate, 100)}%` }}
-                        />
-                    </div>
-                </KpiCard>
+                />
             </KpiGrid>
             <ListPage
                 embedded

@@ -9,7 +9,6 @@ export function KpiCard({
     hint,
     icon: Icon,
     loading = false,
-    children,
     className,
 }: {
     label: string;
@@ -17,6 +16,7 @@ export function KpiCard({
     hint?: string;
     icon?: LucideIcon;
     loading?: boolean;
+    /** @deprecated Progress bars and extra content are no longer rendered. */
     children?: ReactNode;
     className?: string;
 }) {
@@ -24,40 +24,47 @@ export function KpiCard({
         <div
             data-slot="kpi-card"
             className={cn(
-                'bg-background border-border relative isolate h-full min-h-[88px] min-w-0 overflow-hidden border px-5 py-4',
+                'border-border/80 bg-card relative isolate flex h-full min-h-[5.5rem] min-w-0 flex-col overflow-hidden rounded-lg border px-4 py-3.5 shadow-[0_1px_3px_rgba(15,23,42,0.06)]',
                 className,
             )}
         >
-            {Icon && (
+            {Icon ? (
                 <Icon
                     aria-hidden="true"
                     data-slot="kpi-icon"
-                    strokeWidth={1.8}
-                    className="text-primary pointer-events-none absolute top-2 -right-2 -z-10 size-20 opacity-[0.06] dark:opacity-[0.12]"
+                    strokeWidth={1.6}
+                    className="text-primary pointer-events-none absolute top-1/2 -right-2 -z-10 size-16 -translate-y-1/2 opacity-[0.1] dark:opacity-[0.16]"
                 />
-            )}
-            {loading ? (
-                <Skeleton
-                    aria-label="Chargement de la statistique"
-                    className="h-7 w-24 rounded"
-                />
-            ) : (
-                <p className="text-foreground text-[22px] leading-7 font-semibold tracking-tight break-words tabular-nums">
-                    {value}
+            ) : null}
+
+            {hint ? (
+                <p className="text-muted-foreground relative mb-2 max-w-[70%] self-end text-right text-[11px] leading-4">
+                    {hint}
                 </p>
+            ) : (
+                <span className="mb-2 block h-4" aria-hidden />
             )}
-            <p className="text-muted-foreground mt-1.5 text-[12px] leading-5">
-                {label}
-            </p>
-            {hint && (
-                <p className="text-muted-foreground mt-1 text-[12px]">{hint}</p>
-            )}
-            {children}
+
+            <div className="relative mt-auto min-w-0">
+                {loading ? (
+                    <Skeleton
+                        aria-label="Chargement de la statistique"
+                        className="h-7 w-24 rounded"
+                    />
+                ) : (
+                    <p className="text-foreground text-[1.4rem] leading-7 font-semibold tracking-tight break-words tabular-nums">
+                        {value}
+                    </p>
+                )}
+                <p className="text-muted-foreground mt-1 text-[12px] leading-4">
+                    {label}
+                </p>
+            </div>
         </div>
     );
 }
 
-/** Connected statistic tiles with responsive rows and single-pixel dividers. */
+/** Spaced statistic cards. */
 export function KpiGrid({
     children,
     className,
@@ -68,7 +75,11 @@ export function KpiGrid({
     return (
         <div
             className={cn(
-                'bg-border border-border [&>a]:bg-background [&>button]:bg-background [&>a]:focus-visible:outline-primary [&>button]:focus-visible:outline-primary grid shrink-0 grid-cols-1 gap-px border sm:grid-cols-2 xl:grid-cols-4 [&_[data-slot=kpi-card]]:border-0 [&>*]:min-w-0 [&>:nth-child(even)_[data-slot=kpi-icon]]:text-orange-400 [&>a]:focus-visible:outline-2 [&>a]:focus-visible:-outline-offset-2 [&>button]:focus-visible:outline-2 [&>button]:focus-visible:-outline-offset-2',
+                'grid shrink-0 grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4',
+                '[&>:nth-child(even)_[data-slot=kpi-icon]]:text-brand-secondary',
+                '[&>a]:text-foreground [&>a]:no-underline [&>a]:hover:text-foreground',
+                '[&>a]:focus-visible:outline-primary [&>button]:focus-visible:outline-primary [&>a]:focus-visible:outline-2 [&>a]:focus-visible:outline-offset-2 [&>button]:focus-visible:outline-2 [&>button]:focus-visible:outline-offset-2',
+                '[&>*]:min-w-0',
                 className,
             )}
         >

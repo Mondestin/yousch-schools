@@ -9,6 +9,7 @@ use App\Models\Enrollment;
 use App\Models\Grade;
 use App\Models\User;
 use App\Support\Api\ResourceId;
+use App\Support\Assessment\MarkingWindowGate;
 use App\Support\Auth\StaffAssignmentScope;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -90,6 +91,10 @@ class GradeController extends Controller
             return $denied;
         }
 
+        if ($denied = MarkingWindowGate::assertCanEnterGrades($user, $assessment)) {
+            return $denied;
+        }
+
         $classroomEnrollmentIds = Enrollment::query()
             ->where('classroom_id', $assessment->classroom_id)
             ->pluck('id')
@@ -154,6 +159,11 @@ class GradeController extends Controller
 
         if ($model->assessment !== null
             && ($denied = StaffAssignmentScope::denyUnlessCanTeachAssessment($user, $model->assessment))) {
+            return $denied;
+        }
+
+        if ($model->assessment !== null
+            && ($denied = MarkingWindowGate::assertCanEnterGrades($user, $model->assessment))) {
             return $denied;
         }
 

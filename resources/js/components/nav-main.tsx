@@ -40,10 +40,11 @@ export function NavMain({
                 {items.map((item) => {
                     const root = hrefRoot(item.href);
                     const isActive =
-                        item.match === 'prefix'
+                        item.isActive ??
+                        (item.match === 'prefix'
                             ? currentUrl === root ||
                               currentUrl.startsWith(`${root}/`)
-                            : isCurrentUrl(item.href);
+                            : isCurrentUrl(item.href));
 
                     return (
                         <SidebarMenuItem key={item.title}>

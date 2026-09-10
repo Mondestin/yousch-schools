@@ -11,20 +11,22 @@ use App\Http\Controllers\Api\V1\CatalogController;
 use App\Http\Controllers\Api\V1\ClassroomController;
 use App\Http\Controllers\Api\V1\CycleScheduleController;
 use App\Http\Controllers\Api\V1\DocumentController;
+use App\Http\Controllers\Api\V1\DocumentRequestController;
 use App\Http\Controllers\Api\V1\DocumentTemplateController;
 use App\Http\Controllers\Api\V1\EnrollmentController;
 use App\Http\Controllers\Api\V1\FeeTariffController;
 use App\Http\Controllers\Api\V1\GradeController;
 use App\Http\Controllers\Api\V1\GuardianController;
 use App\Http\Controllers\Api\V1\InventoryItemController;
-use App\Http\Controllers\Api\V1\DocumentRequestController;
 use App\Http\Controllers\Api\V1\IssuedDocumentController;
+use App\Http\Controllers\Api\V1\MarkingWindowController;
 use App\Http\Controllers\Api\V1\MetaController;
 use App\Http\Controllers\Api\V1\PaymentController;
 use App\Http\Controllers\Api\V1\ReenrollmentController;
 use App\Http\Controllers\Api\V1\ResultsController;
 use App\Http\Controllers\Api\V1\SanctionController;
 use App\Http\Controllers\Api\V1\SchoolProfileController;
+use App\Http\Controllers\Api\V1\StaffAttendanceMarkController;
 use App\Http\Controllers\Api\V1\StaffController;
 use App\Http\Controllers\Api\V1\StudentController;
 use App\Http\Controllers\Api\V1\SubjectController;
@@ -224,6 +226,28 @@ Route::prefix('v1')->group(function (): void {
             ->name('api.v1.attendance.upsert');
         Route::delete('/attendance/{attendanceMark}', [AttendanceMarkController::class, 'destroy'])
             ->name('api.v1.attendance.destroy');
+
+        Route::get('/staff-attendance', [StaffAttendanceMarkController::class, 'index'])
+            ->name('api.v1.staff-attendance.index');
+        Route::put('/staff-attendance', [StaffAttendanceMarkController::class, 'upsert'])
+            ->name('api.v1.staff-attendance.upsert');
+        Route::get('/staff-attendance/sessions', [StaffAttendanceMarkController::class, 'sessions'])
+            ->name('api.v1.staff-attendance.sessions');
+        Route::post('/staff-attendance/sign', [StaffAttendanceMarkController::class, 'sign'])
+            ->name('api.v1.staff-attendance.sign');
+
+        Route::get('/marking-windows', [MarkingWindowController::class, 'index'])
+            ->name('api.v1.marking-windows.index');
+        Route::post('/marking-windows', [MarkingWindowController::class, 'store'])
+            ->name('api.v1.marking-windows.store');
+        Route::put('/marking-windows/{markingWindow}', [MarkingWindowController::class, 'update'])
+            ->name('api.v1.marking-windows.update');
+        Route::post('/marking-windows/{markingWindow}/close', [MarkingWindowController::class, 'close'])
+            ->name('api.v1.marking-windows.close');
+        Route::post('/marking-windows/{markingWindow}/reopen', [MarkingWindowController::class, 'reopen'])
+            ->name('api.v1.marking-windows.reopen');
+        Route::post('/marking-windows/{markingWindow}/notify', [MarkingWindowController::class, 'notify'])
+            ->name('api.v1.marking-windows.notify');
 
         Route::get('/assessments', [AssessmentController::class, 'index'])
             ->name('api.v1.assessments.index');

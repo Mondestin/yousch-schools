@@ -13,6 +13,7 @@ import { ListPage } from '@/components/sms/list-page';
 import { NoteInput } from '@/components/sms/note-input';
 import { PersonCell } from '@/components/sms/person-cell';
 import { SearchSelect } from '@/components/sms/search-select';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -39,6 +40,12 @@ import {
     isNoteInRange,
     parseNote,
 } from '@/lib/school-grades';
+import {
+    canEnterGrades,
+    gradesBlockedHint,
+    windowFor,
+} from '@/lib/school-marking-windows';
+import { todayIso } from '@/lib/school-rows';
 import { toastApiError, toastSaved } from '@/lib/school-toast';
 import { ApiError, apiData } from '@/lib/api';
 import { upsert as upsertGrades } from '@/routes/api/v1/grades';
@@ -72,7 +79,10 @@ export function GradeSheet({
     mode: 'entry' | 'control';
 }) {
     const { url } = usePage();
-    const { filter } = useSchoolContext();
+    const { filter, staffRole } = useSchoolContext();
+    const isPrivileged =
+        staffRole === 'admin' || staffRole === 'directeur';
+    const today = todayIso();
     const classrooms = catalog.classrooms.filter(
         (classroom) =>
             classroom.cycle === filter.cycle &&
@@ -96,6 +106,25 @@ export function GradeSheet({
     const [saving, setSaving] = useState(false);
     const working = useMemo(() => ({ ...catalog, grades }), [catalog, grades]);
     const grid = assessmentId ? gradeGrid(working, assessmentId) : null;
+    const markingWindow = grid
+        ? windowFor(catalog, grid.assessment.termId, grid.assessment.type)
+        : null;
+    const canEditScores = grid
+        ? canEnterGrades(
+              markingWindow,
+              grid.assessment.type,
+              isPrivileged,
+              today,
+          )
+        : false;
+    const scoresBlockedHint = grid
+        ? gradesBlockedHint(
+              markingWindow,
+              grid.assessment.type,
+              isPrivileged,
+              today,
+          )
+        : null;
     const rows = useMemo(() => {
         const needle = search.trim().toLowerCase();
         const source = grid?.rows ?? [];
@@ -132,6 +161,15 @@ export function GradeSheet({
 
     async function saveAll(): Promise<void> {
         if (!assessmentId || !grid) {
+            return;
+        }
+
+        if (!canEditScores) {
+            toast.error(
+                scoresBlockedHint ??
+                    'La saisie des notes n’est pas autorisée pour cette évaluation.',
+            );
+
             return;
         }
 
@@ -213,6 +251,15 @@ export function GradeSheet({
             return;
         }
 
+        if (!canEditScores) {
+            toast.error(
+                scoresBlockedHint ??
+                    'La saisie des notes n’est pas autorisée pour cette évaluation.',
+            );
+
+            return;
+        }
+
         if (!validate(controlScoreSchema, { controlScore: control.value })) {
             return;
         }
@@ -277,6 +324,13 @@ export function GradeSheet({
 
     return (
         <>
+            {scoresBlockedHint ? (
+                <Alert className="mx-6 mb-4 w-auto">
+                    <ClipboardList />
+                    <AlertTitle>Saisie limitée</AlertTitle>
+                    <AlertDescription>{scoresBlockedHint}</AlertDescription>
+                </Alert>
+            ) : null}
             <ListPage
                 embedded
                 title={mode === 'entry' ? 'Saisie' : 'Contrôle'}
@@ -329,7 +383,7 @@ export function GradeSheet({
                             onClick={() => {
                                 void saveAll();
                             }}
-                            disabled={!grid || saving}
+                            disabled={!grid || saving || !canEditScores}
                         >
                             {saving ? 'Enregistrement…' : 'Enregistrer'}
                         </Button>
@@ -417,6 +471,7 @@ export function GradeSheet({
                                                 row.score,
                                             )}
                                             aria-label={`Note de ${row.name}`}
+                                            disabled={!canEditScores}
                                             onValueChange={(value) =>
                                                 setDrafts((current) => ({
                                                     ...current,
@@ -427,7 +482,8 @@ export function GradeSheet({
                                     ) : (
                                         <button
                                             type="button"
-                                            className="hover:bg-muted h-8 min-w-24 rounded-[8px] border px-2.5 text-left text-[13px]"
+                                            className="hover:bg-muted h-8 min-w-24 rounded-[8px] border px-2.5 text-left text-[13px] disabled:pointer-events-none disabled:opacity-50"
+                                            disabled={!canEditScores}
                                             onClick={() => {
                                                 clearErrors();
                                                 setControl({

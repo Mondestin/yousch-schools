@@ -169,6 +169,11 @@ export type Student = {
     email: string | null;
     enrolledOn: string;
     photoUrl: string | null;
+    previousSchoolName: string | null;
+    previousAcademicYear: string | null;
+    previousClass: string | null;
+    previousSchoolCity: string | null;
+    isTransfer: boolean;
     files?: DossierFile[];
 };
 
@@ -417,6 +422,35 @@ export type AttendanceMark = {
     documentName: string | null;
 };
 
+export type StaffAttendanceMark = {
+    id: string;
+    teacherId: string;
+    date: string;
+    status: AttendanceStatus;
+    note: string | null;
+};
+
+export type AttendanceSession = {
+    id: string;
+    teacherId: string;
+    date: string;
+    slotId: string;
+    status: AttendanceStatus;
+    signatureData: string | null;
+    signedAt: string | null;
+};
+
+export type MarkingWindow = {
+    id: string;
+    termId: string;
+    type: AssessmentType;
+    opensOn: string;
+    closesOn: string;
+    closedAt: string | null;
+    openedNotifiedAt: string | null;
+    closingReminderSentAt: string | null;
+};
+
 export type InventoryCondition = 'bon' | 'use' | 'hors_service';
 
 export type InventoryStatus =
@@ -579,6 +613,9 @@ export type SchoolDataset = {
     grades: Grade[];
     payments: Payment[];
     attendance: AttendanceMark[];
+    staffAttendance: StaffAttendanceMark[];
+    attendanceSessions: AttendanceSession[];
+    markingWindows: MarkingWindow[];
     inventory: InventoryItem[];
     cashMovements: CashMovement[];
     announcements: Announcement[];

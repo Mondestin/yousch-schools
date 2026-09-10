@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Api\V1\Concerns\EnsuresStaffAbility;
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Support\Assessment\MarkingWindowGate;
 use App\Support\School\BulletinCalculator;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -29,6 +30,17 @@ class ResultsController extends Controller
         ], [
             'termId.required' => 'Le trimestre est obligatoire.',
         ]);
+
+        if ($denied = MarkingWindowGate::assertBulletinsReleased($validated['termId'])) {
+            return $denied;
+        }
+
+        if ($denied = MarkingWindowGate::assertStudentHasDevoirAndCompositionGrades(
+            $student,
+            $validated['termId'],
+        )) {
+            return $denied;
+        }
 
         $fiche = $this->calculator->fiche($student, $validated['termId']);
 

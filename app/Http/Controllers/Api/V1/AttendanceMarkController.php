@@ -10,6 +10,7 @@ use App\Models\AttendanceMark;
 use App\Models\Enrollment;
 use App\Models\User;
 use App\Support\Api\ResourceId;
+use App\Support\Attendance\AttendanceMarkingGate;
 use App\Support\Auth\StaffAssignmentScope;
 use App\Support\Storage\SchoolStorage;
 use Illuminate\Http\JsonResponse;
@@ -75,7 +76,7 @@ class AttendanceMarkController extends Controller
         $validated = $request->validate([
             'date' => ['required', 'date'],
             'classroomId' => ['required', 'string', 'exists:classrooms,id'],
-            'slotId' => ['nullable', 'string', 'exists:timetable_slots,id'],
+            'slotId' => ['required', 'string', 'exists:timetable_slots,id'],
             'marks' => ['required', 'array', 'min:1'],
             'marks.*.enrollmentId' => ['required', 'string', 'exists:enrollments,id'],
             'marks.*.status' => ['required', 'string', Rule::enum(AttendanceStatus::class)],
@@ -87,12 +88,21 @@ class AttendanceMarkController extends Controller
         ], [
             'date.required' => 'La date est obligatoire.',
             'classroomId.required' => 'La classe est obligatoire.',
+            'slotId.required' => 'Le créneau est obligatoire.',
             'marks.required' => 'Les présences sont obligatoires.',
             'marks.*.enrollmentId.required' => 'L’inscription est obligatoire.',
             'marks.*.status.required' => 'Le statut de présence est obligatoire.',
         ]);
 
         if ($denied = StaffAssignmentScope::denyUnlessCanTeachClassroom($user, $validated['classroomId'])) {
+            return $denied;
+        }
+
+        if ($denied = AttendanceMarkingGate::assertCanMutateStudentMarks(
+            $user,
+            $validated['date'],
+            $validated['slotId'],
+        )) {
             return $denied;
         }
 
@@ -199,6 +209,15 @@ class AttendanceMarkController extends Controller
         }
 
         $model = AttendanceMark::query()->findOrFail($attendanceMark);
+
+        if ($denied = AttendanceMarkingGate::assertCanMutateStudentMarks(
+            $user,
+            $model->date->format('Y-m-d'),
+            $model->slot_id,
+        )) {
+            return $denied;
+        }
+
         $this->deleteStoredPublicUrl($model->document_url);
         $model->delete();
 

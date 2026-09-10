@@ -37,6 +37,8 @@ export function DatePicker({
     placeholder = 'Choisir une date',
     required = false,
     disabled = false,
+    fromYear = new Date().getFullYear() - 100,
+    toYear = new Date().getFullYear() + 5,
 }: {
     id?: string;
     value: string;
@@ -44,8 +46,14 @@ export function DatePicker({
     placeholder?: string;
     required?: boolean;
     disabled?: boolean;
+    /** First year available in the year dropdown. */
+    fromYear?: number;
+    /** Last year available in the year dropdown. */
+    toYear?: number;
 }) {
     const selected = parseIsoDate(value);
+    const startMonth = new Date(fromYear, 0);
+    const endMonth = new Date(toYear, 11);
 
     return (
         <Popover>
@@ -67,12 +75,18 @@ export function DatePicker({
                         : placeholder}
                 </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
+            <PopoverContent
+                className="w-auto overflow-hidden p-0"
+                align="end"
+            >
                 <Calendar
                     mode="single"
                     locale={calendarFr}
+                    captionLayout="dropdown"
+                    startMonth={startMonth}
+                    endMonth={endMonth}
                     selected={selected}
-                    defaultMonth={selected}
+                    defaultMonth={selected ?? new Date()}
                     required={required}
                     onSelect={(date: Date | undefined) => {
                         if (date) {

@@ -7,7 +7,6 @@ import { cn } from '@/lib/utils';
 export function ChartCard({
     title,
     description,
-    icon: Icon,
     action,
     height = 240,
     loading = false,
@@ -15,9 +14,11 @@ export function ChartCard({
     summary,
     className,
     children,
+    custom = false,
 }: {
     title: string;
     description?: string;
+    /** @deprecated Kept for call-site compatibility; not rendered. */
     icon?: LucideIcon;
     action?: ReactNode;
     height?: number;
@@ -25,53 +26,60 @@ export function ChartCard({
     legend?: ReactNode;
     summary?: string;
     className?: string;
-    /** A single recharts chart element. */
+    /** When true, children are rendered as-is (not wrapped in Recharts ResponsiveContainer). */
+    custom?: boolean;
     children: ReactNode;
 }) {
     return (
         <section
             className={cn(
-                'shrink-0 overflow-hidden rounded-[8px] border',
+                'border-border/80 bg-card shrink-0 overflow-hidden rounded-lg border shadow-[0_1px_3px_rgba(15,23,42,0.06)]',
                 className,
             )}
         >
-            <div className="flex items-start justify-between gap-3 px-4 py-3">
-                <div>
-                    <h2 className="flex items-center gap-2 text-[13px] font-semibold">
-                        {Icon && <Icon className="text-primary size-4" />}
+            <div className="flex items-start justify-between gap-3 px-5 pt-5 pb-3">
+                <div className="min-w-0">
+                    <h2 className="text-foreground text-[15px] font-semibold tracking-tight">
                         {title}
                     </h2>
-                    {description && (
-                        <p className="text-muted-foreground mt-0.5 text-[12px]">
+                    {description ? (
+                        <p className="text-muted-foreground mt-0.5 text-[12px] leading-4">
                             {description}
                         </p>
-                    )}
+                    ) : null}
                 </div>
-                {action}
+                {action ? <div className="shrink-0">{action}</div> : null}
             </div>
+
             <div
-                className="px-2 pt-4 pb-2"
-                role="img"
+                className="px-3 pt-2 pb-3"
+                role={custom ? undefined : 'img'}
                 aria-label={
-                    summary ?? [title, description].filter(Boolean).join('. ')
+                    custom
+                        ? undefined
+                        : (summary ??
+                          [title, description].filter(Boolean).join('. '))
                 }
             >
                 {loading ? (
                     <Skeleton
-                        className="mx-2 rounded-[8px]"
+                        className="mx-2 rounded-lg"
                         style={{ height }}
                     />
+                ) : custom ? (
+                    children
                 ) : (
                     <ResponsiveContainer width="100%" height={height}>
                         {children as React.ReactElement}
                     </ResponsiveContainer>
                 )}
             </div>
-            {legend && (
-                <div className="text-muted-foreground flex flex-wrap items-center gap-x-4 gap-y-1.5 px-4 py-2.5 text-[12px]">
+
+            {legend ? (
+                <div className="text-muted-foreground flex flex-wrap items-center gap-x-4 gap-y-1.5 border-t px-5 py-3 text-[12px]">
                     {legend}
                 </div>
-            )}
+            ) : null}
         </section>
     );
 }
@@ -87,7 +95,7 @@ export function ChartLegendItem({
         <span className="flex items-center gap-1.5">
             <span
                 aria-hidden
-                className="size-2 rounded-[2px]"
+                className="size-2 rounded-full"
                 style={{ backgroundColor: color }}
             />
             {children}
@@ -112,7 +120,7 @@ export function ChartTooltipContent({
     }
 
     return (
-        <div className="bg-popover text-popover-foreground rounded-[8px] border px-3 py-2 text-[12px] shadow-md">
+        <div className="bg-popover text-popover-foreground rounded-xl border px-3 py-2 text-[12px] shadow-md">
             {label !== undefined && <p className="mb-1 font-medium">{label}</p>}
             <ul className="space-y-0.5">
                 {payload.map((entry, index) => (
@@ -122,14 +130,14 @@ export function ChartTooltipContent({
                     >
                         <span
                             aria-hidden
-                            className="size-2 rounded-[2px]"
+                            className="size-2 rounded-full"
                             style={{ backgroundColor: entry.color }}
                         />
                         <span className="text-muted-foreground">
                             {entry.name}
                         </span>
-                        <span className="ml-auto font-medium">
-                            {formatter && typeof entry.value === 'number'
+                        <span className="ml-auto font-medium tabular-nums">
+                            {typeof entry.value === 'number' && formatter
                                 ? formatter(entry.value)
                                 : entry.value}
                         </span>
@@ -141,6 +149,6 @@ export function ChartTooltipContent({
 }
 
 export const CHART_AXIS = {
-    stroke: 'var(--muted-foreground)',
+    fill: 'var(--muted-foreground)',
     fontSize: 11,
 } as const;

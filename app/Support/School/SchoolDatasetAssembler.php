@@ -9,6 +9,7 @@ use App\Models\Admission;
 use App\Models\Announcement;
 use App\Models\Assessment;
 use App\Models\AttendanceMark;
+use App\Models\AttendanceSession;
 use App\Models\CashMovement;
 use App\Models\Classroom;
 use App\Models\CycleSchedule;
@@ -18,12 +19,14 @@ use App\Models\Grade;
 use App\Models\GradeLevel;
 use App\Models\Guardian;
 use App\Models\InventoryItem;
+use App\Models\MarkingWindow;
 use App\Models\Mention;
 use App\Models\Payment;
 use App\Models\Reenrollment;
 use App\Models\Sanction;
 use App\Models\SchoolProfile;
 use App\Models\SchoolSubscription;
+use App\Models\StaffAttendanceMark;
 use App\Models\Student;
 use App\Models\Subject;
 use App\Models\Teacher;
@@ -235,6 +238,25 @@ final class SchoolDatasetAssembler
                 ->all(),
             'attendance' => AttendanceMark::query()
                 ->orderBy('id')
+                ->get()
+                ->map->toApiArray()
+                ->values()
+                ->all(),
+            'staffAttendance' => StaffAttendanceMark::query()
+                ->orderBy('id')
+                ->get()
+                ->map->toApiArray()
+                ->values()
+                ->all(),
+            'attendanceSessions' => AttendanceSession::query()
+                ->orderBy('id')
+                ->get()
+                ->map->toApiArray()
+                ->values()
+                ->all(),
+            'markingWindows' => MarkingWindow::query()
+                ->orderBy('term_id')
+                ->orderBy('type')
                 ->get()
                 ->map->toApiArray()
                 ->values()

@@ -42,6 +42,42 @@ test('staff can create a student with enrollment guardian and photo', function (
         ->and($payload['matricule'])->toStartWith('MAT-');
 });
 
+test('staff can create a student with previous academic background', function () {
+    $this->seed(SchoolTaxonomySeeder::class);
+    $this->actingAs(User::factory()->secretaire()->create());
+
+    $payload = $this->postJson('/api/v1/students', [
+        'firstName' => 'Jean',
+        'lastName' => 'Mabiala',
+        'gender' => 'homme',
+        'bornOn' => '2014-09-02',
+        'city' => 'Pointe-Noire',
+        'neighborhood' => 'Loandjili',
+        'classroomId' => 'cr-ce1',
+        'academicYearId' => 'year-2026',
+        'isTransfer' => true,
+        'previousSchoolName' => 'École primaire Saint-Joseph',
+        'previousAcademicYear' => '2024-2025',
+        'previousClass' => 'CE1',
+        'previousSchoolCity' => 'Dolisie',
+    ])->assertCreated()
+        ->json('data');
+
+    expect($payload['isTransfer'])->toBeTrue()
+        ->and($payload['previousSchoolName'])->toBe('École primaire Saint-Joseph')
+        ->and($payload['previousAcademicYear'])->toBe('2024-2025')
+        ->and($payload['previousClass'])->toBe('CE1')
+        ->and($payload['previousSchoolCity'])->toBe('Dolisie');
+
+    $student = Student::query()->findOrFail($payload['id']);
+
+    expect($student->is_transfer)->toBeTrue()
+        ->and($student->previous_school_name)->toBe('École primaire Saint-Joseph')
+        ->and($student->previous_academic_year)->toBe('2024-2025')
+        ->and($student->previous_class)->toBe('CE1')
+        ->and($student->previous_school_city)->toBe('Dolisie');
+});
+
 test('enseignant cannot manage guardians', function () {
     $this->actingAs(User::factory()->enseignant()->create());
 

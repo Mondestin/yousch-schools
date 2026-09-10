@@ -68,7 +68,7 @@ import {
     store as storeAssessment,
     update as updateAssessment,
 } from '@/routes/api/v1/assessments';
-import { control, entry, index as assessments } from '@/routes/assessments';
+import { control, devoirs, entry } from '@/routes/assessments';
 import type { Assessment, AssessmentType, SchoolDataset } from '@/types/school';
 
 type AssessmentForm = {
@@ -101,35 +101,52 @@ function blankForm(
     classrooms: SchoolDataset['classrooms'],
     terms: SchoolDataset['terms'],
     catalog: SchoolDataset,
+    lockedType?: AssessmentType,
 ): AssessmentForm {
     const periods = timetablePeriodsForClassroom(
         catalog,
         classrooms[0]?.id ?? '',
     );
+    const type = lockedType ?? 'devoir';
     const heldAt = periods[1]?.startsAt ?? periods[0]?.startsAt ?? '08:25';
 
     return {
-        type: 'devoir',
+        type,
         name: '',
         classroomId: classrooms[0]?.id ?? '',
         subjectId: '',
         termId: terms[0]?.id ?? '',
         heldOn: '',
         heldAt,
-        heldUntil: defaultHeldUntil(heldAt, 'devoir', periods),
+        heldUntil: defaultHeldUntil(heldAt, type, periods),
     };
+}
+
+function lockedTypeTitle(type: AssessmentType): string {
+    switch (type) {
+        case 'devoir':
+            return 'Devoirs';
+        case 'composition':
+            return 'Compositions';
+        case 'examen':
+            return 'Examens';
+    }
 }
 
 export default function AssessmentsIndex({
     catalog,
+    lockedType,
 }: {
     catalog: SchoolDataset;
+    lockedType?: AssessmentType;
 }) {
     const crudItems = useCrudItems();
 
     const { filter, query, academicYearLabel } = useSchoolContext();
     const [search, setSearch] = useState('');
-    const [typeFilter, setTypeFilter] = useState<'all' | AssessmentType>('all');
+    const [typeFilter, setTypeFilter] = useState<'all' | AssessmentType>(
+        lockedType ?? 'all',
+    );
     const [classroomId, setClassroomId] = useState('all');
     const [subjectId, setSubjectId] = useState('all');
     const [termFilter, setTermFilter] = useState('all');
@@ -148,7 +165,7 @@ export default function AssessmentsIndex({
         (term) => term.academicYearId === filter.academicYearId,
     );
     const [form, setForm] = useState<AssessmentForm>(() =>
-        blankForm(classrooms, terms, catalog),
+        blankForm(classrooms, terms, catalog, lockedType),
     );
     const { errors, clearErrors, validate, showErrors } = useFieldErrors();
     const [saving, setSaving] = useState(false);
@@ -178,16 +195,17 @@ export default function AssessmentsIndex({
         [catalog, items],
     );
     const filtered =
-        typeFilter !== 'all' ||
+        (!lockedType && typeFilter !== 'all') ||
         classroomId !== 'all' ||
         subjectId !== 'all' ||
         termFilter !== 'all' ||
         search.trim() !== '';
     const rows = useMemo(() => {
         const needle = search.trim().toLowerCase();
+        const effectiveType = lockedType ?? typeFilter;
 
         return assessmentRows(working, filter).filter((row) => {
-            if (typeFilter !== 'all' && row.type !== typeFilter) {
+            if (effectiveType !== 'all' && row.type !== effectiveType) {
                 return false;
             }
 
@@ -214,6 +232,7 @@ export default function AssessmentsIndex({
     }, [
         classroomId,
         filter,
+        lockedType,
         search,
         subjectId,
         termFilter,
@@ -221,10 +240,13 @@ export default function AssessmentsIndex({
         working,
     ]);
     const table = useClientTable(rows);
+    const listTitle = lockedType
+        ? lockedTypeTitle(lockedType)
+        : 'Évaluations';
 
     function openCreate(): void {
         setEditingId(null);
-        setForm(blankForm(classrooms, terms, catalog));
+        setForm(blankForm(classrooms, terms, catalog, lockedType));
         clearErrors();
         setOpen(true);
     }
@@ -232,7 +254,7 @@ export default function AssessmentsIndex({
     function openEdit(row: Assessment): void {
         setEditingId(row.id);
         setForm({
-            type: row.type,
+            type: lockedType ?? row.type,
             name: row.name,
             classroomId: row.classroomId,
             subjectId: row.subjectId,
@@ -248,7 +270,7 @@ export default function AssessmentsIndex({
     function duplicate(row: Assessment): void {
         setEditingId(null);
         setForm({
-            type: row.type,
+            type: lockedType ?? row.type,
             name: `${row.name} (copie)`,
             classroomId: row.classroomId,
             subjectId: row.subjectId,
@@ -282,7 +304,7 @@ export default function AssessmentsIndex({
         }
 
         const payload = {
-            type: form.type,
+            type: lockedType ?? form.type,
             name: form.name.trim(),
             classroomId: form.classroomId,
             subjectId: form.subjectId,
@@ -346,10 +368,10 @@ export default function AssessmentsIndex({
 
     return (
         <>
-            <Head title="Devoirs & notes" />
+            <Head title={listTitle} />
             <ListPage
                 embedded
-                title="Évaluations"
+                title={listTitle}
                 icon={ClipboardList}
                 description={`${cycleLabel(filter.cycle)} · ${academicYearLabel}.`}
                 searchPlaceholder="Rechercher une évaluation, une classe, une matière..."
@@ -358,26 +380,36 @@ export default function AssessmentsIndex({
                 filters={
                     <FilterMenu
                         groups={[
-                            {
-                                id: 'type',
-                                label: 'Type',
-                                icon: Tag,
-                                value: typeFilter,
-                                onChange: (value) =>
-                                    setTypeFilter(
-                                        value as 'all' | AssessmentType,
-                                    ),
-                                options: [
-                                    {
-                                        value: 'all',
-                                        label: 'Tous les types',
-                                    },
-                                    ...ASSESSMENT_TYPES.map((type) => ({
-                                        value: type,
-                                        label: assessmentTypeLabel(type),
-                                    })),
-                                ],
-                            },
+                            ...(lockedType
+                                ? []
+                                : [
+                                      {
+                                          id: 'type',
+                                          label: 'Type',
+                                          icon: Tag,
+                                          value: typeFilter,
+                                          onChange: (value: string) =>
+                                              setTypeFilter(
+                                                  value as
+                                                      | 'all'
+                                                      | AssessmentType,
+                                              ),
+                                          options: [
+                                              {
+                                                  value: 'all',
+                                                  label: 'Tous les types',
+                                              },
+                                              ...ASSESSMENT_TYPES.map(
+                                                  (type) => ({
+                                                      value: type,
+                                                      label: assessmentTypeLabel(
+                                                          type,
+                                                      ),
+                                                  }),
+                                              ),
+                                          ],
+                                      },
+                                  ]),
                             {
                                 id: 'classroom',
                                 label: 'Classe',
@@ -597,7 +629,21 @@ export default function AssessmentsIndex({
                 open={open}
                 onOpenChange={setOpen}
                 title={
-                    editingId ? 'Modifier l’évaluation' : 'Nouvelle évaluation'
+                    editingId
+                        ? lockedType === 'devoir'
+                            ? 'Modifier le devoir'
+                            : lockedType === 'composition'
+                              ? 'Modifier la composition'
+                              : lockedType === 'examen'
+                                ? 'Modifier l’examen'
+                                : 'Modifier l’évaluation'
+                        : lockedType === 'devoir'
+                          ? 'Nouveau devoir'
+                          : lockedType === 'composition'
+                            ? 'Nouvelle composition'
+                            : lockedType === 'examen'
+                              ? 'Nouvel examen'
+                              : 'Nouvelle évaluation'
                 }
                 submitLabel={editingId ? 'Enregistrer' : 'Créer'}
                 submitting={saving}
@@ -605,41 +651,43 @@ export default function AssessmentsIndex({
                     void save();
                 }}
             >
-                <Field
-                    id="type"
-                    label="Type"
-                    required
-                    hint="Devoir, composition ou examen."
-                >
-                    <Select
-                        value={form.type}
-                        onValueChange={(value) => {
-                            const type = value as AssessmentType;
-
-                            clearErrors(['type', 'heldUntil']);
-                            setForm((current) => ({
-                                ...current,
-                                type,
-                                heldUntil: defaultHeldUntil(
-                                    current.heldAt,
-                                    type,
-                                    periods,
-                                ),
-                            }));
-                        }}
+                {lockedType ? null : (
+                    <Field
+                        id="type"
+                        label="Type"
+                        required
+                        hint="Devoir, composition ou examen."
                     >
-                        <SelectTrigger id="type" className="w-full">
-                            <SelectValue placeholder="Choisir un type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {ASSESSMENT_TYPES.map((type) => (
-                                <SelectItem key={type} value={type}>
-                                    <AssessmentTypeBadge type={type} />
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </Field>
+                        <Select
+                            value={form.type}
+                            onValueChange={(value) => {
+                                const type = value as AssessmentType;
+
+                                clearErrors(['type', 'heldUntil']);
+                                setForm((current) => ({
+                                    ...current,
+                                    type,
+                                    heldUntil: defaultHeldUntil(
+                                        current.heldAt,
+                                        type,
+                                        periods,
+                                    ),
+                                }));
+                            }}
+                        >
+                            <SelectTrigger id="type" className="w-full">
+                                <SelectValue placeholder="Choisir un type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {ASSESSMENT_TYPES.map((type) => (
+                                    <SelectItem key={type} value={type}>
+                                        <AssessmentTypeBadge type={type} />
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </Field>
+                )}
                 <Field id="name" label="Libellé" required error={errors.name}>
                     <Input
                         id="name"
@@ -770,5 +818,5 @@ export default function AssessmentsIndex({
 }
 
 AssessmentsIndex.layout = {
-    breadcrumbs: [{ title: 'Devoirs & notes', href: assessments() }],
+    breadcrumbs: [{ title: 'Évaluations', href: devoirs() }],
 };
