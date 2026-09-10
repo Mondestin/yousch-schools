@@ -260,9 +260,38 @@ class SchoolPagesController extends Controller
         ]);
     }
 
-    public function assessments(): Response
+    public function assessments(Request $request): RedirectResponse
     {
-        return Inertia::render('assessments/index', SchoolCatalog::page());
+        return redirect()->route('assessments.devoirs', $request->query());
+    }
+
+    public function assessmentDevoirs(): Response
+    {
+        return Inertia::render('assessments/index', [
+            ...SchoolCatalog::page(),
+            'lockedType' => 'devoir',
+        ]);
+    }
+
+    public function assessmentCompositions(): Response
+    {
+        return Inertia::render('assessments/index', [
+            ...SchoolCatalog::page(),
+            'lockedType' => 'composition',
+        ]);
+    }
+
+    public function assessmentExamens(): Response
+    {
+        return Inertia::render('assessments/index', [
+            ...SchoolCatalog::page(),
+            'lockedType' => 'examen',
+        ]);
+    }
+
+    public function assessmentWindows(): Response
+    {
+        return Inertia::render('assessments/windows', SchoolCatalog::page());
     }
 
     public function assessmentEntry(): Response

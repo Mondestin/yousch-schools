@@ -111,6 +111,11 @@ class StudentController extends Controller
                 'email' => $validated['email'] ?? null,
                 'enrolled_on' => $validated['enrolledOn'] ?? now()->toDateString(),
                 'photo_url' => $this->storePhoto($request, 'students/photos'),
+                'previous_school_name' => $this->nullableString($validated['previousSchoolName'] ?? null),
+                'previous_academic_year' => $this->nullableString($validated['previousAcademicYear'] ?? null),
+                'previous_class' => $this->nullableString($validated['previousClass'] ?? null),
+                'previous_school_city' => $this->nullableString($validated['previousSchoolCity'] ?? null),
+                'is_transfer' => (bool) ($validated['isTransfer'] ?? false),
             ]);
 
             $this->storeDossierFiles($student, $request->file('files'), 'students/dossiers');
@@ -175,6 +180,11 @@ class StudentController extends Controller
             'email' => $validated['email'] ?? null,
             'enrolled_on' => $validated['enrolledOn'] ?? $model->enrolled_on,
             'photo_url' => $this->storePhoto($request, 'students/photos', $model->photo_url),
+            'previous_school_name' => $this->nullableString($validated['previousSchoolName'] ?? null),
+            'previous_academic_year' => $this->nullableString($validated['previousAcademicYear'] ?? null),
+            'previous_class' => $this->nullableString($validated['previousClass'] ?? null),
+            'previous_school_city' => $this->nullableString($validated['previousSchoolCity'] ?? null),
+            'is_transfer' => (bool) ($validated['isTransfer'] ?? false),
         ])->save();
 
         $this->storeDossierFiles($model, $request->file('files'), 'students/dossiers');
@@ -236,6 +246,11 @@ class StudentController extends Controller
      *     classroomId?: string|null,
      *     academicYearId?: string|null,
      *     trackId?: string|null,
+     *     previousSchoolName?: string|null,
+     *     previousAcademicYear?: string|null,
+     *     previousClass?: string|null,
+     *     previousSchoolCity?: string|null,
+     *     isTransfer?: bool,
      *     guardianFirstName?: string|null,
      *     guardianLastName?: string|null,
      *     guardianPhone?: string|null,
@@ -269,6 +284,11 @@ class StudentController extends Controller
             'classroomId' => ['nullable', 'string', 'exists:classrooms,id'],
             'academicYearId' => ['nullable', 'string', 'exists:academic_years,id'],
             'trackId' => ['nullable', 'string', 'exists:tracks,id'],
+            'isTransfer' => ['sometimes', 'boolean'],
+            'previousSchoolName' => ['nullable', 'required_if:isTransfer,true,1', 'string', 'max:180'],
+            'previousAcademicYear' => ['nullable', 'required_if:isTransfer,true,1', 'string', 'max:40'],
+            'previousClass' => ['nullable', 'string', 'max:120'],
+            'previousSchoolCity' => ['nullable', 'string', 'max:120'],
             'guardianFirstName' => ['nullable', 'string', 'max:120'],
             'guardianLastName' => ['nullable', 'string', 'max:120'],
             'guardianPhone' => ['nullable', 'string', 'max:40'],
@@ -287,6 +307,8 @@ class StudentController extends Controller
             'city.required' => 'La ville est obligatoire.',
             'neighborhood.required' => 'Le quartier est obligatoire.',
             'matricule.unique' => 'Ce matricule est déjà utilisé.',
+            'previousSchoolName.required_if' => 'L’établissement précédent est obligatoire pour un transfert.',
+            'previousAcademicYear.required_if' => 'L’année scolaire précédente est obligatoire pour un transfert.',
         ]);
     }
 
@@ -297,5 +319,16 @@ class StudentController extends Controller
                 'trackId' => ['Choisissez une série pour le lycée.'],
             ]);
         }
+    }
+
+    private function nullableString(mixed $value): ?string
+    {
+        if (! is_string($value)) {
+            return null;
+        }
+
+        $trimmed = trim($value);
+
+        return $trimmed === '' ? null : $trimmed;
     }
 }

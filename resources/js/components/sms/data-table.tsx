@@ -65,7 +65,7 @@ export function DataTableColumnHeader({
 
 export function ExportButton({
     onExport,
-    label = 'Exporter',
+    label = 'Exporter Excel',
 }: {
     onExport?: () => void;
     label?: string;

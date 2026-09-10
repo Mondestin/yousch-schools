@@ -276,7 +276,7 @@ export default function OrganisationSubscriptionPage({
                                     />
                                 </dl>
                             </section>
-                            <section className="border-border/80 bg-card overflow-hidden rounded-xl border shadow-[0_1px_3px_rgba(15,23,42,0.06)]">
+                            <section className="border-border/80 bg-card flex flex-col overflow-hidden rounded-xl border shadow-[0_1px_3px_rgba(15,23,42,0.06)]">
                                 <div className="border-border/80 flex items-start justify-between gap-3 border-b px-5 py-4">
                                     <div>
                                         <h3 className="text-[13px] font-semibold">
@@ -298,34 +298,78 @@ export default function OrganisationSubscriptionPage({
                                     </Button>
                                 </div>
                                 {payment ? (
-                                    <div className="flex min-h-44 items-center gap-3 px-4">
-                                        <div className="bg-muted flex size-10 items-center justify-center rounded-[8px] border">
-                                            <img
-                                                src={
-                                                    MOBILE_MONEY_PROVIDERS[
-                                                        payment.provider
-                                                    ].logo
-                                                }
-                                                alt=""
-                                                className="h-8 w-12 object-contain"
-                                            />
+                                    <div className="flex min-h-44 flex-1 flex-col justify-center p-5">
+                                        <div className="bg-muted/50 border-border/70 flex flex-col gap-5 rounded-xl border px-5 py-5 sm:flex-row sm:items-center sm:justify-between">
+                                            <div className="flex min-w-0 items-center gap-4">
+                                                <div className="bg-background flex size-24 shrink-0 items-center justify-center rounded-2xl border shadow-sm">
+                                                    <img
+                                                        src={
+                                                            MOBILE_MONEY_PROVIDERS[
+                                                                payment.provider
+                                                            ].logo
+                                                        }
+                                                        alt={
+                                                            MOBILE_MONEY_PROVIDERS[
+                                                                payment.provider
+                                                            ].label
+                                                        }
+                                                        className="h-14 w-[4.5rem] object-contain"
+                                                    />
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <p className="text-muted-foreground text-[11px] font-medium tracking-wide uppercase">
+                                                        Mobile Money
+                                                    </p>
+                                                    <p className="mt-1 truncate text-[15px] font-semibold">
+                                                        {
+                                                            MOBILE_MONEY_PROVIDERS[
+                                                                payment.provider
+                                                            ].label
+                                                        }
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className="shrink-0 border-t pt-4 sm:border-t-0 sm:pt-0 sm:text-right">
+                                                <p className="text-muted-foreground text-[11px] font-medium tracking-wide uppercase">
+                                                    Numéro
+                                                </p>
+                                                <p className="mt-1 text-[18px] font-semibold tracking-tight tabular-nums">
+                                                    {payment.phone}
+                                                </p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <p className="text-[13px] font-medium">
-                                                {
-                                                    MOBILE_MONEY_PROVIDERS[
-                                                        payment.provider
-                                                    ].label
+                                        <div className="mt-4 flex justify-end">
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                className="h-8 gap-1.5"
+                                                onClick={() =>
+                                                    openPaymentDialog(true)
                                                 }
-                                            </p>
-                                            <p className="text-muted-foreground text-[13px]">
-                                                {payment.phone}
-                                            </p>
+                                            >
+                                                <Pencil className="size-3.5" />
+                                                Modifier
+                                            </Button>
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className="text-muted-foreground flex min-h-44 items-center justify-center px-4 text-center text-[13px]">
-                                        Aucun moyen de paiement enregistré.
+                                    <div className="text-muted-foreground flex min-h-44 flex-col items-center justify-center gap-3 px-5 text-center text-[13px]">
+                                        <p>
+                                            Aucun moyen de paiement enregistré.
+                                        </p>
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            className="h-8 gap-1.5"
+                                            onClick={() =>
+                                                openPaymentDialog(true)
+                                            }
+                                        >
+                                            <Plus className="size-3.5" />
+                                            Ajouter
+                                        </Button>
                                     </div>
                                 )}
                             </section>

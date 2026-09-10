@@ -11,6 +11,7 @@ import {
     User,
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
+import { toast } from 'sonner';
 import {
     DATA_TABLE_CONTAINER,
     DataTableColumnHeader,
@@ -45,6 +46,10 @@ import {
     type BulletinApiFiche,
 } from '@/lib/school-bulletin-pdf';
 import { defaultTermId } from '@/lib/school-grades';
+import {
+    BULLETINS_NOT_READY_MESSAGE,
+    bulletinsReady,
+} from '@/lib/school-marking-windows';
 import { cycleLabel, studentRows } from '@/lib/school-rows';
 import { toastApiError, toastSaved } from '@/lib/school-toast';
 import { bulletin as studentBulletin } from '@/routes/api/v1/students';
@@ -92,7 +97,14 @@ export default function ReportsIndex({ catalog }: { catalog: SchoolDataset }) {
     }, [catalog, classroomId, filter, search]);
     const table = useClientTable(rows);
 
+    function warnIfBulletinsNotReady(): void {
+        if (!bulletinsReady(catalog, termId)) {
+            toast.message(BULLETINS_NOT_READY_MESSAGE);
+        }
+    }
+
     function openBulletin(studentId: string): void {
+        warnIfBulletinsNotReady();
         router.visit(
             show(studentId, {
                 query: { ...query, trimestre: termId },
@@ -112,6 +124,8 @@ export default function ReportsIndex({ catalog }: { catalog: SchoolDataset }) {
         studentId: string,
         name: string,
     ): Promise<void> {
+        warnIfBulletinsNotReady();
+
         try {
             const fiche = await fetchBulletin(studentId);
             const slug = name
@@ -131,6 +145,8 @@ export default function ReportsIndex({ catalog }: { catalog: SchoolDataset }) {
         studentId: string,
         name: string,
     ): Promise<void> {
+        warnIfBulletinsNotReady();
+
         try {
             const fiche = await fetchBulletin(studentId);
             await printBulletinDocument(`Bulletin : ${name}`, fiche, {
@@ -150,6 +166,7 @@ export default function ReportsIndex({ catalog }: { catalog: SchoolDataset }) {
         <>
             <Head title="Bulletins" />
             <ListPage
+                embedded
                 title="Bulletins"
                 icon={FileText}
                 description={`${cycleLabel(filter.cycle)} · ${academicYearLabel}${

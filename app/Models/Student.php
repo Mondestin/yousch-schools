@@ -28,6 +28,11 @@ use Illuminate\Support\Carbon;
  * @property string|null $email
  * @property Carbon $enrolled_on
  * @property string|null $photo_url
+ * @property string|null $previous_school_name
+ * @property string|null $previous_academic_year
+ * @property string|null $previous_class
+ * @property string|null $previous_school_city
+ * @property bool $is_transfer
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  *
@@ -47,6 +52,11 @@ use Illuminate\Support\Carbon;
     'email',
     'enrolled_on',
     'photo_url',
+    'previous_school_name',
+    'previous_academic_year',
+    'previous_class',
+    'previous_school_city',
+    'is_transfer',
     'school_id',
 ])]
 class Student extends Model implements HasDossierDocuments
@@ -69,6 +79,7 @@ class Student extends Model implements HasDossierDocuments
             'gender' => Gender::class,
             'born_on' => 'date',
             'enrolled_on' => 'date',
+            'is_transfer' => 'boolean',
         ];
     }
 
@@ -110,6 +121,11 @@ class Student extends Model implements HasDossierDocuments
      *     email: string|null,
      *     enrolledOn: string,
      *     photoUrl: string|null,
+     *     previousSchoolName: string|null,
+     *     previousAcademicYear: string|null,
+     *     previousClass: string|null,
+     *     previousSchoolCity: string|null,
+     *     isTransfer: bool,
      *     files?: list<array{id: string, name: string, url: string, mime: string}>
      * }
      */
@@ -129,6 +145,11 @@ class Student extends Model implements HasDossierDocuments
             'email' => $this->email,
             'enrolledOn' => $this->enrolled_on->format('Y-m-d'),
             'photoUrl' => $this->photo_url,
+            'previousSchoolName' => $this->previous_school_name,
+            'previousAcademicYear' => $this->previous_academic_year,
+            'previousClass' => $this->previous_class,
+            'previousSchoolCity' => $this->previous_school_city,
+            'isTransfer' => (bool) $this->is_transfer,
         ];
 
         if ($this->relationLoaded('dossierFiles')) {

@@ -19,7 +19,9 @@ import { PageHeader } from '@/components/sms/page-header';
 import { PageShell } from '@/components/sms/page-shell';
 import { SearchSelect } from '@/components/sms/search-select';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
     Select,
     SelectContent,
@@ -35,7 +37,7 @@ import {
     studentCreateSchema,
     studentGuardianSchema,
     studentIdentitySchema,
-    studentSchoolSchema,
+    studentSchoolStepSchema,
 } from '@/lib/school-form';
 import { cycleLabel, isLyceeCycle, todayIso } from '@/lib/school-rows';
 import { z } from 'zod';
@@ -110,6 +112,11 @@ export default function StudentsCreate({
         enrolledOn: todayIso(),
         classroomId: classrooms[0]?.id ?? '',
         trackId: classrooms[0]?.trackId ?? tracks[0]?.id ?? '',
+        isTransfer: false,
+        previousSchoolName: '',
+        previousAcademicYear: '',
+        previousClass: '',
+        previousSchoolCity: '',
         guardianLastName: '',
         guardianFirstName: '',
         guardianPhone: '',
@@ -140,7 +147,7 @@ export default function StudentsCreate({
         `${form.guardianLastName} ${form.guardianFirstName}`.trim();
     const stepSchema = [
         studentIdentitySchema,
-        studentSchoolSchema(lycee),
+        studentSchoolStepSchema(lycee),
         studentContactSchema.omit({ enrolledOn: true }),
         studentGuardianSchema,
         z.object({}),
@@ -228,6 +235,14 @@ export default function StudentsCreate({
         body.append('enrolledOn', form.enrolledOn);
         body.append('classroomId', form.classroomId);
         body.append('academicYearId', filter.academicYearId);
+        body.append('isTransfer', form.isTransfer ? '1' : '0');
+        body.append('previousSchoolName', form.previousSchoolName.trim());
+        body.append(
+            'previousAcademicYear',
+            form.previousAcademicYear.trim(),
+        );
+        body.append('previousClass', form.previousClass.trim());
+        body.append('previousSchoolCity', form.previousSchoolCity.trim());
 
         if (lycee && form.trackId) {
             body.append('trackId', form.trackId);
@@ -514,6 +529,123 @@ export default function StudentsCreate({
                                             )?.code ?? '-'}
                                         </p>
                                     ) : null}
+                                    <div className="mt-6 space-y-4 border-t pt-5">
+                                        <div>
+                                            <h3 className="text-[14px] font-semibold">
+                                                Parcours antérieur
+                                            </h3>
+                                            <p className="text-muted-foreground mt-0.5 text-[13px]">
+                                                À renseigner si l’élève vient
+                                                d’un autre établissement.
+                                            </p>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <Checkbox
+                                                id="isTransfer"
+                                                checked={form.isTransfer}
+                                                onCheckedChange={(checked) =>
+                                                    patchForm({
+                                                        isTransfer:
+                                                            checked === true,
+                                                    })
+                                                }
+                                            />
+                                            <Label
+                                                htmlFor="isTransfer"
+                                                className="font-normal"
+                                            >
+                                                Transfert / déjà scolarisé
+                                                ailleurs
+                                            </Label>
+                                        </div>
+                                        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                                            <Field
+                                                id="previousSchoolName"
+                                                label="Établissement précédent"
+                                                required={form.isTransfer}
+                                                error={
+                                                    errors.previousSchoolName
+                                                }
+                                            >
+                                                <Input
+                                                    id="previousSchoolName"
+                                                    value={
+                                                        form.previousSchoolName
+                                                    }
+                                                    required={form.isTransfer}
+                                                    onChange={(event) =>
+                                                        patchForm({
+                                                            previousSchoolName:
+                                                                event.target
+                                                                    .value,
+                                                        })
+                                                    }
+                                                />
+                                            </Field>
+                                            <Field
+                                                id="previousAcademicYear"
+                                                label="Année scolaire précédente"
+                                                required={form.isTransfer}
+                                                error={
+                                                    errors.previousAcademicYear
+                                                }
+                                            >
+                                                <Input
+                                                    id="previousAcademicYear"
+                                                    value={
+                                                        form.previousAcademicYear
+                                                    }
+                                                    placeholder="2024-2025"
+                                                    required={form.isTransfer}
+                                                    onChange={(event) =>
+                                                        patchForm({
+                                                            previousAcademicYear:
+                                                                event.target
+                                                                    .value,
+                                                        })
+                                                    }
+                                                />
+                                            </Field>
+                                            <Field
+                                                id="previousClass"
+                                                label="Classe / niveau précédent"
+                                                error={errors.previousClass}
+                                            >
+                                                <Input
+                                                    id="previousClass"
+                                                    value={form.previousClass}
+                                                    onChange={(event) =>
+                                                        patchForm({
+                                                            previousClass:
+                                                                event.target
+                                                                    .value,
+                                                        })
+                                                    }
+                                                />
+                                            </Field>
+                                            <Field
+                                                id="previousSchoolCity"
+                                                label="Ville de l’établissement"
+                                                error={
+                                                    errors.previousSchoolCity
+                                                }
+                                            >
+                                                <Input
+                                                    id="previousSchoolCity"
+                                                    value={
+                                                        form.previousSchoolCity
+                                                    }
+                                                    onChange={(event) =>
+                                                        patchForm({
+                                                            previousSchoolCity:
+                                                                event.target
+                                                                    .value,
+                                                        })
+                                                    }
+                                                />
+                                            </Field>
+                                        </div>
+                                    </div>
                                 </FormSection>
                             ) : null}
 

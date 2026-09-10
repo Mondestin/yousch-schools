@@ -90,6 +90,48 @@ export function studentSchoolSchema(lycee: boolean) {
     });
 }
 
+export const studentPreviousAcademicFields = z.object({
+    isTransfer: z.boolean(),
+    previousSchoolName: z.string(),
+    previousAcademicYear: z.string(),
+    previousClass: z.string(),
+    previousSchoolCity: z.string(),
+});
+
+function refinePreviousAcademic(
+    data: z.infer<typeof studentPreviousAcademicFields>,
+    ctx: z.RefinementCtx,
+): void {
+    if (!data.isTransfer) {
+        return;
+    }
+
+    if (data.previousSchoolName.trim() === '') {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'L’établissement précédent est obligatoire.',
+            path: ['previousSchoolName'],
+        });
+    }
+
+    if (data.previousAcademicYear.trim() === '') {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'L’année scolaire précédente est obligatoire.',
+            path: ['previousAcademicYear'],
+        });
+    }
+}
+
+export const studentPreviousAcademicSchema =
+    studentPreviousAcademicFields.superRefine(refinePreviousAcademic);
+
+export function studentSchoolStepSchema(lycee: boolean) {
+    return studentSchoolSchema(lycee)
+        .merge(studentPreviousAcademicFields)
+        .superRefine(refinePreviousAcademic);
+}
+
 export const guardianPersonSchema = z.object({
     lastName: requiredText('Le nom'),
     firstName: requiredText('Le prénom'),
@@ -110,13 +152,15 @@ export const studentGuardianSchema = z.object({
 export function studentCreateSchema(lycee: boolean) {
     return studentIdentitySchema
         .merge(studentSchoolSchema(lycee))
+        .merge(studentPreviousAcademicFields)
         .merge(
             studentContactSchema.omit({ enrolledOn: true }).extend({
                 address: z.string(),
                 phone: z.string(),
             }),
         )
-        .merge(studentGuardianSchema);
+        .merge(studentGuardianSchema)
+        .superRefine(refinePreviousAcademic);
 }
 
 export function parseFields<T>(

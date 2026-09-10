@@ -2,7 +2,9 @@
 
 use App\Models\Enrollment;
 use App\Models\Grade;
+use App\Models\MarkingWindow;
 use App\Models\User;
+use App\Support\Api\ResourceId;
 use Database\Seeders\SchoolGradesSeeder;
 use Database\Seeders\SchoolPeopleSeeder;
 use Database\Seeders\SchoolTaxonomySeeder;
@@ -95,6 +97,18 @@ test('bulletin returns moyenne mention and rank', function () {
     $this->seed(SchoolPeopleSeeder::class);
     $this->seed(SchoolGradesSeeder::class);
     $this->actingAs(User::factory()->directeur()->create());
+
+    foreach (['devoir', 'composition'] as $type) {
+        $window = MarkingWindow::query()->create([
+            'id' => ResourceId::make('mw'),
+            'term_id' => 'term-2026-1',
+            'type' => $type,
+            'opens_on' => '2026-09-01',
+            'closes_on' => '2026-12-31',
+            'closed_at' => now(),
+        ]);
+        expect($window->closed_at)->not->toBeNull();
+    }
 
     $enrollment = Enrollment::query()->findOrFail('en-9');
     $studentId = $enrollment->student_id;

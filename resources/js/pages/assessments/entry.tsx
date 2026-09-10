@@ -1,6 +1,6 @@
 import { Head } from '@inertiajs/react';
 import { GradeSheet } from '@/components/sms/grade-sheet';
-import { index as assessments } from '@/routes/assessments';
+import { devoirs, entry } from '@/routes/assessments';
 import type { SchoolDataset } from '@/types/school';
 
 export default function AssessmentEntry({
@@ -18,7 +18,7 @@ export default function AssessmentEntry({
 
 AssessmentEntry.layout = {
     breadcrumbs: [
-        { title: 'Devoirs & notes', href: assessments() },
-        { title: 'Saisie', href: assessments() },
+        { title: 'Évaluations', href: devoirs() },
+        { title: 'Saisie', href: entry() },
     ],
 };

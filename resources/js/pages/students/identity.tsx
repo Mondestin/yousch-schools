@@ -10,11 +10,17 @@ import { GenderSelect } from '@/components/sms/gender-select';
 import { InfoField } from '@/components/sms/info-field';
 import { PhotoField } from '@/components/sms/photo-field';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { useFieldErrors } from '@/hooks/use-field-errors';
 import { useYearLock } from '@/hooks/use-year-lock';
 import { useSchoolContext } from '@/hooks/use-school-context';
-import { studentContactSchema, studentIdentitySchema } from '@/lib/school-form';
+import {
+    studentContactSchema,
+    studentIdentitySchema,
+    studentPreviousAcademicSchema,
+} from '@/lib/school-form';
 import { formatFrDate } from '@/lib/school-rows';
 import { z } from 'zod';
 import { dossierFilesOf } from '@/lib/school-files';
@@ -35,6 +41,14 @@ const STEPS = [
     { id: 'contact', title: 'Coordonnées' },
     { id: 'files', title: 'Dossier' },
 ] as const;
+
+const identitySaveSchema = studentIdentitySchema
+    .merge(studentContactSchema)
+    .and(studentPreviousAcademicSchema);
+
+const contactStepSchema = studentContactSchema.and(
+    studentPreviousAcademicSchema,
+);
 
 export default function StudentIdentityPage({
     catalog,
@@ -70,6 +84,11 @@ export default function StudentIdentityPage({
         email: fiche?.student.email ?? '',
         address: fiche?.student.address ?? '',
         enrolledOn: fiche?.student.enrolledOn ?? '',
+        isTransfer: fiche?.student.isTransfer ?? false,
+        previousSchoolName: fiche?.student.previousSchoolName ?? '',
+        previousAcademicYear: fiche?.student.previousAcademicYear ?? '',
+        previousClass: fiche?.student.previousClass ?? '',
+        previousSchoolCity: fiche?.student.previousSchoolCity ?? '',
     });
 
     useEffect(() => {
@@ -98,6 +117,11 @@ export default function StudentIdentityPage({
             email: current.email ?? '',
             address: current.address ?? '',
             enrolledOn: current.enrolledOn,
+            isTransfer: current.isTransfer ?? false,
+            previousSchoolName: current.previousSchoolName ?? '',
+            previousAcademicYear: current.previousAcademicYear ?? '',
+            previousClass: current.previousClass ?? '',
+            previousSchoolCity: current.previousSchoolCity ?? '',
         });
         setPhotoPreview(current.photoUrl);
         setPhotoFile(null);
@@ -109,7 +133,7 @@ export default function StudentIdentityPage({
 
     const stepSchema = [
         studentIdentitySchema,
-        studentContactSchema,
+        contactStepSchema,
         z.object({}),
     ][step];
 
@@ -127,9 +151,7 @@ export default function StudentIdentityPage({
     }
 
     async function save(): Promise<void> {
-        if (
-            !validate(studentIdentitySchema.merge(studentContactSchema), form)
-        ) {
+        if (!validate(identitySaveSchema, form)) {
             return;
         }
 
@@ -144,6 +166,11 @@ export default function StudentIdentityPage({
             email: form.email.trim() || null,
             address: form.address.trim() || null,
             enrolledOn: form.enrolledOn,
+            isTransfer: form.isTransfer,
+            previousSchoolName: form.previousSchoolName.trim() || null,
+            previousAcademicYear: form.previousAcademicYear.trim() || null,
+            previousClass: form.previousClass.trim() || null,
+            previousSchoolCity: form.previousSchoolCity.trim() || null,
         };
 
         setSaving(true);
@@ -155,7 +182,13 @@ export default function StudentIdentityPage({
                 const body = new FormData();
 
                 for (const [key, value] of Object.entries(payload)) {
-                    if (value !== null) {
+                    if (value === null) {
+                        continue;
+                    }
+
+                    if (typeof value === 'boolean') {
+                        body.append(key, value ? '1' : '0');
+                    } else {
                         body.append(key, String(value));
                     }
                 }
@@ -201,10 +234,10 @@ export default function StudentIdentityPage({
             <div className="flex items-center justify-between gap-3">
                 <h2 className="text-[15px] font-semibold">Identité</h2>
                 {canMutate ? (
-                <Button type="button" onClick={openEdit}>
-                    Modifier
-                </Button>
-            ) : null}
+                    <Button type="button" onClick={openEdit}>
+                        Modifier
+                    </Button>
+                ) : null}
             </div>
             <div className="mt-4 grid max-w-3xl gap-4 sm:grid-cols-2">
                 <InfoField label="Matricule" value={student.matricule} />
@@ -224,6 +257,38 @@ export default function StudentIdentityPage({
                 <InfoField label="Adresse" value={student.address} />
                 <InfoField label="Téléphone" value={student.phone} />
                 <InfoField label="E-mail" value={student.email} />
+            </div>
+
+            <div className="mt-8 max-w-3xl space-y-4">
+                <h2 className="text-[15px] font-semibold">
+                    Parcours antérieur
+                </h2>
+                <div className="grid gap-4 sm:grid-cols-2">
+                    <InfoField
+                        label="Transfert"
+                        value={
+                            student.isTransfer
+                                ? 'Oui (déjà scolarisé ailleurs)'
+                                : 'Non'
+                        }
+                    />
+                    <InfoField
+                        label="Établissement précédent"
+                        value={student.previousSchoolName}
+                    />
+                    <InfoField
+                        label="Année scolaire précédente"
+                        value={student.previousAcademicYear}
+                    />
+                    <InfoField
+                        label="Classe / niveau précédent"
+                        value={student.previousClass}
+                    />
+                    <InfoField
+                        label="Ville de l’établissement"
+                        value={student.previousSchoolCity}
+                    />
+                </div>
             </div>
 
             <div className="mt-8 max-w-3xl space-y-4">
@@ -419,6 +484,101 @@ export default function StudentIdentityPage({
                                 }
                             />
                         </Field>
+                        <div className="space-y-3 border-t pt-4">
+                            <div>
+                                <p className="text-[13px] font-semibold">
+                                    Parcours antérieur
+                                </p>
+                                <p className="text-muted-foreground mt-0.5 text-[12px]">
+                                    Transfert ou scolarisation ailleurs.
+                                </p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <Checkbox
+                                    id="isTransfer"
+                                    checked={form.isTransfer}
+                                    onCheckedChange={(checked) =>
+                                        patchForm({
+                                            isTransfer: checked === true,
+                                        })
+                                    }
+                                />
+                                <Label
+                                    htmlFor="isTransfer"
+                                    className="font-normal"
+                                >
+                                    Transfert / déjà scolarisé ailleurs
+                                </Label>
+                            </div>
+                            <Field
+                                id="previousSchoolName"
+                                label="Établissement précédent"
+                                required={form.isTransfer}
+                                error={errors.previousSchoolName}
+                            >
+                                <Input
+                                    id="previousSchoolName"
+                                    value={form.previousSchoolName}
+                                    required={form.isTransfer}
+                                    onChange={(event) =>
+                                        patchForm({
+                                            previousSchoolName:
+                                                event.target.value,
+                                        })
+                                    }
+                                />
+                            </Field>
+                            <Field
+                                id="previousAcademicYear"
+                                label="Année scolaire précédente"
+                                required={form.isTransfer}
+                                error={errors.previousAcademicYear}
+                            >
+                                <Input
+                                    id="previousAcademicYear"
+                                    value={form.previousAcademicYear}
+                                    placeholder="2024-2025"
+                                    required={form.isTransfer}
+                                    onChange={(event) =>
+                                        patchForm({
+                                            previousAcademicYear:
+                                                event.target.value,
+                                        })
+                                    }
+                                />
+                            </Field>
+                            <Field
+                                id="previousClass"
+                                label="Classe / niveau précédent"
+                                error={errors.previousClass}
+                            >
+                                <Input
+                                    id="previousClass"
+                                    value={form.previousClass}
+                                    onChange={(event) =>
+                                        patchForm({
+                                            previousClass: event.target.value,
+                                        })
+                                    }
+                                />
+                            </Field>
+                            <Field
+                                id="previousSchoolCity"
+                                label="Ville de l’établissement"
+                                error={errors.previousSchoolCity}
+                            >
+                                <Input
+                                    id="previousSchoolCity"
+                                    value={form.previousSchoolCity}
+                                    onChange={(event) =>
+                                        patchForm({
+                                            previousSchoolCity:
+                                                event.target.value,
+                                        })
+                                    }
+                                />
+                            </Field>
+                        </div>
                     </>
                 ) : null}
                 {step === 2 ? (

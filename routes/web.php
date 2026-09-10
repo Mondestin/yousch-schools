@@ -54,6 +54,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('emploi-du-temps', [SchoolPagesController::class, 'timetable'])->name('timetable.index');
     Route::get('presences', [SchoolPagesController::class, 'attendance'])->name('attendance.index');
     Route::get('evaluations', [SchoolPagesController::class, 'assessments'])->name('assessments.index');
+    Route::get('evaluations/devoirs', [SchoolPagesController::class, 'assessmentDevoirs'])->name('assessments.devoirs');
+    Route::get('evaluations/compositions', [SchoolPagesController::class, 'assessmentCompositions'])->name('assessments.compositions');
+    Route::get('evaluations/examens', [SchoolPagesController::class, 'assessmentExamens'])->name('assessments.examens');
+    Route::get('evaluations/fenetres', [SchoolPagesController::class, 'assessmentWindows'])->name('assessments.windows');
     Route::get('evaluations/saisie', [SchoolPagesController::class, 'assessmentEntry'])->name('assessments.entry');
     Route::get('evaluations/controle', [SchoolPagesController::class, 'assessmentControl'])->name('assessments.control');
     Route::get('bulletins', [SchoolPagesController::class, 'reports'])->name('reports.index');

@@ -16,6 +16,24 @@ export const CHART_COLORS = [
     'var(--chart-5)',
 ];
 
+/** Solid fills aligned with CycleBadge tones. */
+export const CYCLE_CHART_COLORS: Record<Cycle, string> = {
+    prescolaire: 'var(--event-rose)',
+    primaire: 'var(--event-blue)',
+    college: 'var(--event-teal)',
+    lycee_general: 'var(--event-purple)',
+    lycee_technique: 'var(--event-amber)',
+};
+
+const PRIMAIRE_GRADE_SHADES = [
+    'var(--event-blue)',
+    'color-mix(in srgb, var(--event-blue) 82%, white)',
+    'color-mix(in srgb, var(--event-blue) 68%, white)',
+    'color-mix(in srgb, var(--event-blue) 54%, white)',
+    'color-mix(in srgb, var(--event-blue) 78%, #0a0a0a)',
+    'color-mix(in srgb, var(--event-blue) 62%, #0a0a0a)',
+];
+
 function yearEnrollments(catalog: SchoolDataset, academicYearId: string) {
     const classrooms = new Map(
         catalog.classrooms.map((classroom) => [classroom.id, classroom]),
@@ -120,23 +138,114 @@ export function collectionTotals(rows: ReturnType<typeof collectionByCycle>): {
     };
 }
 
-/** Headcount per cycle, ready to plot as a donut. */
+/** Headcount per cycle, ready to plot as a donut.
+ * Primaire is expanded by grade level (blue family); other cycles use badge colors.
+ */
 export function headcountByCycle(
     catalog: SchoolDataset,
     academicYearId: string,
-): { cycle: Cycle; label: string; count: number; fill: string }[] {
+): { id: string; cycle: Cycle; label: string; count: number; fill: string }[] {
     const rows = yearEnrollments(catalog, academicYearId);
+    const gradeLevels = [...catalog.gradeLevels].sort(
+        (left, right) =>
+            left.cycle.localeCompare(right.cycle) ||
+            left.position - right.position,
+    );
+    const primaireGrades = gradeLevels.filter(
+        (grade) => grade.cycle === 'primaire',
+    );
+    const slices: {
+        id: string;
+        cycle: Cycle;
+        label: string;
+        count: number;
+        fill: string;
+    }[] = [];
 
-    return catalog.cycles
-        .map((cycle, index) => ({
+    let primaireIndex = 0;
+
+    for (const grade of primaireGrades) {
+        const count = rows.filter(
+            ({ classroom }) => classroom.gradeLevelId === grade.id,
+        ).length;
+
+        if (count === 0) {
+            continue;
+        }
+
+        slices.push({
+            id: grade.id,
+            cycle: 'primaire',
+            label: `Primaire · ${grade.code}`,
+            count,
+            fill: PRIMAIRE_GRADE_SHADES[
+                primaireIndex % PRIMAIRE_GRADE_SHADES.length
+            ],
+        });
+        primaireIndex += 1;
+    }
+
+    for (const cycle of catalog.cycles) {
+        if (cycle.value === 'primaire') {
+            continue;
+        }
+
+        const count = rows.filter(
+            ({ classroom }) => classroom.cycle === cycle.value,
+        ).length;
+
+        if (count === 0) {
+            continue;
+        }
+
+        slices.push({
+            id: cycle.value,
             cycle: cycle.value,
             label: cycle.label,
-            count: rows.filter(
-                ({ classroom }) => classroom.cycle === cycle.value,
-            ).length,
-            fill: CHART_COLORS[index % CHART_COLORS.length],
-        }))
-        .filter((row) => row.count > 0);
+            count,
+            fill: CYCLE_CHART_COLORS[cycle.value],
+        });
+    }
+
+    return slices;
+}
+
+/** Girls vs boys among enrolled students for the year. */
+export function genderMix(
+    catalog: SchoolDataset,
+    academicYearId: string,
+): { key: 'fille' | 'garcon'; label: string; count: number; fill: string }[] {
+    const studentsById = new Map(
+        catalog.students.map((student) => [student.id, student]),
+    );
+    const rows = yearEnrollments(catalog, academicYearId);
+    let filles = 0;
+    let garcons = 0;
+
+    for (const { enrollment } of rows) {
+        const student = studentsById.get(enrollment.studentId);
+
+        if (student?.gender === 'femme') {
+            filles += 1;
+        } else if (student?.gender === 'homme') {
+            garcons += 1;
+        }
+    }
+
+    return [
+        {
+            key: 'fille' as const,
+            label: 'Filles',
+            count: filles,
+            fill: 'var(--brand-secondary)',
+        },
+        {
+            key: 'garcon' as const,
+            label: 'Garçons',
+            count: garcons,
+            fill: 'var(--primary)',
+        },
+    ].filter((row) => row.count > 0);
 }
 
 /** Occupancy per classroom: enrolled headcount against declared capacity. */
@@ -162,15 +271,39 @@ export function attendanceDates(catalog: SchoolDataset): string[] {
     return [...new Set(catalog.attendance.map((mark) => mark.date))].sort();
 }
 
-/** Daily presence rate, oldest first. */
+function toIsoDay(date: Date): string {
+    const year = String(date.getFullYear());
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+}
+
+function parseIsoDay(value: string): Date {
+    const [year, month, day] = value.split('-').map(Number);
+
+    return new Date(year, month - 1, day);
+}
+
+/** Presence rate for the last 7 days (full week), oldest first. */
 export function attendanceTrend(
     catalog: SchoolDataset,
     academicYearId: string,
-): { date: string; label: string; rate: number; absences: number }[] {
+): { date: string; label: string; rate: number | null; absences: number }[] {
     const rows = yearEnrollments(catalog, academicYearId);
     const scoped = new Set(rows.map(({ enrollment }) => enrollment.id));
+    const knownDates = attendanceDates(catalog);
+    const endIso =
+        knownDates.at(-1) ??
+        toIsoDay(new Date());
+    const end = parseIsoDay(endIso);
+    const days: { date: string; label: string; rate: number | null; absences: number }[] =
+        [];
 
-    return attendanceDates(catalog).map((date) => {
+    for (let offset = 6; offset >= 0; offset -= 1) {
+        const day = new Date(end);
+        day.setDate(end.getDate() - offset);
+        const date = toIsoDay(day);
         const marks = catalog.attendance.filter(
             (mark) => mark.date === date && scoped.has(mark.enrollmentId),
         );
@@ -178,19 +311,21 @@ export function attendanceTrend(
             (mark) => mark.status === 'present' || mark.status === 'retard',
         ).length;
 
-        return {
+        days.push({
             date,
             label: new Intl.DateTimeFormat('fr-FR', {
                 weekday: 'short',
                 day: '2-digit',
-            }).format(new Date(`${date}T00:00:00`)),
+            }).format(day),
             rate:
                 marks.length === 0
-                    ? 0
+                    ? null
                     : Math.round((present / marks.length) * 100),
             absences: marks.filter((mark) => mark.status === 'absent').length,
-        };
-    });
+        });
+    }
+
+    return days;
 }
 
 /** Breakdown of a day's roll call, ready to plot as a donut. */
@@ -206,7 +341,7 @@ export function attendanceMix(
     );
     const tones: Record<AttendanceStatus, string> = {
         present: 'var(--success)',
-        retard: 'var(--warning)',
+        retard: 'var(--brand-secondary)',
         absent: 'var(--danger)',
         excuse: 'var(--event-blue)',
     };

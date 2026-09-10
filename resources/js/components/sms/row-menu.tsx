@@ -18,14 +18,18 @@ export type RowMenuItem = {
     icon?: LucideIcon;
     destructive?: boolean;
     disabled?: boolean;
-    /** Destructive items always confirm; this only overrides the wording. */
+    /** Shows a confirmation dialog before running onSelect. */
     confirm?: ConfirmCopy;
     /** Escape hatch for destructive items that need no confirmation. */
     skipConfirm?: boolean;
 };
 
 function needsConfirm(item: RowMenuItem): boolean {
-    return (item.destructive ?? false) && !item.skipConfirm;
+    if (item.skipConfirm) {
+        return false;
+    }
+
+    return Boolean(item.destructive) || item.confirm != null;
 }
 
 export function RowMenu({ items }: { items: RowMenuItem[] }) {

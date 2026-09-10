@@ -5,9 +5,9 @@ export function toastSaved(message = 'Enregistré'): void {
     toast.success(message);
 }
 
-/** Amber: a record was removed (persisted). */
+/** Green: a record was removed (persisted). */
 export function toastRemoved(message = 'Supprimé'): void {
-    toast.warning(message);
+    toast.success(message);
 }
 
 /** Blue: action not yet wired to the API. */
