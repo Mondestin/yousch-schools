@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\V1\EnrollmentController;
 use App\Http\Controllers\Api\V1\FeeTariffController;
 use App\Http\Controllers\Api\V1\GradeController;
 use App\Http\Controllers\Api\V1\GuardianController;
+use App\Http\Controllers\Api\V1\IdentityCardController;
 use App\Http\Controllers\Api\V1\InventoryItemController;
 use App\Http\Controllers\Api\V1\IssuedDocumentController;
 use App\Http\Controllers\Api\V1\MarkingWindowController;
@@ -360,6 +361,19 @@ Route::prefix('v1')->group(function (): void {
             ->name('api.v1.document-requests.approve');
         Route::post('/document-requests/{documentRequest}/reject', [DocumentRequestController::class, 'reject'])
             ->name('api.v1.document-requests.reject');
+
+        Route::get('/identity-cards', [IdentityCardController::class, 'index'])
+            ->name('api.v1.identity-cards.index');
+        Route::put('/identity-cards/theme', [IdentityCardController::class, 'updateTheme'])
+            ->name('api.v1.identity-cards.theme');
+        Route::post('/identity-cards/print', [IdentityCardController::class, 'markPrinted'])
+            ->name('api.v1.identity-cards.print');
+        Route::post('/identity-cards/block', [IdentityCardController::class, 'block'])
+            ->name('api.v1.identity-cards.block');
+        Route::post('/identity-cards/unblock', [IdentityCardController::class, 'unblock'])
+            ->name('api.v1.identity-cards.unblock');
+        Route::post('/identity-cards/revoke', [IdentityCardController::class, 'revoke'])
+            ->name('api.v1.identity-cards.revoke');
 
         Route::get('/document-templates', [DocumentTemplateController::class, 'index'])
             ->name('api.v1.document-templates.index');

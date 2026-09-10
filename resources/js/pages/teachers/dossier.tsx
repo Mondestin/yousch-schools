@@ -1,6 +1,7 @@
 import { useYearLock } from '@/hooks/use-year-lock';
 import { Head } from '@inertiajs/react';
 import { useState } from 'react';
+import { DetailSectionCard } from '@/components/sms/person-profile-header';
 import { FileListField } from '@/components/sms/file-list-field';
 import { FormSheet } from '@/components/sms/form-sheet';
 import { teacherFormData, teacherToForm } from '@/components/sms/teacher-form';
@@ -74,17 +75,19 @@ export default function TeacherDossierPage({
     return (
         <>
             <Head title={`${fiche.name} : Dossier`} />
-            <div className="flex items-center justify-between gap-3">
-                <h2 className="text-[15px] font-semibold">Dossier</h2>
-                {canMutate ? (
-                <Button type="button" onClick={openEdit}>
-                    Modifier
-                </Button>
-            ) : null}
-            </div>
-            <div className="mt-4 max-w-3xl">
+            <DetailSectionCard
+                title="Pièces du dossier"
+                description="Documents administratifs de l’enseignant."
+                action={
+                    canMutate ? (
+                        <Button type="button" onClick={openEdit}>
+                            Modifier
+                        </Button>
+                    ) : null
+                }
+            >
                 <FileListField files={dossierFilesOf(teacher)} />
-            </div>
+            </DetailSectionCard>
 
             <FormSheet
                 open={open}

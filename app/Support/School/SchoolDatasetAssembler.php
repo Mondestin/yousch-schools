@@ -18,6 +18,7 @@ use App\Models\FeeTariff;
 use App\Models\Grade;
 use App\Models\GradeLevel;
 use App\Models\Guardian;
+use App\Models\IdentityCard;
 use App\Models\InventoryItem;
 use App\Models\MarkingWindow;
 use App\Models\Mention;
@@ -285,6 +286,12 @@ final class SchoolDatasetAssembler
                 ->map->toApiArray()
                 ->values()
                 ->all(),
+            'identityCards' => IdentityCard::query()
+                ->orderByDesc('updated_at')
+                ->get()
+                ->map->toApiArray()
+                ->values()
+                ->all(),
             'staffUsers' => User::query()
                 ->where('school_id', CurrentSchool::id())
                 ->orderBy('name')
@@ -320,6 +327,8 @@ final class SchoolDatasetAssembler
             'currency' => 'FCFA',
             'logoUrl' => null,
             'stampUrl' => null,
+            'idCardAccent' => '#6425d0',
+            'idCardBody' => '#ffffff',
         ];
     }
 

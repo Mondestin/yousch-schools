@@ -39,6 +39,7 @@ export function TimetableHeader({
     onShift,
     onToday,
     onAdd,
+    onPrint,
 }: {
     date: Date;
     view: TimetableView;
@@ -48,6 +49,7 @@ export function TimetableHeader({
     onShift: (direction: -1 | 1) => void;
     onToday: () => void;
     onAdd: () => void;
+    onPrint?: () => void;
 }) {
     return (
         <div className="border-border flex shrink-0 flex-col gap-4 border-b p-4 md:flex-row md:items-center md:justify-between">
@@ -130,7 +132,7 @@ export function TimetableHeader({
                 <Button
                     type="button"
                     variant="outline"
-                    onClick={() => window.print()}
+                    onClick={() => onPrint?.()}
                 >
                     <Printer />
                     <span className="hidden xl:block">Imprimer</span>

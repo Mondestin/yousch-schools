@@ -386,32 +386,6 @@ export default function StudentsAdmissions({
     return (
         <>
             <Head title="Demandes d’admission" />
-            <KpiGrid className="mx-6 my-4">
-                <KpiCard
-                    icon={Inbox}
-                    label="Demandes"
-                    value={String(stats.total)}
-                    hint={`${cycleLabel(filter.cycle)} · ${academicYearLabel}`}
-                />
-                <KpiCard
-                    icon={ClipboardCheck}
-                    label="En étude"
-                    value={String(stats.study)}
-                    hint="Dossiers à examiner"
-                />
-                <KpiCard
-                    icon={UserPlus}
-                    label="Acceptées"
-                    value={String(stats.accepted)}
-                    hint="Prêtes à inscrire"
-                />
-                <KpiCard
-                    icon={User}
-                    label="Inscrites"
-                    value={String(stats.enrolled)}
-                    hint="Devenues élèves"
-                />
-            </KpiGrid>
             <ListPage
                 embedded
                 title="Demandes d’admission"
@@ -420,6 +394,34 @@ export default function StudentsAdmissions({
                 searchPlaceholder="Rechercher nom, tuteur, classe..."
                 search={search}
                 onSearchChange={setSearch}
+                stats={
+                    <KpiGrid>
+                        <KpiCard
+                            icon={Inbox}
+                            label="Demandes"
+                            value={String(stats.total)}
+                            hint={`${cycleLabel(filter.cycle)} · ${academicYearLabel}`}
+                        />
+                        <KpiCard
+                            icon={ClipboardCheck}
+                            label="En étude"
+                            value={String(stats.study)}
+                            hint={`${cycleLabel(filter.cycle)} · ${academicYearLabel}`}
+                        />
+                        <KpiCard
+                            icon={UserPlus}
+                            label="Acceptées"
+                            value={String(stats.accepted)}
+                            hint={`${cycleLabel(filter.cycle)} · ${academicYearLabel}`}
+                        />
+                        <KpiCard
+                            icon={User}
+                            label="Inscrites"
+                            value={String(stats.enrolled)}
+                            hint={`${cycleLabel(filter.cycle)} · ${academicYearLabel}`}
+                        />
+                    </KpiGrid>
+                }
                 filters={
                     <SearchSelect
                         value={statusFilter}

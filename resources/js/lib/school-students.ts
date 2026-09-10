@@ -1,6 +1,7 @@
-import { cycleLabel, formatFrDate, personName } from '@/lib/school-rows';
+import { cycleLabel, formatFrDate, personName, todayIso } from '@/lib/school-rows';
 import type {
     AssessmentType,
+    AttendanceStatus,
     Gender,
     GuardianRelation,
     SchoolDataset,
@@ -207,6 +208,107 @@ export function studentFiche(
         ),
         profile: catalog.profile,
     };
+}
+
+/** Presence summary for one enrollment (used on student overview). */
+export function studentAttendanceSummary(
+    catalog: SchoolDataset,
+    enrollmentId: string | null | undefined,
+) {
+    const marks = enrollmentId
+        ? catalog.attendance.filter(
+              (mark) => mark.enrollmentId === enrollmentId,
+          )
+        : [];
+    const present = marks.filter(
+        (mark) => mark.status === 'present' || mark.status === 'retard',
+    ).length;
+    const absent = marks.filter((mark) => mark.status === 'absent').length;
+    const retard = marks.filter((mark) => mark.status === 'retard').length;
+    const excuse = marks.filter((mark) => mark.status === 'excuse').length;
+    const recent = [...marks]
+        .sort((left, right) => right.date.localeCompare(left.date))
+        .slice(0, 8);
+
+    return {
+        total: marks.length,
+        present,
+        absent,
+        retard,
+        excuse,
+        rate:
+            marks.length === 0
+                ? null
+                : Math.round((present / marks.length) * 100),
+        recent,
+        fortnight: studentAttendanceFortnight(marks),
+    };
+}
+
+/** Daily attendance stack for the last 14 calendar days (oldest first). */
+export function studentAttendanceFortnight(
+    marks: Array<{ date: string; status: AttendanceStatus }>,
+    days = 14,
+    today = todayIso(),
+) {
+    const [year, month, day] = today.split('-').map(Number);
+    const end = new Date(year, month - 1, day);
+    const byDate = new Map<string, typeof marks>();
+
+    for (const mark of marks) {
+        const bucket = byDate.get(mark.date);
+
+        if (bucket) {
+            bucket.push(mark);
+        } else {
+            byDate.set(mark.date, [mark]);
+        }
+    }
+
+    const series: Array<{
+        date: string;
+        label: string;
+        present: number;
+        retard: number;
+        excuse: number;
+        absent: number;
+        total: number;
+    }> = [];
+
+    for (let offset = days - 1; offset >= 0; offset -= 1) {
+        const cursor = new Date(end);
+        cursor.setDate(end.getDate() - offset);
+        const iso = `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, '0')}-${String(cursor.getDate()).padStart(2, '0')}`;
+        const dayMarks = byDate.get(iso) ?? [];
+
+        series.push({
+            date: iso,
+            label: new Intl.DateTimeFormat('fr-FR', {
+                weekday: 'short',
+                day: '2-digit',
+            }).format(cursor),
+            present: dayMarks.filter((mark) => mark.status === 'present')
+                .length,
+            retard: dayMarks.filter((mark) => mark.status === 'retard').length,
+            excuse: dayMarks.filter((mark) => mark.status === 'excuse').length,
+            absent: dayMarks.filter((mark) => mark.status === 'absent').length,
+            total: dayMarks.length,
+        });
+    }
+
+    return series;
+}
+
+export function studentAverageScore(
+    grades: Array<{ score: number }>,
+): number | null {
+    if (grades.length === 0) {
+        return null;
+    }
+
+    const total = grades.reduce((sum, grade) => sum + grade.score, 0);
+
+    return Math.round((total / grades.length) * 10) / 10;
 }
 
 export type StudentFiche = NonNullable<ReturnType<typeof studentFiche>>;

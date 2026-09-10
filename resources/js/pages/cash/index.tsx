@@ -264,36 +264,6 @@ export default function CashIndex({ catalog }: { catalog: SchoolDataset }) {
     return (
         <>
             <Head title="Caisse : Mouvements" />
-            <KpiGrid className="mx-6 my-4">
-                <KpiCard
-                    icon={Scale}
-                    label="Solde du journal"
-                    value={formatFcfa(cashBalance(working))}
-                    hint="Toutes périodes · entrées − sorties"
-                />
-                <KpiCard
-                    icon={ArrowDownLeft}
-                    label="Entrées"
-                    value={formatFcfa(stats.inAmount)}
-                    hint={`${stats.entries} mouvement${stats.entries > 1 ? 's' : ''} sur la période`}
-                />
-                <KpiCard
-                    icon={ArrowUpRight}
-                    label="Sorties"
-                    value={formatFcfa(stats.outAmount)}
-                    hint={`${stats.exits} mouvement${stats.exits > 1 ? 's' : ''} sur la période`}
-                />
-                <KpiCard
-                    icon={Wallet}
-                    label="Solde de la période"
-                    value={`${stats.net < 0 ? '− ' : ''}${formatFcfa(Math.abs(stats.net))}`}
-                    hint={
-                        month === 'all'
-                            ? 'Toutes les dates'
-                            : formatFrMonth(month)
-                    }
-                />
-            </KpiGrid>
             <ListPage
                 embedded
                 title="Mouvements"
@@ -302,6 +272,38 @@ export default function CashIndex({ catalog }: { catalog: SchoolDataset }) {
                 searchPlaceholder="Rechercher un libellé, une description..."
                 search={search}
                 onSearchChange={setSearch}
+                stats={
+                    <KpiGrid>
+                        <KpiCard
+                            icon={Scale}
+                            label="Solde du journal"
+                            value={formatFcfa(cashBalance(working))}
+                            hint="Toutes périodes · entrées − sorties"
+                        />
+                        <KpiCard
+                            icon={ArrowDownLeft}
+                            label="Entrées"
+                            value={formatFcfa(stats.inAmount)}
+                            hint={`${stats.entries} mouvement${stats.entries > 1 ? 's' : ''} sur la période`}
+                        />
+                        <KpiCard
+                            icon={ArrowUpRight}
+                            label="Sorties"
+                            value={formatFcfa(stats.outAmount)}
+                            hint={`${stats.exits} mouvement${stats.exits > 1 ? 's' : ''} sur la période`}
+                        />
+                        <KpiCard
+                            icon={Wallet}
+                            label="Solde de la période"
+                            value={`${stats.net < 0 ? '− ' : ''}${formatFcfa(Math.abs(stats.net))}`}
+                            hint={
+                                month === 'all'
+                                    ? 'Toutes les dates'
+                                    : formatFrMonth(month)
+                            }
+                        />
+                    </KpiGrid>
+                }
                 filters={
                     <>
                         <SearchSelect

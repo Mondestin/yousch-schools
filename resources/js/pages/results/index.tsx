@@ -33,12 +33,22 @@ import { useClientTable } from '@/hooks/use-client-table';
 import { useSchoolContext } from '@/hooks/use-school-context';
 import { classResults, defaultTermId, formatNote } from '@/lib/school-grades';
 import { classroomsForOffice } from '@/lib/school-office';
+import { printHtmlDocument } from '@/lib/school-export';
+import { cycleLabel } from '@/lib/school-rows';
 import { index as reports, show as showReport } from '@/routes/reports';
 import { index as results } from '@/routes/results';
 import type { SchoolDataset } from '@/types/school';
 
+function escapePrint(value: string): string {
+    return value
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;');
+}
+
 export default function ResultsIndex({ catalog }: { catalog: SchoolDataset }) {
-    const { filter, query } = useSchoolContext();
+    const { filter, query, academicYearLabel } = useSchoolContext();
     const classrooms = classroomsForOffice(catalog, filter);
     const terms = catalog.terms.filter(
         (term) => term.academicYearId === filter.academicYearId,
@@ -54,6 +64,56 @@ export default function ResultsIndex({ catalog }: { catalog: SchoolDataset }) {
     );
     const rows = report?.rows ?? [];
     const table = useClientTable(rows);
+    const classroomName =
+        classrooms.find((item) => item.id === classroomId)?.name ?? '';
+    const termName = terms.find((term) => term.id === termId)?.name ?? '';
+
+    function handlePrint(): void {
+        if (rows.length === 0) {
+            return;
+        }
+
+        const meta = [
+            catalog.profile.name,
+            `${cycleLabel(filter.cycle)} · ${academicYearLabel}`,
+            [classroomName, termName].filter(Boolean).join(' · '),
+        ]
+            .filter(Boolean)
+            .map((line) => `<p class="meta">${escapePrint(line)}</p>`)
+            .join('');
+
+        const bodyRows = rows
+            .map(
+                (row) => `<tr>
+<td>${row.rank ?? '-'}</td>
+<td>${escapePrint(row.matricule)}</td>
+<td>${escapePrint(row.name)}</td>
+<td>${row.average === null ? '-' : escapePrint(formatNote(row.average))}</td>
+<td>${escapePrint(row.mention ?? '-')}</td>
+<td>${escapePrint(row.result ?? '-')}</td>
+</tr>`,
+            )
+            .join('');
+
+        printHtmlDocument(
+            'Résultats de classe',
+            `<h1>Résultats de classe</h1>
+${meta}
+<table>
+<thead>
+<tr>
+<th>Rang</th>
+<th>Matricule</th>
+<th>Élève</th>
+<th>Moyenne</th>
+<th>Mention</th>
+<th>Résultat</th>
+</tr>
+</thead>
+<tbody>${bodyRows}</tbody>
+</table>`,
+        );
+    }
 
     return (
         <>
@@ -127,7 +187,8 @@ export default function ResultsIndex({ catalog }: { catalog: SchoolDataset }) {
                             <Button
                                 type="button"
                                 variant="outline"
-                                onClick={() => window.print()}
+                                disabled={rows.length === 0}
+                                onClick={handlePrint}
                             >
                                 <Printer />
                                 Imprimer

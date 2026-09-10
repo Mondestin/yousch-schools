@@ -59,7 +59,7 @@ void createInertiaApp({
                 name !== 'students/admissions' &&
                 name !== 'students/reenrollments':
                 return [AppLayout, StudentLayout];
-            case name === 'teachers/identity' ||
+            case name === 'teachers/overview' ||
                 name === 'teachers/dossier' ||
                 name === 'teachers/assignments':
                 return [AppLayout, TeacherLayout];

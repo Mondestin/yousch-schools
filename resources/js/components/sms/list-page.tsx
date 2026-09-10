@@ -34,6 +34,7 @@ export function ListPage({
     onSearchChange,
     filters,
     actions,
+    stats,
     children,
     empty,
     from,
@@ -58,6 +59,8 @@ export function ListPage({
     onSearchChange: (value: string) => void;
     filters?: ReactNode;
     actions?: ReactNode;
+    /** Shown under the page title / description, above the table toolbar. */
+    stats?: ReactNode;
     children: ReactNode;
     empty?: { title: string; description?: string; icon?: LucideIcon };
     from?: number;
@@ -171,6 +174,17 @@ export function ListPage({
 
     const body = (
         <div ref={tableRootRef} className="flex min-h-0 flex-1 flex-col">
+            {stats ? (
+                <div
+                    className={
+                        embedded
+                            ? 'shrink-0 px-6 pt-4 pb-4'
+                            : 'shrink-0 px-6 pb-4'
+                    }
+                >
+                    {stats}
+                </div>
+            ) : null}
             <DataTable
                 toolbar={
                     <PageToolbar

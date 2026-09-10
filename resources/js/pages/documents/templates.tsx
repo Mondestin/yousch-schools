@@ -5,7 +5,7 @@ import { DocumentPied } from '@/components/sms/document-pied';
 import { DocumentStamp } from '@/components/sms/document-stamp';
 import { EmptyState } from '@/components/sms/empty-state';
 import { Field } from '@/components/sms/field';
-import { Badge } from '@/components/ui/badge';
+import { SearchSelect } from '@/components/sms/search-select';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -13,7 +13,6 @@ import { useSchoolContext } from '@/hooks/use-school-context';
 import { apiData } from '@/lib/api';
 import { COUNTRY_SHORT, formatFrDate } from '@/lib/school-rows';
 import { toastApiError, toastSaved } from '@/lib/school-toast';
-import { cn } from '@/lib/utils';
 import {
     index as documentsHub,
     templates as documentsTemplates,
@@ -167,10 +166,34 @@ export default function DocumentTemplatesPage({
         <>
             <Head title="Modèles de documents" />
             <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden px-6 pt-4 pb-4">
-                <div className="flex shrink-0 items-center justify-between gap-3">
-                    <div>
-                        <h2 className="text-[15px] font-semibold">Modèles</h2>
-                        <p className="text-muted-foreground text-[12px]">
+                <div className="flex shrink-0 flex-wrap items-end justify-between gap-3">
+                    <div className="flex min-w-0 flex-1 flex-wrap items-end gap-3">
+                        <div className="min-w-0 sm:min-w-[18rem] sm:max-w-[24rem] sm:flex-1">
+                            <Field id="template-catalog" label="Catalogue">
+                                <SearchSelect
+                                    value={selectedId ?? ''}
+                                    onValueChange={(value) => {
+                                        const template = templates.find(
+                                            (item) => item.id === value,
+                                        );
+                                        if (template) {
+                                            selectTemplate(template);
+                                        }
+                                    }}
+                                    aria-label="Catalogue des modèles"
+                                    placeholder="Choisir un modèle"
+                                    searchPlaceholder="Rechercher un modèle..."
+                                    options={templates.map((template) => ({
+                                        value: template.id,
+                                        label: template.title,
+                                        keywords:
+                                            KIND_LABEL[template.kind] ??
+                                            template.kind,
+                                    }))}
+                                />
+                            </Field>
+                        </div>
+                        <p className="text-muted-foreground pb-2 text-[12px]">
                             Aperçu papier · modification en direct ·
                             placeholders remplacés à l’émission.
                         </p>
@@ -187,68 +210,7 @@ export default function DocumentTemplatesPage({
                     </Button>
                 </div>
 
-                <div className="grid min-h-0 flex-1 gap-4 overflow-hidden xl:grid-cols-[minmax(15rem,18rem)_minmax(16rem,22rem)_minmax(0,1fr)]">
-                    <aside className="flex min-h-0 flex-col overflow-hidden rounded-[10px] border bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04)]">
-                        <div className="flex shrink-0 items-center justify-between gap-2 border-b px-3 py-2.5">
-                            <p className="text-muted-foreground text-[12px] font-medium tracking-wide uppercase">
-                                Catalogue
-                            </p>
-                            <Badge variant="code">{templates.length}</Badge>
-                        </div>
-                        <ul className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
-                            {templates.map((template) => {
-                                const active = template.id === selectedId;
-
-                                return (
-                                    <li key={template.id}>
-                                        <button
-                                            type="button"
-                                            onClick={() =>
-                                                selectTemplate(template)
-                                            }
-                                            className={cn(
-                                                'flex w-full items-start gap-2 border-l-2 px-3 py-2.5 text-left transition-colors',
-                                                active
-                                                    ? 'border-primary bg-primary/5'
-                                                    : 'hover:bg-muted/50 border-transparent',
-                                            )}
-                                        >
-                                            <FileStack
-                                                className={cn(
-                                                    'mt-0.5 size-4 shrink-0',
-                                                    active
-                                                        ? 'text-primary'
-                                                        : 'text-muted-foreground',
-                                                )}
-                                            />
-                                            <span className="min-w-0 flex-1">
-                                                <span className="block text-[13px] font-medium">
-                                                    {template.title}
-                                                </span>
-                                                <span className="text-muted-foreground mt-0.5 block text-[12px]">
-                                                    {KIND_LABEL[
-                                                        template.kind
-                                                    ] ?? template.kind}
-                                                </span>
-                                            </span>
-                                            <Badge
-                                                variant={
-                                                    template.isActive
-                                                        ? 'success'
-                                                        : 'muted'
-                                                }
-                                            >
-                                                {template.isActive
-                                                    ? 'Actif'
-                                                    : 'Inactif'}
-                                            </Badge>
-                                        </button>
-                                    </li>
-                                );
-                            })}
-                        </ul>
-                    </aside>
-
+                <div className="grid min-h-0 flex-1 gap-4 overflow-hidden xl:grid-cols-[minmax(18rem,24rem)_minmax(0,1fr)]">
                     <section className="flex min-h-0 flex-col gap-3 overflow-hidden rounded-[10px] border bg-white p-4 shadow-[0_1px_2px_rgba(16,24,40,0.04)]">
                         {selected === null ? (
                             <EmptyState

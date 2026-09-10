@@ -364,32 +364,6 @@ export default function StudentsReenrollments({
     return (
         <>
             <Head title="Réinscriptions" />
-            <KpiGrid className="mx-6 my-4">
-                <KpiCard
-                    icon={RefreshCcw}
-                    label="Dossiers"
-                    value={String(stats.total)}
-                    hint={`${cycleLabel(filter.cycle)} · ${academicYearLabel}`}
-                />
-                <KpiCard
-                    icon={ClipboardCheck}
-                    label="En cours"
-                    value={String(stats.pending)}
-                    hint="Demandées ou en étude"
-                />
-                <KpiCard
-                    icon={CheckCircle2}
-                    label="Validées"
-                    value={String(stats.validated)}
-                    hint="Places confirmées"
-                />
-                <KpiCard
-                    icon={CircleDot}
-                    label="Refusées"
-                    value={String(stats.refused)}
-                    hint="Non reconduites"
-                />
-            </KpiGrid>
             <ListPage
                 embedded
                 title="Réinscriptions"
@@ -398,6 +372,34 @@ export default function StudentsReenrollments({
                 searchPlaceholder="Rechercher un élève, une classe..."
                 search={search}
                 onSearchChange={setSearch}
+                stats={
+                    <KpiGrid>
+                        <KpiCard
+                            icon={RefreshCcw}
+                            label="Dossiers"
+                            value={String(stats.total)}
+                            hint={`${cycleLabel(filter.cycle)} · ${academicYearLabel}`}
+                        />
+                        <KpiCard
+                            icon={ClipboardCheck}
+                            label="En cours"
+                            value={String(stats.pending)}
+                            hint={`${cycleLabel(filter.cycle)} · ${academicYearLabel}`}
+                        />
+                        <KpiCard
+                            icon={CheckCircle2}
+                            label="Validées"
+                            value={String(stats.validated)}
+                            hint={`${cycleLabel(filter.cycle)} · ${academicYearLabel}`}
+                        />
+                        <KpiCard
+                            icon={CircleDot}
+                            label="Refusées"
+                            value={String(stats.refused)}
+                            hint={`${cycleLabel(filter.cycle)} · ${academicYearLabel}`}
+                        />
+                    </KpiGrid>
+                }
                 filters={
                     <SearchSelect
                         value={statusFilter}

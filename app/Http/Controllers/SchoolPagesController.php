@@ -54,9 +54,29 @@ class SchoolPagesController extends Controller
         ]);
     }
 
-    public function showStudent(string $student): Response
+    public function studentOverview(string $student): Response
     {
-        return $this->studentPage($student, 'students/identity');
+        return $this->studentPage($student, 'students/overview');
+    }
+
+    public function showStudent(Request $request, string $student): RedirectResponse
+    {
+        $this->ensureStudent($student);
+
+        return redirect()->route('students.show', [
+            'student' => $student,
+            ...$request->query(),
+        ]);
+    }
+
+    public function studentPrevious(string $student): Response
+    {
+        return $this->studentPage($student, 'students/previous');
+    }
+
+    public function studentDossier(string $student): Response
+    {
+        return $this->studentPage($student, 'students/dossier');
     }
 
     public function studentGuardians(string $student): Response
@@ -149,9 +169,19 @@ class SchoolPagesController extends Controller
         ]);
     }
 
-    public function showTeacher(string $teacher): Response
+    public function teacherOverview(string $teacher): Response
     {
-        return $this->teacherPage($teacher, 'teachers/identity');
+        return $this->teacherPage($teacher, 'teachers/overview');
+    }
+
+    public function showTeacher(Request $request, string $teacher): RedirectResponse
+    {
+        $this->ensureTeacher($teacher);
+
+        return redirect()->route('teachers.show', [
+            'teacher' => $teacher,
+            ...$request->query(),
+        ]);
     }
 
     public function teacherDossier(string $teacher): Response
@@ -258,6 +288,11 @@ class SchoolPagesController extends Controller
             ...SchoolCatalog::page(),
             'documentTemplates' => $templates,
         ]);
+    }
+
+    public function idCards(): Response
+    {
+        return Inertia::render('id-cards/index', SchoolCatalog::page());
     }
 
     public function assessments(Request $request): RedirectResponse

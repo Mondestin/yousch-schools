@@ -427,51 +427,53 @@ export default function PaymentsIndex({ catalog }: { catalog: SchoolDataset }) {
     return (
         <>
             <Head title="Caisse : Frais" />
-            <KpiGrid className="mx-6 my-4">
-                <KpiCard
-                    icon={CircleDollarSign}
-                    label="Attendu"
-                    value={formatFcfa(stats.expected)}
-                    hint={`${stats.dossiers} dossier${stats.dossiers > 1 ? 's' : ''} · ${classHint} · ${monthHint}`}
-                />
-                <KpiCard
-                    icon={Wallet}
-                    label="Encaissé"
-                    value={formatFcfa(stats.collected)}
-                    hint={`${stats.paid} payé${stats.paid > 1 ? 's' : ''} · ${stats.partial} partiel${stats.partial > 1 ? 's' : ''}`}
-                />
-                <button
-                    type="button"
-                    className="text-left"
-                    onClick={() =>
-                        setStatus((current) =>
-                            current === 'impaye' ? 'all' : 'impaye',
-                        )
-                    }
-                >
-                    <KpiCard
-                        className={
-                            status === 'impaye'
-                                ? 'ring-primary ring-1 ring-inset'
-                                : undefined
-                        }
-                        icon={AlertTriangle}
-                        label="Reste dû"
-                        value={formatFcfa(stats.outstanding)}
-                        hint={`${stats.unpaid} impayé${stats.unpaid > 1 ? 's' : ''} · cliquer pour filtrer`}
-                    />
-                </button>
-                <KpiCard
-                    icon={Percent}
-                    label="Taux de recouvrement"
-                    value={`${stats.rate} %`}
-                    hint={`${classHint} · ${monthHint}`}
-                />
-            </KpiGrid>
             <ListPage
                 embedded
                 title="Frais scolaires"
                 icon={Wallet}
+                stats={
+                    <KpiGrid>
+                        <KpiCard
+                            icon={CircleDollarSign}
+                            label="Attendu"
+                            value={formatFcfa(stats.expected)}
+                            hint={`${stats.dossiers} dossier${stats.dossiers > 1 ? 's' : ''} · ${classHint} · ${monthHint}`}
+                        />
+                        <KpiCard
+                            icon={Wallet}
+                            label="Encaissé"
+                            value={formatFcfa(stats.collected)}
+                            hint={`${stats.paid} payé${stats.paid > 1 ? 's' : ''} · ${stats.partial} partiel${stats.partial > 1 ? 's' : ''}`}
+                        />
+                        <button
+                            type="button"
+                            className="text-left"
+                            onClick={() =>
+                                setStatus((current) =>
+                                    current === 'impaye' ? 'all' : 'impaye',
+                                )
+                            }
+                        >
+                            <KpiCard
+                                className={
+                                    status === 'impaye'
+                                        ? 'ring-primary ring-1 ring-inset'
+                                        : undefined
+                                }
+                                icon={AlertTriangle}
+                                label="Reste dû"
+                                value={formatFcfa(stats.outstanding)}
+                                hint={`${stats.unpaid} impayé${stats.unpaid > 1 ? 's' : ''} · cliquer pour filtrer`}
+                            />
+                        </button>
+                        <KpiCard
+                            icon={Percent}
+                            label="Taux de recouvrement"
+                            value={`${stats.rate} %`}
+                            hint={`${classHint} · ${monthHint}`}
+                        />
+                    </KpiGrid>
+                }
                 description={`Relevé mensuel en FCFA · ${cycleLabel(filter.cycle)} · ${academicYearLabel}.`}
                 searchPlaceholder="Rechercher un élève..."
                 search={search}

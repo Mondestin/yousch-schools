@@ -10,6 +10,7 @@ import {
     CreditCard,
     FileText,
     FileBadge2,
+    IdCard,
     GraduationCap,
     LayoutGrid,
     Megaphone,
@@ -41,6 +42,7 @@ import { index as attendance } from '@/routes/attendance';
 import { dashboard } from '@/routes';
 import { index as school } from '@/routes/etablissement';
 import { index as guardians } from '@/routes/guardians';
+import { index as idCards } from '@/routes/id-cards';
 import { index as inventory } from '@/routes/inventory';
 import { subscription } from '@/routes/organisation';
 import { index as payments } from '@/routes/payments';
@@ -157,6 +159,12 @@ export function AppSidebar() {
             href: documentsHub({ query }),
             icon: FileBadge2,
             match: 'prefix',
+        },
+        {
+            key: 'id-cards',
+            title: 'Cartes d’identité',
+            href: idCards({ query }),
+            icon: IdCard,
         },
         {
             key: 'staff',

@@ -344,35 +344,6 @@ export default function InventoryIndex({
                     description="Registre des biens de l’établissement : références, valeur, état, affectation et seuils de réapprovisionnement."
                 />
 
-                <KpiGrid className="mx-6 mb-4">
-                    <KpiCard
-                        icon={Boxes}
-                        label="Unités en parc"
-                        value={new Intl.NumberFormat('fr-FR').format(
-                            stats.units,
-                        )}
-                        hint={`${items.length} référence${items.length > 1 ? 's' : ''} au registre`}
-                    />
-                    <KpiCard
-                        icon={Coins}
-                        label="Valeur du parc"
-                        value={formatFcfa(stats.value)}
-                        hint="Quantité × coût unitaire, hors réformés"
-                    />
-                    <KpiCard
-                        icon={Wrench}
-                        label="En réparation"
-                        value={String(stats.repairs)}
-                        hint="Biens immobilisés en atelier"
-                    />
-                    <KpiCard
-                        icon={TriangleAlert}
-                        label="Sous le seuil"
-                        value={String(stats.low)}
-                        hint="Réapprovisionnement à déclencher"
-                    />
-                </KpiGrid>
-
                 <ListPage
                     embedded
                     title="Matériel"
@@ -381,6 +352,36 @@ export default function InventoryIndex({
                     searchPlaceholder="Rechercher une référence, un article, un lieu..."
                     search={search}
                     onSearchChange={setSearch}
+                    stats={
+                        <KpiGrid>
+                            <KpiCard
+                                icon={Boxes}
+                                label="Unités en parc"
+                                value={new Intl.NumberFormat('fr-FR').format(
+                                    stats.units,
+                                )}
+                                hint={`${items.length} référence${items.length > 1 ? 's' : ''} au registre`}
+                            />
+                            <KpiCard
+                                icon={Coins}
+                                label="Valeur du parc"
+                                value={formatFcfa(stats.value)}
+                                hint="Quantité × coût unitaire, hors réformés"
+                            />
+                            <KpiCard
+                                icon={Wrench}
+                                label="En réparation"
+                                value={String(stats.repairs)}
+                                hint="Biens immobilisés en atelier"
+                            />
+                            <KpiCard
+                                icon={TriangleAlert}
+                                label="Sous le seuil"
+                                value={String(stats.low)}
+                                hint="Réapprovisionnement à déclencher"
+                            />
+                        </KpiGrid>
+                    }
                     filters={
                         <>
                             <Select

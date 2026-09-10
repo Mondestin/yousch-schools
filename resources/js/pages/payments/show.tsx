@@ -1,9 +1,13 @@
 import { Head, Link } from '@inertiajs/react';
 import { Printer, Wallet } from 'lucide-react';
+import { DocumentAuthenticityQr } from '@/components/sms/document-authenticity-qr';
+import { DocumentPied } from '@/components/sms/document-pied';
+import { DocumentStamp } from '@/components/sms/document-stamp';
 import { PageHeader } from '@/components/sms/page-header';
 import { PageShell } from '@/components/sms/page-shell';
 import { Button } from '@/components/ui/button';
 import { useSchoolContext } from '@/hooks/use-school-context';
+import { printDomElement } from '@/lib/school-export';
 import { receiptFiche } from '@/lib/school-payments';
 import {
     COUNTRY_MOTTO,
@@ -13,9 +17,6 @@ import {
     paymentStatusLabel,
 } from '@/lib/school-rows';
 import { receipt, index as payments } from '@/routes/payments';
-import { DocumentAuthenticityQr } from '@/components/sms/document-authenticity-qr';
-import { DocumentPied } from '@/components/sms/document-pied';
-import { DocumentStamp } from '@/components/sms/document-stamp';
 import type { SchoolDataset } from '@/types/school';
 
 export default function PaymentShowPage({
@@ -56,14 +57,31 @@ export default function PaymentShowPage({
                     icon={Wallet}
                     description={`${fiche.classroomName} · ${fiche.yearLabel}.`}
                     actions={
-                        <Button type="button" onClick={() => window.print()}>
+                        <Button
+                            type="button"
+                            onClick={() => {
+                                const node =
+                                    document.querySelector<HTMLElement>(
+                                        '[data-print-root="statement"]',
+                                    );
+                                if (node) {
+                                    printDomElement(
+                                        `Relevé : ${fiche.name}`,
+                                        node,
+                                    );
+                                }
+                            }}
+                        >
                             <Printer />
                             Imprimer
                         </Button>
                     }
                 />
 
-                <article className="print-bulletin mx-auto max-w-[210mm] bg-white p-8 text-black">
+                <article
+                    data-print-root="statement"
+                    className="print-bulletin mx-auto max-w-[210mm] bg-white p-8 text-black"
+                >
                     <header className="grid grid-cols-[1fr_auto_1fr] items-start gap-4">
                         <div className="text-center text-[12px] leading-5">
                             {fiche.profile.logoUrl ? (

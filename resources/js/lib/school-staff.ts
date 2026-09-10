@@ -1,4 +1,5 @@
 import { cycleLabel, isLyceeCycle, personName } from '@/lib/school-rows';
+import { studentAttendanceFortnight } from '@/lib/school-students';
 import type {
     Cycle,
     CycleYearFilter,
@@ -180,3 +181,32 @@ export function teacherFiche(
 }
 
 export type TeacherFiche = NonNullable<ReturnType<typeof teacherFiche>>;
+
+/** Presence summary for one teacher (used on teacher overview). */
+export function teacherAttendanceSummary(
+    catalog: SchoolDataset,
+    teacherId: string,
+) {
+    const marks = (catalog.staffAttendance ?? []).filter(
+        (mark) => mark.teacherId === teacherId,
+    );
+    const present = marks.filter(
+        (mark) => mark.status === 'present' || mark.status === 'retard',
+    ).length;
+    const absent = marks.filter((mark) => mark.status === 'absent').length;
+    const retard = marks.filter((mark) => mark.status === 'retard').length;
+    const excuse = marks.filter((mark) => mark.status === 'excuse').length;
+
+    return {
+        total: marks.length,
+        present,
+        absent,
+        retard,
+        excuse,
+        rate:
+            marks.length === 0
+                ? null
+                : Math.round((present / marks.length) * 100),
+        fortnight: studentAttendanceFortnight(marks),
+    };
+}

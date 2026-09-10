@@ -163,19 +163,149 @@ export function downloadTableAsExcel(
     return true;
 }
 
+function escapeHtml(value: string): string {
+    return value
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;');
+}
+
+function openPrintPopup(html: string): void {
+    const iframe = document.createElement('iframe');
+
+    iframe.setAttribute('aria-hidden', 'true');
+    iframe.setAttribute('title', 'Impression');
+    // Must be on-screen sized: 0×0 / opacity:0 iframes often print blank in Chrome.
+    iframe.style.cssText =
+        'position:fixed;inset:0;width:100vw;height:100vh;border:0;z-index:-1;visibility:hidden;';
+
+    let printed = false;
+
+    const cleanup = (): void => {
+        iframe.remove();
+    };
+
+    const triggerPrint = (): void => {
+        if (printed) {
+            return;
+        }
+
+        printed = true;
+
+        const frameWindow = iframe.contentWindow;
+        const frameDocument = iframe.contentDocument;
+
+        if (!frameWindow || !frameDocument) {
+            cleanup();
+
+            return;
+        }
+
+        const images = Array.from(frameDocument.images);
+        const stylesheets = Array.from(
+            frameDocument.querySelectorAll('link[rel="stylesheet"]'),
+        );
+
+        const waitForAssets = Promise.all([
+            ...images.map(
+                (image) =>
+                    new Promise<void>((resolve) => {
+                        if (image.complete) {
+                            resolve();
+
+                            return;
+                        }
+
+                        image.addEventListener('load', () => resolve(), {
+                            once: true,
+                        });
+                        image.addEventListener('error', () => resolve(), {
+                            once: true,
+                        });
+                    }),
+            ),
+            ...stylesheets.map(
+                (link) =>
+                    new Promise<void>((resolve) => {
+                        const node = link as HTMLLinkElement;
+
+                        if (node.sheet) {
+                            resolve();
+
+                            return;
+                        }
+
+                        node.addEventListener('load', () => resolve(), {
+                            once: true,
+                        });
+                        node.addEventListener('error', () => resolve(), {
+                            once: true,
+                        });
+                    }),
+            ),
+        ]);
+
+        void waitForAssets.then(() => {
+            window.setTimeout(() => {
+                frameWindow.focus();
+                frameWindow.print();
+                frameWindow.addEventListener('afterprint', cleanup, {
+                    once: true,
+                });
+                window.setTimeout(cleanup, 60_000);
+            }, 100);
+        });
+    };
+
+    iframe.addEventListener('load', triggerPrint);
+    document.body.appendChild(iframe);
+    // srcdoc keeps the frame same-origin so app stylesheets can load.
+    iframe.srcdoc = html;
+}
+
+function collectedPageStyles(): string {
+    return Array.from(
+        document.querySelectorAll('link[rel="stylesheet"], style'),
+    )
+        .map((node) => {
+            if (node instanceof HTMLLinkElement) {
+                const absolute = new URL(node.href, window.location.href).href;
+
+                return `<link rel="stylesheet" href="${escapeHtml(absolute)}" />`;
+            }
+
+            return node.outerHTML;
+        })
+        .join('\n');
+}
+
+/** Print an isolated HTML document in a popup (never the app chrome). */
 export function printHtmlDocument(title: string, bodyHtml: string): void {
     const html = `<!doctype html>
 <html lang="fr">
 <head>
 <meta charset="utf-8" />
-<title>${title.replace(/</g, '&lt;')}</title>
+<title>${escapeHtml(title)}</title>
 <style>
-  body { font-family: system-ui, sans-serif; padding: 24px; color: #111; }
+  @page { size: A4; margin: 12mm; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    color: #111;
+    background: #fff;
+  }
   h1 { font-size: 18px; margin: 0 0 12px; }
-  table { width: 100%; border-collapse: collapse; margin-top: 16px; }
-  th, td { border: 1px solid #ddd; padding: 6px 8px; text-align: left; font-size: 13px; }
-  th { background: #f5f5f5; }
-  .meta { color: #555; font-size: 13px; margin: 0 0 4px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+  th, td {
+    border: 1px solid #d4d4d8;
+    padding: 6px 8px;
+    text-align: left;
+    font-size: 12px;
+  }
+  th { background: #f4f4f5; font-weight: 600; }
+  .meta { color: #52525b; font-size: 12px; margin: 0 0 4px; }
 </style>
 </head>
 <body>
@@ -183,30 +313,111 @@ ${bodyHtml}
 </body>
 </html>`;
 
-    const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const popup = window.open(url, '_blank');
+    openPrintPopup(html);
+}
 
-    if (!popup) {
-        URL.revokeObjectURL(url);
+/** Print a visible DOM node (document sheet, grid) without the surrounding page. */
+export function printDomElement(
+    title: string,
+    element: HTMLElement,
+    options?: { landscape?: boolean; pageSize?: string },
+): void {
+    const clone = element.cloneNode(true) as HTMLElement;
+    clone.querySelectorAll('.no-print').forEach((node) => node.remove());
+    clone.querySelectorAll('img[src]').forEach((node) => {
+        const image = node as HTMLImageElement;
+        const src = image.getAttribute('src');
 
-        return;
+        if (src && !src.startsWith('data:') && !src.startsWith('blob:')) {
+            image.setAttribute(
+                'src',
+                new URL(src, window.location.href).href,
+            );
+        }
+    });
+
+    const page =
+        options?.pageSize ??
+        (options?.landscape ? 'A4 landscape' : 'A4');
+    const html = `<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<title>${escapeHtml(title)}</title>
+${collectedPageStyles()}
+<style>
+  @page { size: ${page}; margin: 0; }
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+    color: #000 !important;
+  }
+  body {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+  }
+  .no-print { display: none !important; }
+  [data-print-only] { display: block !important; }
+  .print-bulletin {
+    max-width: none !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+  [data-print-root="id-card"] {
+    box-shadow: none !important;
+    break-inside: avoid;
+  }
+</style>
+</head>
+<body>
+${clone.outerHTML}
+</body>
+</html>`;
+
+    openPrintPopup(html);
+}
+
+/** Print a data table (results, exports) as a clean sheet. */
+export function printTableElement(
+    title: string,
+    table: HTMLTableElement,
+    meta: string[] = [],
+): void {
+    const clone = table.cloneNode(true) as HTMLTableElement;
+    clone.removeAttribute('class');
+    clone.querySelectorAll('[class]').forEach((node) => {
+        node.removeAttribute('class');
+    });
+
+    const metaHtml = meta
+        .map((line) => `<p class="meta">${escapeHtml(line)}</p>`)
+        .join('');
+
+    printHtmlDocument(
+        title,
+        `<h1>${escapeHtml(title)}</h1>${metaHtml}${clone.outerHTML}`,
+    );
+}
+
+/** Resolve the nearest printable root from a click target or the page. */
+export function findPrintRoot(
+    from?: ParentNode | null,
+): HTMLElement | null {
+    const scope = from ?? document;
+    const marked = scope.querySelector<HTMLElement>('[data-print-root]');
+
+    if (marked) {
+        return marked;
     }
 
-    const triggerPrint = (): void => {
-        popup.focus();
-        popup.print();
-        window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
-    };
-
-    popup.addEventListener('load', triggerPrint);
-    window.setTimeout(() => {
-        try {
-            if (popup.document?.readyState === 'complete') {
-                triggerPrint();
-            }
-        } catch {
-            // ignore
-        }
-    }, 250);
+    return (
+        scope.querySelector<HTMLElement>('article.print-bulletin') ??
+        scope.querySelector<HTMLElement>('table[data-slot="table"]')
+    );
 }

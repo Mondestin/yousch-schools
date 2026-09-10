@@ -50,6 +50,7 @@ final class ApiContract
             'cashMovements',
             'announcements',
             'sanctions',
+            'identityCards',
             'mentions',
             'roles',
             'staffUsers',
@@ -108,6 +109,12 @@ final class ApiContract
             ['name' => 'inventory', 'methods' => ['GET', 'POST', 'PUT', 'DELETE'], 'path' => '/inventory', 'auth' => true],
             ['name' => 'announcements', 'methods' => ['GET', 'POST', 'PUT', 'DELETE'], 'path' => '/announcements', 'auth' => true],
             ['name' => 'sanctions', 'methods' => ['GET', 'POST', 'PUT', 'DELETE'], 'path' => '/sanctions', 'auth' => true],
+            ['name' => 'identity-cards', 'methods' => ['GET'], 'path' => '/identity-cards', 'auth' => true],
+            ['name' => 'identity-cards.theme', 'methods' => ['PUT'], 'path' => '/identity-cards/theme', 'auth' => true],
+            ['name' => 'identity-cards.print', 'methods' => ['POST'], 'path' => '/identity-cards/print', 'auth' => true],
+            ['name' => 'identity-cards.block', 'methods' => ['POST'], 'path' => '/identity-cards/block', 'auth' => true],
+            ['name' => 'identity-cards.unblock', 'methods' => ['POST'], 'path' => '/identity-cards/unblock', 'auth' => true],
+            ['name' => 'identity-cards.revoke', 'methods' => ['POST'], 'path' => '/identity-cards/revoke', 'auth' => true],
             ['name' => 'staff', 'methods' => ['GET', 'POST', 'PUT', 'DELETE'], 'path' => '/staff', 'auth' => true],
         ];
     }

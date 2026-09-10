@@ -4,9 +4,13 @@ import {
     CircleDot,
     EllipsisVertical,
     Hash,
+    Layers,
     Phone,
     Plus,
     User,
+    UserCheck,
+    UserX,
+    Users,
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import {
@@ -16,6 +20,7 @@ import {
 import { FormSheet } from '@/components/sms/form-sheet';
 import { FormStepActions, FormSteps } from '@/components/sms/form-steps';
 import { FileListField } from '@/components/sms/file-list-field';
+import { KpiCard, KpiGrid } from '@/components/sms/kpi-card';
 import { ListPage } from '@/components/sms/list-page';
 import { RowMenu } from '@/components/sms/row-menu';
 import { useClientTable } from '@/hooks/use-client-table';
@@ -82,17 +87,30 @@ export default function TeachersIndex({ catalog }: { catalog: SchoolDataset }) {
         () => ({ ...catalog, teachers: items }),
         [catalog, items],
     );
+    const scoped = useMemo(
+        () => teacherRows(working, filter),
+        [filter, working],
+    );
+    const stats = useMemo(
+        () => ({
+            total: scoped.length,
+            active: scoped.filter((row) => row.status === 'actif').length,
+            inactive: scoped.filter((row) => row.status === 'inactif').length,
+            assigned: scoped.filter((row) => row.assignmentCount > 0).length,
+        }),
+        [scoped],
+    );
     const rows = useMemo(() => {
         const needle = search.trim().toLowerCase();
 
-        return teacherRows(working, filter).filter((row) =>
+        return scoped.filter((row) =>
             needle === ''
                 ? true
                 : `${row.code} ${row.lastName} ${row.firstName} ${row.phone}`
                       .toLowerCase()
                       .includes(needle),
         );
-    }, [filter, search, working]);
+    }, [scoped, search]);
     const table = useClientTable(rows);
 
     function openEdit(id: string): void {
@@ -202,6 +220,34 @@ export default function TeachersIndex({ catalog }: { catalog: SchoolDataset }) {
                 searchPlaceholder="Rechercher nom, matricule, téléphone..."
                 search={search}
                 onSearchChange={setSearch}
+                stats={
+                    <KpiGrid>
+                        <KpiCard
+                            icon={Users}
+                            label="Enseignants"
+                            value={String(stats.total)}
+                            hint={`${cycleLabel(filter.cycle)} · ${academicYearLabel}`}
+                        />
+                        <KpiCard
+                            icon={UserCheck}
+                            label="Actifs"
+                            value={String(stats.active)}
+                            hint={`${cycleLabel(filter.cycle)} · ${academicYearLabel}`}
+                        />
+                        <KpiCard
+                            icon={UserX}
+                            label="Inactifs"
+                            value={String(stats.inactive)}
+                            hint={`${cycleLabel(filter.cycle)} · ${academicYearLabel}`}
+                        />
+                        <KpiCard
+                            icon={Layers}
+                            label="Affectés"
+                            value={String(stats.assigned)}
+                            hint={`${cycleLabel(filter.cycle)} · ${academicYearLabel}`}
+                        />
+                    </KpiGrid>
+                }
                 actions={
                     <Button type="button" size="sm" asChild>
                         <Link href={create({ query })}>

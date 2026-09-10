@@ -2,6 +2,8 @@ import { Head, router } from '@inertiajs/react';
 import {
     ExternalLink,
     FileBadge2,
+    FileCheck2,
+    Files,
     Hash,
     ShieldOff,
     Stamp,
@@ -15,6 +17,7 @@ import {
 } from '@/components/sms/data-table';
 import { Field } from '@/components/sms/field';
 import { FormSheet } from '@/components/sms/form-sheet';
+import { KpiCard, KpiGrid } from '@/components/sms/kpi-card';
 import { ListPage } from '@/components/sms/list-page';
 import { RowMenu } from '@/components/sms/row-menu';
 import { SearchSelect } from '@/components/sms/search-select';
@@ -38,7 +41,7 @@ import {
 import { useClientTable } from '@/hooks/use-client-table';
 import { useSchoolContext } from '@/hooks/use-school-context';
 import { apiData } from '@/lib/api';
-import { formatFrDate, studentRows } from '@/lib/school-rows';
+import { cycleLabel, formatFrDate, studentRows, todayIso } from '@/lib/school-rows';
 import { toastApiError, toastSaved } from '@/lib/school-toast';
 import { index as documentsHub } from '@/routes/documents';
 import { documents as studentDocuments } from '@/routes/students';
@@ -80,7 +83,7 @@ export default function DocumentsIndexPage({
     catalog: SchoolDataset;
     issuedDocuments: IssuedDocument[];
 }) {
-    const { filter } = useSchoolContext();
+    const { filter, academicYearLabel } = useSchoolContext();
     const [items, setItems] = useState(issuedDocuments);
     const [search, setSearch] = useState('');
     const [kind, setKind] = useState<'all' | IssuableKind>('all');
@@ -136,6 +139,22 @@ export default function DocumentsIndexPage({
                 enrollment.academicYearId === filter.academicYearId,
         ).length;
     }, [bulkClassroomId, catalog.enrollments, filter.academicYearId]);
+
+    const stats = useMemo(() => {
+        const monthPrefix = todayIso().slice(0, 7);
+        const issued = items.filter((item) => item.status === 'issued').length;
+        const revoked = items.filter((item) => item.status === 'revoked').length;
+        const thisMonth = items.filter((item) =>
+            item.issuedOn.startsWith(monthPrefix),
+        ).length;
+
+        return {
+            total: items.length,
+            issued,
+            revoked,
+            thisMonth,
+        };
+    }, [items]);
 
     const rows = useMemo(() => {
         const needle = search.trim().toLowerCase();
@@ -259,6 +278,34 @@ export default function DocumentsIndexPage({
                 searchPlaceholder="N°, élève, matricule..."
                 search={search}
                 onSearchChange={setSearch}
+                stats={
+                    <KpiGrid>
+                        <KpiCard
+                            icon={Files}
+                            label="Au registre"
+                            value={String(stats.total)}
+                            hint={`${cycleLabel(filter.cycle)} · ${academicYearLabel}`}
+                        />
+                        <KpiCard
+                            icon={FileCheck2}
+                            label="Émis"
+                            value={String(stats.issued)}
+                            hint={`${cycleLabel(filter.cycle)} · ${academicYearLabel}`}
+                        />
+                        <KpiCard
+                            icon={ShieldOff}
+                            label="Révoqués"
+                            value={String(stats.revoked)}
+                            hint={`${cycleLabel(filter.cycle)} · ${academicYearLabel}`}
+                        />
+                        <KpiCard
+                            icon={Stamp}
+                            label="Ce mois"
+                            value={String(stats.thisMonth)}
+                            hint={`${cycleLabel(filter.cycle)} · ${academicYearLabel}`}
+                        />
+                    </KpiGrid>
+                }
                 filters={
                     <div className="flex flex-wrap gap-2">
                         <Select
@@ -465,7 +512,7 @@ export default function DocumentsIndexPage({
                 open={issueOpen}
                 onOpenChange={setIssueOpen}
                 title="Émettre un document"
-                description={`Enregistrement au registre · ${filter.academicYearLabel}.`}
+                description={`Enregistrement au registre · ${academicYearLabel}.`}
                 submitLabel="Émettre et enregistrer"
                 submitting={issueSaving}
                 onSubmit={() => {
@@ -550,7 +597,7 @@ export default function DocumentsIndexPage({
                     </Select>
                 </Field>
                 <p className="text-muted-foreground text-[13px]">
-                    Année : {filter.academicYearLabel}
+                    Année : {academicYearLabel}
                     {bulkClassroomId !== ''
                         ? ` · ${bulkCount} élève(s)`
                         : ''}
