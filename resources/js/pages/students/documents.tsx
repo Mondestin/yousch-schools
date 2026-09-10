@@ -40,6 +40,7 @@ import {
 import { useSchoolContext } from '@/hooks/use-school-context';
 import { apiData } from '@/lib/api';
 import { canAccess } from '@/lib/school-access';
+import { printDomElement } from '@/lib/school-export';
 import { dossierFilesOf, isImageDossier } from '@/lib/school-files';
 import { COUNTRY_SHORT, formatFrDate } from '@/lib/school-rows';
 import {
@@ -294,7 +295,21 @@ export default function StudentDocumentsPage({
                         {canPrint ? (
                             <Button
                                 type="button"
-                                onClick={() => window.print()}
+                                onClick={() => {
+                                    const node =
+                                        document.querySelector<HTMLElement>(
+                                            '[data-print-root="student-document"]',
+                                        );
+                                    if (node) {
+                                        printDomElement(
+                                            selected &&
+                                                selected.source === 'issued'
+                                                ? selected.document.title
+                                                : 'Document',
+                                            node,
+                                        );
+                                    }
+                                }}
                             >
                                 <Printer />
                                 Imprimer
@@ -1059,7 +1074,10 @@ function IssuedCertificate({
     const bodyLead = certificateBody(kind, previewFiche, name);
 
     return (
-        <article className="print-bulletin mx-auto max-w-[210mm] bg-white p-8 text-black sm:p-10">
+        <article
+            data-print-root="student-document"
+            className="print-bulletin mx-auto max-w-[210mm] bg-white p-8 text-black sm:p-10"
+        >
             {revoked ? (
                 <p className="no-print mb-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-[13px] text-red-800">
                     Document révoqué

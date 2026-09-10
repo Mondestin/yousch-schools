@@ -38,7 +38,7 @@ export function KpiCard({
             ) : null}
 
             {hint ? (
-                <p className="text-muted-foreground relative mb-2 max-w-[70%] self-end text-right text-[11px] leading-4">
+                <p className="text-muted-foreground relative mb-2 max-w-[70%] text-[11px] leading-4">
                     {hint}
                 </p>
             ) : (

@@ -22,6 +22,8 @@ use Illuminate\Support\Carbon;
  * @property string $currency
  * @property string|null $logo_url
  * @property string|null $stamp_url
+ * @property string $id_card_accent
+ * @property string $id_card_body
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
@@ -38,6 +40,8 @@ use Illuminate\Support\Carbon;
     'currency',
     'logo_url',
     'stamp_url',
+    'id_card_accent',
+    'id_card_body',
     'school_id',
 ])]
 class SchoolProfile extends Model
@@ -58,7 +62,9 @@ class SchoolProfile extends Model
      *     motto: string,
      *     currency: string,
      *     logoUrl: string|null,
-     *     stampUrl: string|null
+     *     stampUrl: string|null,
+     *     idCardAccent: string,
+     *     idCardBody: string
      * }
      */
     public function toApiArray(): array
@@ -76,6 +82,8 @@ class SchoolProfile extends Model
             'currency' => $this->currency,
             'logoUrl' => $this->logo_url,
             'stampUrl' => $this->stamp_url,
+            'idCardAccent' => $this->id_card_accent ?: '#6425d0',
+            'idCardBody' => $this->id_card_body ?: '#ffffff',
         ];
     }
 }

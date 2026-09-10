@@ -364,6 +364,23 @@ export type SchoolProfile = {
     logoUrl: string | null;
     /** Combined school stamp and director signature, used on printed documents. */
     stampUrl: string | null;
+    /** Accent color for PVC identity cards (#RRGGBB). */
+    idCardAccent: string;
+    /** Body background color for PVC identity cards (#RRGGBB). */
+    idCardBody: string;
+};
+
+export type IdentityCardStatus = 'active' | 'blocked' | 'revoked';
+
+export type IdentityCardRecord = {
+    id: string;
+    subjectType: 'student' | 'teacher';
+    subjectId: string;
+    status: IdentityCardStatus;
+    printedAt: string | null;
+    blockedAt: string | null;
+    revokedAt: string | null;
+    revokeReason: string | null;
 };
 
 export type FeeTariff = {
@@ -620,6 +637,7 @@ export type SchoolDataset = {
     cashMovements: CashMovement[];
     announcements: Announcement[];
     sanctions: Sanction[];
+    identityCards: IdentityCardRecord[];
     mentions: Mention[];
     roles: RoleOption[];
     staffUsers: StaffUser[];

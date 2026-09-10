@@ -11,7 +11,9 @@
         "motto": "Rigueur - Travail - Réussite",
         "currency": "FCFA",
         "logoUrl": null,
-        "stampUrl": null
+        "stampUrl": null,
+        "idCardAccent": "#6425d0",
+        "idCardBody": "#ffffff"
     },
     "subscription": {
         "plan": "platinium",
@@ -7423,7 +7425,11 @@
             "email": "secretariat@palmiers.cg",
             "phone": "0555110103",
             "role": "secretaire",
-            "cycles": ["prescolaire", "primaire", "college"],
+            "cycles": [
+                "prescolaire",
+                "primaire",
+                "college"
+            ],
             "lastSeenAt": "2026-09-02T16:05:00+00:00"
         },
         {
@@ -7432,7 +7438,9 @@
             "email": "p.kouassi@palmiers.cg",
             "phone": "0651230104",
             "role": "enseignant",
-            "cycles": ["primaire"],
+            "cycles": [
+                "primaire"
+            ],
             "lastSeenAt": "2026-08-21T09:30:00+00:00"
         }
     ],
@@ -13051,5 +13059,6 @@
             "type": "Avertissement",
             "reason": "Absence non justifiée"
         }
-    ]
+    ],
+    "identityCards": []
 }

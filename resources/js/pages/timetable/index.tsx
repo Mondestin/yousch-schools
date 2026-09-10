@@ -24,6 +24,7 @@ import {
 import { useFieldErrors } from '@/hooks/use-field-errors';
 import { useYearLock } from '@/hooks/use-year-lock';
 import { useSchoolContext } from '@/hooks/use-school-context';
+import { printDomElement } from '@/lib/school-export';
 import { requiredText } from '@/lib/school-form';
 import { classroomSubjects } from '@/lib/school-grades';
 import { cycleLabel } from '@/lib/school-rows';
@@ -321,6 +322,18 @@ export default function TimetableIndex({
                         }
                         onToday={() => setCursor(new Date())}
                         onAdd={() => openCreate()}
+                        onPrint={() => {
+                            const node = document.querySelector<HTMLElement>(
+                                '[data-print-root="timetable"]',
+                            );
+                            if (node) {
+                                printDomElement(
+                                    `Emploi du temps${classroom ? ` · ${classroom.name}` : ''}`,
+                                    node,
+                                    { landscape: view !== 'day' },
+                                );
+                            }
+                        }}
                         filters={
                             <SearchSelect
                                 value={classroomId}
@@ -338,7 +351,14 @@ export default function TimetableIndex({
                         }
                     />
 
-                    <div className="text-muted-foreground hidden border-b px-4 py-2 text-[13px] print:block">
+                    <div
+                        data-print-root="timetable"
+                        className="flex min-h-0 flex-1 flex-col overflow-hidden"
+                    >
+                    <div
+                        data-print-only
+                        className="text-muted-foreground hidden border-b px-4 py-2 text-[13px]"
+                    >
                         {catalog.profile.name} · {classroom?.name} ·{' '}
                         {academicYearLabel} · {cycleLabel(filter.cycle)}
                     </div>
@@ -385,6 +405,7 @@ export default function TimetableIndex({
                             </div>
                         </>
                     )}
+                    </div>
                 </div>
             </PageShell>
             <FormSheet

@@ -36,7 +36,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('eleves/admissions', [SchoolPagesController::class, 'admissions'])->name('students.admissions');
     Route::get('eleves/reinscriptions', [SchoolPagesController::class, 'reenrollments'])->name('students.reenrollments');
     Route::get('eleves/{student}', [SchoolPagesController::class, 'student']);
-    Route::get('eleves/{student}/identite', [SchoolPagesController::class, 'showStudent'])->name('students.show');
+    Route::get('eleves/{student}/synthese', [SchoolPagesController::class, 'studentOverview'])->name('students.show');
+    Route::get('eleves/{student}/identite', [SchoolPagesController::class, 'showStudent'])->name('students.identity');
+    Route::get('eleves/{student}/parcours', [SchoolPagesController::class, 'studentPrevious'])->name('students.previous');
+    Route::get('eleves/{student}/dossier', [SchoolPagesController::class, 'studentDossier'])->name('students.dossier');
     Route::get('eleves/{student}/tuteurs', [SchoolPagesController::class, 'studentGuardians'])->name('students.guardians');
     Route::get('eleves/{student}/notes', [SchoolPagesController::class, 'studentGrades'])->name('students.grades');
     Route::get('eleves/{student}/paiements', [SchoolPagesController::class, 'studentPayments'])->name('students.payments');
@@ -47,7 +50,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('enseignants', [SchoolPagesController::class, 'teachers'])->name('teachers.index');
     Route::get('enseignants/nouveau', [SchoolPagesController::class, 'createTeacher'])->name('teachers.create');
     Route::get('enseignants/{teacher}', [SchoolPagesController::class, 'teacher']);
-    Route::get('enseignants/{teacher}/identite', [SchoolPagesController::class, 'showTeacher'])->name('teachers.show');
+    Route::get('enseignants/{teacher}/synthese', [SchoolPagesController::class, 'teacherOverview'])->name('teachers.show');
+    Route::get('enseignants/{teacher}/identite', [SchoolPagesController::class, 'showTeacher'])->name('teachers.identity');
     Route::get('enseignants/{teacher}/dossier', [SchoolPagesController::class, 'teacherDossier'])->name('teachers.dossier');
     Route::get('enseignants/{teacher}/affectations', [SchoolPagesController::class, 'teacherAssignments'])->name('teachers.assignments');
     Route::get('matieres', [SchoolPagesController::class, 'subjects'])->name('subjects.index');
@@ -80,6 +84,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('documents', [SchoolPagesController::class, 'documents'])->name('documents.index');
     Route::get('documents/demandes', [SchoolPagesController::class, 'documentRequests'])->name('documents.requests');
     Route::get('documents/modeles', [SchoolPagesController::class, 'documentTemplates'])->name('documents.templates');
+    Route::get('cartes-identite', [SchoolPagesController::class, 'idCards'])->name('id-cards.index');
     Route::get('utilisateurs', [SchoolPagesController::class, 'staffUsers'])->name('staff.index');
     Route::get('structure', [SchoolPagesController::class, 'structure']);
     Route::get('structure/annees', [SchoolPagesController::class, 'years'])->name('structure.index');

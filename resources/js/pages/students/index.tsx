@@ -8,6 +8,8 @@ import {
     Plus,
     School,
     User,
+    UserCheck,
+    UserMinus,
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { CodeBadge, TrackBadge } from '@/components/sms/code-badge';
@@ -15,6 +17,7 @@ import {
     DATA_TABLE_CONTAINER,
     DataTableColumnHeader,
 } from '@/components/sms/data-table';
+import { KpiCard, KpiGrid } from '@/components/sms/kpi-card';
 import { ListPage } from '@/components/sms/list-page';
 import { RowMenu } from '@/components/sms/row-menu';
 import { useClientTable } from '@/hooks/use-client-table';
@@ -58,14 +61,28 @@ export default function StudentsIndex({ catalog }: { catalog: SchoolDataset }) {
             classroom.cycle === filter.cycle &&
             classroom.academicYearId === filter.academicYearId,
     );
+    const scoped = useMemo(
+        () =>
+            studentRows(catalog, filter).filter(
+                (row) => !removed.includes(row.id),
+            ),
+        [catalog, filter, removed],
+    );
+    const stats = useMemo(
+        () => ({
+            total: scoped.length,
+            enrolled: scoped.filter((row) => row.status === 'inscrit').length,
+            transferred: scoped.filter((row) => row.status === 'transfere')
+                .length,
+            dropped: scoped.filter((row) => row.status === 'abandonne').length,
+            classrooms: classrooms.length,
+        }),
+        [classrooms.length, scoped],
+    );
     const rows = useMemo(() => {
         const needle = search.trim().toLowerCase();
 
-        return studentRows(catalog, filter).filter((row) => {
-            if (removed.includes(row.id)) {
-                return false;
-            }
-
+        return scoped.filter((row) => {
             if (classroomId !== 'all' && row.classroomId !== classroomId) {
                 return false;
             }
@@ -85,7 +102,7 @@ export default function StudentsIndex({ catalog }: { catalog: SchoolDataset }) {
                 .toLowerCase()
                 .includes(needle);
         });
-    }, [catalog, classroomId, filter, removed, search]);
+    }, [classroomId, scoped, search]);
     const table = useClientTable(rows);
 
     async function removeEnrollment(
@@ -114,6 +131,34 @@ export default function StudentsIndex({ catalog }: { catalog: SchoolDataset }) {
                 searchPlaceholder="Rechercher nom, matricule, classe..."
                 search={search}
                 onSearchChange={setSearch}
+                stats={
+                    <KpiGrid>
+                        <KpiCard
+                            icon={GraduationCap}
+                            label="Inscriptions"
+                            value={String(stats.total)}
+                            hint={`${cycleLabel(filter.cycle)} · ${academicYearLabel}`}
+                        />
+                        <KpiCard
+                            icon={UserCheck}
+                            label="Inscrits"
+                            value={String(stats.enrolled)}
+                            hint={`${cycleLabel(filter.cycle)} · ${academicYearLabel}`}
+                        />
+                        <KpiCard
+                            icon={Layers}
+                            label="Classes"
+                            value={String(stats.classrooms)}
+                            hint={`${cycleLabel(filter.cycle)} · ${academicYearLabel}`}
+                        />
+                        <KpiCard
+                            icon={UserMinus}
+                            label="Sorties"
+                            value={String(stats.transferred + stats.dropped)}
+                            hint={`${cycleLabel(filter.cycle)} · ${academicYearLabel}`}
+                        />
+                    </KpiGrid>
+                }
                 filters={
                     <SearchSelect
                         value={classroomId}

@@ -6,6 +6,8 @@ import {
     Megaphone,
     MessageSquare,
     Plus,
+    Radio,
+    TimerOff,
     Users,
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
@@ -18,6 +20,7 @@ import { DatePicker } from '@/components/sms/date-picker';
 import { DetailDialog } from '@/components/sms/detail-dialog';
 import { Field } from '@/components/sms/field';
 import { FormSheet } from '@/components/sms/form-sheet';
+import { KpiCard, KpiGrid } from '@/components/sms/kpi-card';
 import { ListPage } from '@/components/sms/list-page';
 import { RowMenu } from '@/components/sms/row-menu';
 import { useClientTable } from '@/hooks/use-client-table';
@@ -119,6 +122,22 @@ export default function AnnouncementsIndex({
     const [form, setForm] = useState<AnnouncementForm>(EMPTY_FORM);
     const [saving, setSaving] = useState(false);
     const { errors, clearErrors, validate, showErrors } = useFieldErrors();
+    const stats = useMemo(() => {
+        const active = items.filter(
+            (item) => !isAnnouncementExpired(item),
+        ).length;
+        const parents = items.filter(
+            (item) =>
+                item.audience === 'parents' || item.audience === 'tous',
+        ).length;
+
+        return {
+            total: items.length,
+            active,
+            expired: items.length - active,
+            parents,
+        };
+    }, [items]);
     const rows = useMemo(() => {
         const needle = search.trim().toLowerCase();
 
@@ -248,6 +267,34 @@ export default function AnnouncementsIndex({
                 searchPlaceholder="Rechercher une annonce..."
                 search={search}
                 onSearchChange={setSearch}
+                stats={
+                    <KpiGrid>
+                        <KpiCard
+                            icon={Megaphone}
+                            label="Annonces"
+                            value={String(stats.total)}
+                            hint="Messages du bureau"
+                        />
+                        <KpiCard
+                            icon={Radio}
+                            label="En cours"
+                            value={String(stats.active)}
+                            hint="Non expirées"
+                        />
+                        <KpiCard
+                            icon={TimerOff}
+                            label="Expirées"
+                            value={String(stats.expired)}
+                            hint="À archiver ou renouveler"
+                        />
+                        <KpiCard
+                            icon={Users}
+                            label="Vers les parents"
+                            value={String(stats.parents)}
+                            hint="Parents ou tout public"
+                        />
+                    </KpiGrid>
+                }
                 actions={
                     <Button type="button" size="sm" onClick={openCreate}>
                         <Plus />

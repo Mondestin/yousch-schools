@@ -12,6 +12,7 @@ import {
     ShieldCheck,
     User,
     UserCog,
+    Users,
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { z } from 'zod';
@@ -21,13 +22,13 @@ import {
 } from '@/components/sms/data-table';
 import { Field } from '@/components/sms/field';
 import { FormSheet } from '@/components/sms/form-sheet';
+import { KpiCard, KpiGrid } from '@/components/sms/kpi-card';
 import { ListPage } from '@/components/sms/list-page';
 import { RowMenu } from '@/components/sms/row-menu';
 import { useClientTable } from '@/hooks/use-client-table';
 import { useFieldErrors } from '@/hooks/use-field-errors';
 import { PageHeader } from '@/components/sms/page-header';
 import { PageShell } from '@/components/sms/page-shell';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import {
     PresenceBadge,
     StaffCycleBadges,
@@ -108,6 +109,19 @@ export default function StaffIndex({ catalog }: { catalog: SchoolDataset }) {
         cycles: allCycles,
     });
     const { errors, clearErrors, validate, showErrors } = useFieldErrors();
+    const stats = useMemo(() => {
+        const blocked = items.filter((user) => user.blocked).length;
+        const admins = items.filter((user) => user.role === 'admin').length;
+        const seen = items.filter((user) => user.lastSeenAt !== null).length;
+
+        return {
+            total: items.length,
+            active: items.length - blocked,
+            blocked,
+            admins,
+            seen,
+        };
+    }, [items]);
     const rows = useMemo(() => {
         const needle = search.trim().toLowerCase();
 
@@ -305,16 +319,6 @@ export default function StaffIndex({ catalog }: { catalog: SchoolDataset }) {
                     title="Utilisateurs"
                     description="Comptes du bureau. Le rôle ouvre les menus ; les niveaux limitent le cycle visible."
                 />
-                <Alert className="mx-6 mb-4 w-auto">
-                    <UserCog />
-                    <AlertTitle>Accès selon le rôle et les niveaux</AlertTitle>
-                    <AlertDescription>
-                        Le menu suit le rôle. Secrétaire : pas de notes.
-                        Enseignant : pas de caisse. Admin : sièges d’abonnement.
-                        Les niveaux cochés sont les seuls cycles que le compte
-                        peut ouvrir.
-                    </AlertDescription>
-                </Alert>
                 <ListPage
                     embedded
                     title="Utilisateurs"
@@ -323,6 +327,34 @@ export default function StaffIndex({ catalog }: { catalog: SchoolDataset }) {
                     searchPlaceholder="Rechercher nom, e-mail, téléphone, rôle, niveau..."
                     search={search}
                     onSearchChange={setSearch}
+                    stats={
+                        <KpiGrid>
+                            <KpiCard
+                                icon={Users}
+                                label="Comptes"
+                                value={String(stats.total)}
+                                hint="Utilisateurs du bureau"
+                            />
+                            <KpiCard
+                                icon={ShieldCheck}
+                                label="Actifs"
+                                value={String(stats.active)}
+                                hint="Non bloqués"
+                            />
+                            <KpiCard
+                                icon={Ban}
+                                label="Bloqués"
+                                value={String(stats.blocked)}
+                                hint="Accès suspendu"
+                            />
+                            <KpiCard
+                                icon={Shield}
+                                label="Admins"
+                                value={String(stats.admins)}
+                                hint={`${stats.seen} déjà connecté${stats.seen === 1 ? '' : 's'}`}
+                            />
+                        </KpiGrid>
+                    }
                     actions={
                         <Button type="button" size="sm" onClick={openCreate}>
                             <Plus />

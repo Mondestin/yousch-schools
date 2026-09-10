@@ -2,9 +2,11 @@ import { Head, Link, router } from '@inertiajs/react';
 import {
     Briefcase,
     EllipsisVertical,
+    Link2,
     Phone,
     Plus,
     User,
+    UserRound,
     Users,
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
@@ -14,6 +16,7 @@ import {
 } from '@/components/sms/data-table';
 import { Field } from '@/components/sms/field';
 import { FormSheet } from '@/components/sms/form-sheet';
+import { KpiCard, KpiGrid } from '@/components/sms/kpi-card';
 import { ListPage } from '@/components/sms/list-page';
 import { RowMenu } from '@/components/sms/row-menu';
 import { useClientTable } from '@/hooks/use-client-table';
@@ -86,17 +89,40 @@ export default function GuardiansIndex({
         () => ({ ...catalog, guardians: items }),
         [catalog, items],
     );
+    const scoped = useMemo(
+        () => guardianRows(catalogForRows),
+        [catalogForRows],
+    );
+    const stats = useMemo(() => {
+        const linked = scoped.filter((row) => row.childrenCount > 0);
+        const withPhone = scoped.filter((row) => row.phone.trim() !== '').length;
+        const childrenCovered = new Set(
+            linked.flatMap((row) =>
+                catalogForRows.studentGuardians
+                    .filter((link) => link.guardianId === row.id)
+                    .map((link) => link.studentId),
+            ),
+        ).size;
+
+        return {
+            total: scoped.length,
+            linked: linked.length,
+            unlinked: scoped.length - linked.length,
+            withPhone,
+            childrenCovered,
+        };
+    }, [catalogForRows.studentGuardians, scoped]);
     const rows = useMemo(() => {
         const needle = search.trim().toLowerCase();
 
-        return guardianRows(catalogForRows).filter((row) =>
+        return scoped.filter((row) =>
             needle === ''
                 ? true
                 : `${row.lastName} ${row.firstName} ${row.phone} ${row.profession}`
                       .toLowerCase()
                       .includes(needle),
         );
-    }, [catalogForRows, search]);
+    }, [scoped, search]);
     const table = useClientTable(rows);
 
     function openCreate(): void {
@@ -213,6 +239,34 @@ export default function GuardiansIndex({
                 searchPlaceholder="Rechercher nom ou téléphone..."
                 search={search}
                 onSearchChange={setSearch}
+                stats={
+                    <KpiGrid>
+                        <KpiCard
+                            icon={Users}
+                            label="Tuteurs"
+                            value={String(stats.total)}
+                            hint="Fiches au secrétariat"
+                        />
+                        <KpiCard
+                            icon={Link2}
+                            label="Liés"
+                            value={String(stats.linked)}
+                            hint={`${stats.childrenCovered} élève${stats.childrenCovered === 1 ? '' : 's'} couvert${stats.childrenCovered === 1 ? '' : 's'}`}
+                        />
+                        <KpiCard
+                            icon={UserRound}
+                            label="Sans élève"
+                            value={String(stats.unlinked)}
+                            hint="À rattacher"
+                        />
+                        <KpiCard
+                            icon={Phone}
+                            label="Avec téléphone"
+                            value={String(stats.withPhone)}
+                            hint="Contactables"
+                        />
+                    </KpiGrid>
+                }
                 actions={
                     <Button type="button" size="sm" onClick={openCreate}>
                         <Plus />

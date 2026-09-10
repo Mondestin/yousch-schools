@@ -14,7 +14,10 @@ test('guests cannot visit school stub pages', function (string $uri) {
     '/eleves/inscription',
     '/eleves/admissions',
     '/eleves/reinscriptions',
+    '/eleves/st-8/synthese',
     '/eleves/st-8/identite',
+    '/eleves/st-8/parcours',
+    '/eleves/st-8/dossier',
     '/eleves/st-8/tuteurs',
     '/eleves/st-8/notes',
     '/eleves/st-8/paiements',
@@ -22,7 +25,7 @@ test('guests cannot visit school stub pages', function (string $uri) {
     '/tuteurs/gd-1',
     '/enseignants',
     '/enseignants/nouveau',
-    '/enseignants/tc-4/identite',
+    '/enseignants/tc-4/synthese',
     '/enseignants/tc-4/dossier',
     '/enseignants/tc-4/affectations',
     '/matieres',
@@ -54,12 +57,15 @@ test('guests cannot visit school stub pages', function (string $uri) {
     '/caisse/frais',
     '/caisse/mouvements',
     '/annonces',
+    '/cartes-identite',
     '/eleves/st-8/documents',
     '/eleves/st-8/discipline',
     '/caisse/frais/st-8/recu/py-5',
 ]);
 
 test('authenticated staff can visit school stub pages', function (string $uri, string $component) {
+    $this->seed(SchoolTaxonomySeeder::class);
+    $this->seed(SchoolPeopleSeeder::class);
     $this->actingAs(User::factory()->create());
 
     $this->get($uri)
@@ -75,7 +81,9 @@ test('authenticated staff can visit school stub pages', function (string $uri, s
     ['/eleves/inscription', 'students/create'],
     ['/eleves/admissions', 'students/admissions'],
     ['/eleves/reinscriptions', 'students/reenrollments'],
-    ['/eleves/st-8/identite', 'students/identity'],
+    ['/eleves/st-8/synthese', 'students/overview'],
+    ['/eleves/st-8/parcours', 'students/previous'],
+    ['/eleves/st-8/dossier', 'students/dossier'],
     ['/eleves/st-8/tuteurs', 'students/guardians'],
     ['/eleves/st-8/notes', 'students/grades'],
     ['/eleves/st-8/paiements', 'students/payments'],
@@ -83,7 +91,7 @@ test('authenticated staff can visit school stub pages', function (string $uri, s
     ['/tuteurs/gd-1', 'guardians/show'],
     ['/enseignants', 'teachers/index'],
     ['/enseignants/nouveau', 'teachers/create'],
-    ['/enseignants/tc-4/identite', 'teachers/identity'],
+    ['/enseignants/tc-4/synthese', 'teachers/overview'],
     ['/enseignants/tc-4/dossier', 'teachers/dossier'],
     ['/enseignants/tc-4/affectations', 'teachers/assignments'],
     ['/matieres', 'subjects/index'],
@@ -111,6 +119,7 @@ test('authenticated staff can visit school stub pages', function (string $uri, s
     ['/materiel', 'inventory/index'],
     ['/caisse/mouvements', 'cash/index'],
     ['/annonces', 'announcements/index'],
+    ['/cartes-identite', 'id-cards/index'],
     ['/eleves/st-8/documents', 'students/documents'],
     ['/eleves/st-8/discipline', 'students/discipline'],
     ['/caisse/frais/st-8/recu/py-5', 'payments/receipt'],
@@ -279,6 +288,8 @@ test('catalog fees cover every african cycle including lycees', function () {
 });
 
 test('school profile includes promoter director city and logo field', function () {
+    $this->seed(SchoolTaxonomySeeder::class);
+
     $profile = SchoolCatalog::dataset()['profile'];
 
     expect($profile['name'])->toBe('Complexe Scolaire Les Palmiers')
@@ -289,7 +300,9 @@ test('school profile includes promoter director city and logo field', function (
         ->and($profile['phone'])->not->toBeEmpty()
         ->and($profile['email'])->toBe('contact@palmiers.cg')
         ->and($profile)->toHaveKey('logoUrl')
-        ->and($profile)->toHaveKey('stampUrl');
+        ->and($profile)->toHaveKey('stampUrl')
+        ->and($profile)->toHaveKey('idCardAccent')
+        ->and($profile)->toHaveKey('idCardBody');
 });
 
 test('each academic year has three trimestres', function () {
@@ -302,25 +315,33 @@ test('each academic year has three trimestres', function () {
     }
 });
 
-test('authenticated staff are redirected from student root to identite', function () {
+test('authenticated staff are redirected from student root to synthese', function () {
+    $this->seed(SchoolTaxonomySeeder::class);
+    $this->seed(SchoolPeopleSeeder::class);
     $this->actingAs(User::factory()->create());
 
-    $this->get('/eleves/st-8')->assertRedirect('/eleves/st-8/identite');
+    $this->get('/eleves/st-8')->assertRedirect('/eleves/st-8/synthese');
 });
 
 test('unknown student fiche returns 404', function () {
+    $this->seed(SchoolTaxonomySeeder::class);
+    $this->seed(SchoolPeopleSeeder::class);
     $this->actingAs(User::factory()->create());
 
-    $this->get('/eleves/inconnu/identite')->assertNotFound();
+    $this->get('/eleves/inconnu/synthese')->assertNotFound();
 });
 
 test('student fiche receives the catalog student id', function () {
+    $this->seed(SchoolTaxonomySeeder::class);
+    $this->seed(SchoolPeopleSeeder::class);
     $this->actingAs(User::factory()->create());
 
-    $this->get('/eleves/st-8/identite')
+    $this->get('/eleves/st-8/identite')->assertRedirect('/eleves/st-8/synthese');
+
+    $this->get('/eleves/st-8/synthese')
         ->assertOk()
         ->assertInertia(fn ($page) => $page
-            ->component('students/identity')
+            ->component('students/overview')
             ->where('studentId', 'st-8'));
 });
 
@@ -357,12 +378,12 @@ test('unknown teacher fiche returns 404', function () {
     $this->get('/enseignants/inconnu')->assertNotFound();
 });
 
-test('teacher base url redirects to identity', function () {
+test('teacher base url redirects to synthese', function () {
     $this->seed(SchoolTaxonomySeeder::class);
     $this->seed(SchoolPeopleSeeder::class);
     $this->actingAs(User::factory()->create());
 
-    $this->get('/enseignants/tc-4')->assertRedirect('/enseignants/tc-4/identite');
+    $this->get('/enseignants/tc-4')->assertRedirect('/enseignants/tc-4/synthese');
 });
 
 test('teacher fiche receives the catalog teacher id', function () {
@@ -370,10 +391,12 @@ test('teacher fiche receives the catalog teacher id', function () {
     $this->seed(SchoolPeopleSeeder::class);
     $this->actingAs(User::factory()->create());
 
-    $this->get('/enseignants/tc-4/identite')
+    $this->get('/enseignants/tc-4/identite')->assertRedirect('/enseignants/tc-4/synthese');
+
+    $this->get('/enseignants/tc-4/synthese')
         ->assertOk()
         ->assertInertia(fn ($page) => $page
-            ->component('teachers/identity')
+            ->component('teachers/overview')
             ->where('teacherId', 'tc-4')
             ->has('catalog.teacherAssignments'));
 

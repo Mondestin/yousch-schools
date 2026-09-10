@@ -15,6 +15,7 @@ export type NavKey =
     | 'inventory'
     | 'announcements'
     | 'documents'
+    | 'id-cards'
     | 'staff'
     | 'school'
     | 'subscription'
@@ -36,6 +37,7 @@ const ALL_NAV: NavKey[] = [
     'inventory',
     'announcements',
     'documents',
+    'id-cards',
     'staff',
     'school',
     'subscription',
@@ -54,6 +56,7 @@ const ROLE_NAV: Record<StaffRole, NavKey[]> = {
         'inventory',
         'announcements',
         'documents',
+        'id-cards',
         'school',
         'structure',
         'settings',
