@@ -57,6 +57,14 @@ Route::prefix('v1')->group(function (): void {
             ->name('api.v1.me');
         Route::get('/subscription', [SubscriptionController::class, 'show'])
             ->name('api.v1.subscription');
+        Route::put('/subscription/plan', [SubscriptionController::class, 'updatePlan'])
+            ->name('api.v1.subscription.plan');
+        Route::put('/subscription/billing', [SubscriptionController::class, 'updateBilling'])
+            ->name('api.v1.subscription.billing');
+        Route::put('/subscription/payment', [SubscriptionController::class, 'updatePayment'])
+            ->name('api.v1.subscription.payment');
+        Route::post('/subscription/cancel', [SubscriptionController::class, 'cancel'])
+            ->name('api.v1.subscription.cancel');
         Route::get('/catalog', [CatalogController::class, 'show'])
             ->name('api.v1.catalog');
 

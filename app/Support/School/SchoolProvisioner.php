@@ -6,6 +6,7 @@ use App\Models\School;
 use App\Models\SchoolProfile;
 use App\Models\SchoolSubscription;
 use App\Models\User;
+use App\Support\Billing\SubscriptionCatalog;
 use App\Support\Tenancy\CurrentSchool;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -69,10 +70,15 @@ final class SchoolProvisioner
                 'school_id' => $school->id,
                 'plan' => 'gold',
                 'status' => 'active',
-                'seats' => 5,
+                'seats' => SubscriptionCatalog::seatsFor('gold'),
                 'used_seats' => 1,
                 'renews_on' => now()->addMonth()->toDateString(),
-                'monthly_amount' => 0,
+                'monthly_amount' => SubscriptionCatalog::offer('gold')['monthlyAmount'],
+                'billing_period' => 'monthly',
+                'billing_name' => $input['schoolName'] ?? $input['name'],
+                'billing_email' => $adminEmail,
+                'billing_city' => $input['city'] ?? null,
+                'billing_country' => 'République du Congo',
             ]);
 
             FrenchAcademicCalendar::createCurrentYear(isCurrent: true);
@@ -86,13 +92,7 @@ final class SchoolProvisioner
                 'password' => Hash::make($input['adminPassword']),
                 'role' => 'admin',
                 'email_verified_at' => now(),
-                'cycles' => [
-                    'prescolaire',
-                    'primaire',
-                    'college',
-                    'lycee_general',
-                    'lycee_technique',
-                ],
+                'cycles' => SubscriptionCatalog::cyclesFor('gold'),
             ]);
 
             return [

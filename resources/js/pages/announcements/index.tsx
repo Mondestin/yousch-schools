@@ -59,7 +59,7 @@ import {
     update as updateAnnouncement,
 } from '@/routes/api/v1/announcements';
 import { index as announcements } from '@/routes/announcements';
-import { ApiError, apiData, apiJson } from '@/lib/api';
+import { ApiError, apiJson } from '@/lib/api';
 import type {
     Announcement,
     AnnouncementAudience,
@@ -223,15 +223,24 @@ export default function AnnouncementsIndex({
         setSaving(true);
 
         try {
-            const saved = editingId
-                ? await apiData<Announcement>(
-                      updateAnnouncement.url(editingId),
-                      { method: 'PUT', body: payload },
-                  )
-                : await apiData<Announcement>(storeAnnouncement.url(), {
+            const response = editingId
+                ? await apiJson<{
+                      data: Announcement;
+                      meta?: { staffEmailed?: number };
+                  }>(updateAnnouncement.url(editingId), {
+                      method: 'PUT',
+                      body: payload,
+                  })
+                : await apiJson<{
+                      data: Announcement;
+                      meta?: { staffEmailed?: number };
+                  }>(storeAnnouncement.url(), {
                       method: 'POST',
                       body: payload,
                   });
+
+            const saved = response.data;
+            const staffEmailed = response.meta?.staffEmailed ?? 0;
 
             setItems((current) =>
                 editingId
@@ -241,7 +250,16 @@ export default function AnnouncementsIndex({
                     : [saved, ...current],
             );
             setOpen(false);
-            toastSaved();
+
+            if (staffEmailed > 0) {
+                toastSaved(
+                    editingId
+                        ? `Annonce mise à jour · e-mail envoyé à ${staffEmailed} personne${staffEmailed > 1 ? 's' : ''}`
+                        : `Annonce publiée · e-mail envoyé à ${staffEmailed} personne${staffEmailed > 1 ? 's' : ''}`,
+                );
+            } else {
+                toastSaved();
+            }
         } catch (error) {
             if (error instanceof ApiError) {
                 const fields = error.fieldErrors();
@@ -262,7 +280,7 @@ export default function AnnouncementsIndex({
             <Head title="Annonces" />
             <ListPage
                 title="Annonces"
-                description="Messages aux parents, aux élèves et au personnel. En production, l’envoi SMS/WhatsApp sera branché ici."
+                description="Messages aux parents, aux élèves et au personnel. Les annonces destinées au personnel ou à tout public sont aussi envoyées par e-mail au personnel."
                 icon={Megaphone}
                 searchPlaceholder="Rechercher une annonce..."
                 search={search}
@@ -474,7 +492,12 @@ export default function AnnouncementsIndex({
                         }
                     />
                 </Field>
-                <Field id="audience" label="Destinataires" required>
+                <Field
+                    id="audience"
+                    label="Destinataires"
+                    required
+                    hint="Personnel et « Tous » : un e-mail est envoyé à tout le personnel de l’école (si la date de publication est atteinte)."
+                >
                     <Select
                         value={form.audience}
                         onValueChange={(value) =>

@@ -85,7 +85,7 @@ test('directeur can read subscription but secretaire cannot', function () {
     $this->actingAs($directeur)
         ->getJson('/api/v1/subscription')
         ->assertOk()
-        ->assertJsonPath('data.plan', 'platinium')
+        ->assertJsonPath('data.plan', 'titanium')
         ->assertJsonStructure([
             'data' => [
                 'plan',
@@ -94,6 +94,8 @@ test('directeur can read subscription but secretaire cannot', function () {
                 'usedSeats',
                 'renewsOn',
                 'monthlyAmount',
+                'cycles',
+                'cyclesLabel',
                 'receipts',
             ],
         ]);

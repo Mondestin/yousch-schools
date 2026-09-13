@@ -347,6 +347,22 @@ export type Subscription = {
     usedSeats: number;
     renewsOn: string;
     monthlyAmount: number;
+    billingPeriod?: 'monthly' | 'annual';
+    /** Cycles inclus dans la formule courante. */
+    cycles?: Cycle[];
+    cyclesLabel?: string;
+    billing?: {
+        name: string | null;
+        email: string | null;
+        address: string | null;
+        city: string | null;
+        country: string | null;
+        vat: string | null;
+    } | null;
+    payment?: {
+        provider: string | null;
+        phone: string | null;
+    } | null;
     receipts: SubscriptionReceipt[];
 };
 

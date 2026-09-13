@@ -1,3 +1,4 @@
+import { usePage } from '@inertiajs/react';
 import { CalendarDays, GitBranch } from 'lucide-react';
 import {
     Select,
@@ -8,10 +9,10 @@ import {
 } from '@/components/ui/select';
 import { useSchoolContext } from '@/hooks/use-school-context';
 import { anneeQueryFromLabel, SCHOOL_CYCLES } from '@/lib/school-context';
-import { schoolDataset } from '@/mocks';
-import type { Cycle } from '@/types/school';
+import type { Cycle, SchoolDataset } from '@/types/school';
 
 export function CycleYearSwitcher() {
+    const { catalog } = usePage<{ catalog: SchoolDataset | null }>().props;
     const { cycle, annee, allowedCycles, setContext } = useSchoolContext({
         syncUrl: true,
     });
@@ -19,9 +20,12 @@ export function CycleYearSwitcher() {
         allowedCycles.includes(item.value),
     );
     const options = cycles.length > 0 ? cycles : SCHOOL_CYCLES;
+    const years = [...(catalog?.academicYears ?? [])].sort((left, right) =>
+        right.startsOn.localeCompare(left.startsOn),
+    );
 
     return (
-        <div className="ml-auto flex shrink-0 items-center gap-1.5 sm:gap-2">
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
             <Select
                 value={cycle}
                 onValueChange={(value) => {
@@ -67,7 +71,7 @@ export function CycleYearSwitcher() {
                     <SelectValue className="min-w-0 truncate" />
                 </SelectTrigger>
                 <SelectContent align="end">
-                    {schoolDataset.academicYears.map((year) => (
+                    {years.map((year) => (
                         <SelectItem
                             key={year.id}
                             value={anneeQueryFromLabel(year.label)}

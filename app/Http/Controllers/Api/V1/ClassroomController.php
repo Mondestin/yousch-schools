@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Classroom;
 use App\Models\User;
 use App\Support\Api\ResourceId;
+use App\Support\Billing\SubscriptionCatalog;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -161,6 +162,14 @@ class ClassroomController extends Controller
         ]);
 
         $cycleEnum = Cycle::tryFrom($validated['cycle']);
+
+        if ($cycleEnum !== null) {
+            SubscriptionCatalog::assertCyclesAllowed(
+                SubscriptionCatalog::currentPlan(),
+                $cycleEnum->value,
+                'cycle',
+            );
+        }
 
         if ($cycleEnum?->isLycee() && empty($validated['trackId'])) {
             throw ValidationException::withMessages([

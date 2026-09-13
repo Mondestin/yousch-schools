@@ -35,6 +35,7 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { downloadSubscriptionInvoicePdf } from '@/lib/school-subscription-pdf';
+import { apiData } from '@/lib/api';
 import {
     formatFcfa,
     formatFrDate,
@@ -43,20 +44,28 @@ import {
 import {
     PLAN_OFFERS,
     planLabel,
+    planOffer,
     subscriptionStatusLabel,
     type PlanOffer,
 } from '@/lib/school-subscription';
-import { toastSaved, toastStub } from '@/lib/school-toast';
+import { toastApiError, toastSaved } from '@/lib/school-toast';
 import {
     MOBILE_MONEY_PROVIDERS,
     normalizeMobileMoneyPhone,
     type MobileMoneyAccount,
     type MobileMoneyProvider,
 } from '@/lib/school-mobile-money';
+import {
+    billing as updateBilling,
+    cancel as cancelSubscription,
+    payment as updatePayment,
+    plan as updatePlan,
+} from '@/routes/api/v1/subscription';
 import { subscription } from '@/routes/organisation';
 import type {
     PaymentStatus,
     SchoolDataset,
+    Subscription,
     SubscriptionPlan,
     SubscriptionReceipt,
 } from '@/types/school';
@@ -82,22 +91,33 @@ export default function OrganisationSubscriptionPage({
 }: {
     catalog: SchoolDataset;
 }) {
-    const { profile, subscription: item } = catalog;
-    const [plan, setPlan] = useState<SubscriptionPlan>(item.plan);
-    const [period, setPeriod] = useState<BillingPeriod>('monthly');
-    const [payment, setPayment] = useState<MobileMoneyAccount | null>(null);
+    const { profile, subscription: initial } = catalog;
+    const [item, setItem] = useState<Subscription>(initial);
+    const [plan, setPlan] = useState<SubscriptionPlan>(initial.plan);
+    const [period, setPeriod] = useState<BillingPeriod>(
+        initial.billingPeriod ?? 'monthly',
+    );
+    const [payment, setPayment] = useState<MobileMoneyAccount | null>(() =>
+        initial.payment?.provider && initial.payment.phone
+            ? {
+                  provider: initial.payment.provider as MobileMoneyProvider,
+                  phone: initial.payment.phone,
+              }
+            : null,
+    );
     const [draftProvider, setDraftProvider] =
         useState<MobileMoneyProvider>('airtel');
     const [draftPhone, setDraftPhone] = useState('');
     const [phoneError, setPhoneError] = useState('');
     const [address, setAddress] = useState<Address>({
-        name: profile.name,
-        email: profile.email,
-        address: profile.address,
-        city: profile.city,
-        country: profile.country,
-        vat: '',
+        name: initial.billing?.name || profile.name,
+        email: initial.billing?.email || profile.email,
+        address: initial.billing?.address || profile.address,
+        city: initial.billing?.city || profile.city,
+        country: initial.billing?.country || profile.country,
+        vat: initial.billing?.vat || '',
     });
+    const [saving, setSaving] = useState(false);
     const [planOpen, setPlanOpen] = useState(false);
     const [addressOpen, setAddressOpen] = useState(false);
     const [paymentOpen, setPaymentOpen] = useState(false);
@@ -111,6 +131,28 @@ export default function OrganisationSubscriptionPage({
         PLAN_OFFERS[0]!;
     const amount =
         period === 'annual' ? offer.monthlyAmount * 10 : offer.monthlyAmount;
+
+    function applySubscription(next: Subscription): void {
+        setItem(next);
+        setPlan(next.plan);
+        setPeriod(next.billingPeriod ?? 'monthly');
+        setPayment(
+            next.payment?.provider && next.payment.phone
+                ? {
+                      provider: next.payment.provider as MobileMoneyProvider,
+                      phone: next.payment.phone,
+                  }
+                : null,
+        );
+        setAddress({
+            name: next.billing?.name || profile.name,
+            email: next.billing?.email || profile.email,
+            address: next.billing?.address || profile.address,
+            city: next.billing?.city || profile.city,
+            country: next.billing?.country || profile.country,
+            vat: next.billing?.vat || '',
+        });
+    }
 
     function downloadReceipt(receipt: SubscriptionReceipt): void {
         downloadSubscriptionInvoicePdf({
@@ -135,7 +177,9 @@ export default function OrganisationSubscriptionPage({
         setPaymentOpen(open);
     }
 
-    function savePayment(event: FormEvent<HTMLFormElement>): void {
+    async function savePayment(
+        event: FormEvent<HTMLFormElement>,
+    ): Promise<void> {
         event.preventDefault();
         const phone = normalizeMobileMoneyPhone(draftPhone);
         if (!phone) {
@@ -144,15 +188,85 @@ export default function OrganisationSubscriptionPage({
             );
             return;
         }
-        setPayment({ provider: draftProvider, phone });
-        setPaymentOpen(false);
-        toastSaved('Préférence de paiement enregistrée');
+
+        setSaving(true);
+
+        try {
+            const saved = await apiData<Subscription>(updatePayment.url(), {
+                method: 'PUT',
+                body: { provider: draftProvider, phone },
+            });
+            applySubscription(saved);
+            setPaymentOpen(false);
+            toastSaved('Préférence de paiement enregistrée');
+        } catch (error) {
+            toastApiError(error);
+        } finally {
+            setSaving(false);
+        }
     }
 
-    function saveAddress(event: FormEvent<HTMLFormElement>): void {
+    async function saveAddress(
+        event: FormEvent<HTMLFormElement>,
+    ): Promise<void> {
         event.preventDefault();
-        setAddressOpen(false);
-        toastSaved('Adresse de facturation mise à jour');
+        setSaving(true);
+
+        try {
+            const saved = await apiData<Subscription>(updateBilling.url(), {
+                method: 'PUT',
+                body: address,
+            });
+            applySubscription(saved);
+            setAddressOpen(false);
+            toastSaved('Adresse de facturation mise à jour');
+        } catch (error) {
+            toastApiError(error);
+        } finally {
+            setSaving(false);
+        }
+    }
+
+    async function savePlan(): Promise<void> {
+        setSaving(true);
+
+        try {
+            const saved = await apiData<Subscription>(updatePlan.url(), {
+                method: 'PUT',
+                body: { plan, period },
+            });
+            applySubscription(saved);
+            setPlanOpen(false);
+            toastSaved('Formule de facturation mise à jour');
+        } catch (error) {
+            toastApiError(error);
+        } finally {
+            setSaving(false);
+        }
+    }
+
+    async function cancelPlan(): Promise<void> {
+        if (
+            !window.confirm(
+                'Confirmer la résiliation de l’abonnement ? L’accès restera disponible jusqu’à la fin de la période en cours.',
+            )
+        ) {
+            return;
+        }
+
+        setSaving(true);
+
+        try {
+            const saved = await apiData<Subscription>(cancelSubscription.url(), {
+                method: 'POST',
+            });
+            applySubscription(saved);
+            toastSaved('Abonnement résilié');
+        } catch (error) {
+            toastApiError(error);
+        } finally {
+            setSaving(false);
+        }
     }
 
     return (
@@ -181,7 +295,10 @@ export default function OrganisationSubscriptionPage({
                                             {planLabel(plan)}
                                         </p>
                                         <p className="text-muted-foreground text-[12px]">
-                                            {offer.seats} sièges ·{' '}
+                                            {planOffer(plan).cycles}
+                                        </p>
+                                        <p className="text-muted-foreground text-[12px]">
+                                            {item.seats} sièges ·{' '}
                                             {item.usedSeats} utilisés
                                         </p>
                                     </div>
@@ -485,9 +602,12 @@ export default function OrganisationSubscriptionPage({
                                 type="button"
                                 variant="destructive"
                                 className="h-9 gap-2 rounded-lg px-4 text-[13px]"
-                                onClick={() =>
-                                    toastStub('Résiliation de l’abonnement')
+                                disabled={
+                                    saving || item.status === 'canceled'
                                 }
+                                onClick={() => {
+                                    void cancelPlan();
+                                }}
                             >
                                 <XCircle className="size-4" />
                                 Résilier l’abonnement
@@ -561,11 +681,9 @@ export default function OrganisationSubscriptionPage({
                         </Button>
                         <Button
                             type="button"
+                            disabled={saving}
                             onClick={() => {
-                                setPlanOpen(false);
-                                toastSaved(
-                                    'Formule de facturation mise à jour',
-                                );
+                                void savePlan();
                             }}
                         >
                             Mettre à jour
@@ -812,10 +930,10 @@ function PlanOption({
         period === 'annual' ? offer.monthlyAmount * 10 : offer.monthlyAmount;
     const tier =
         offer.plan === 'gold'
-            ? 'Primaire'
+            ? 'Préscolaire + primaire'
             : offer.plan === 'platinium'
-              ? 'Primaire + collège'
-              : 'Les 3 cycles';
+              ? 'Jusqu’au collège'
+              : 'Jusqu’au lycée';
     return (
         <button
             type="button"

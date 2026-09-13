@@ -881,7 +881,7 @@ export default function Welcome() {
                                 >
                                     {index === 1 && (
                                         <span className="bg-primary text-primary-foreground absolute -top-3 left-6 rounded-full px-3 py-1 text-[10px] font-semibold tracking-wide uppercase">
-                                            Primaire et collège
+                                            Jusqu’au collège
                                         </span>
                                     )}
                                     <h3 className="text-xl font-semibold">

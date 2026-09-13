@@ -8,6 +8,8 @@ use App\Http\Controllers\Api\V1\Concerns\EnsuresStaffAbility;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Support\Auth\StaffCredentialsMailer;
+use App\Support\Billing\SubscriptionCatalog;
+use App\Support\Billing\SubscriptionSeats;
 use App\Support\Tenancy\CurrentSchool;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
@@ -54,6 +56,8 @@ class StaffController extends Controller
 
         $validated = $this->validatedStaff($request);
 
+        SubscriptionSeats::ensureAvailableSeat();
+
         $staff = User::query()->create([
             'name' => $validated['name'],
             'email' => $validated['email'],
@@ -63,6 +67,8 @@ class StaffController extends Controller
             'password' => $validated['password'] ?? 'temporary',
             'email_verified_at' => now(),
         ]);
+
+        SubscriptionSeats::syncUsedSeats();
 
         StaffCredentialsMailer::send(
             $staff,
@@ -131,6 +137,8 @@ class StaffController extends Controller
         }
 
         $model->delete();
+
+        SubscriptionSeats::syncUsedSeats();
 
         return response()->json(['message' => 'Compte utilisateur supprimé.']);
     }
@@ -273,6 +281,12 @@ class StaffController extends Controller
         ]);
 
         $validated['cycles'] = array_values(array_unique($validated['cycles']));
+
+        SubscriptionCatalog::assertCyclesAllowed(
+            SubscriptionCatalog::currentPlan(),
+            $validated['cycles'],
+            'cycles',
+        );
 
         return $validated;
     }
