@@ -64,7 +64,8 @@ test('profile avatar is stored on the uploads disk', function () {
     $user = User::factory()->create();
 
     $this->actingAs($user)
-        ->patch(route('profile.update'), [
+        ->post(route('profile.update'), [
+            '_method' => 'PATCH',
             'name' => $user->name,
             'email' => $user->email,
             'avatar' => UploadedFile::fake()->image('avatar.jpg'),
