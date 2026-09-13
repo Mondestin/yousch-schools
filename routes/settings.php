@@ -9,7 +9,9 @@ Route::middleware(['auth'])->group(function () {
     Route::redirect('settings', '/settings/profile');
 
     Route::get('settings/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('settings/profile', [ProfileController::class, 'update'])->name('profile.update');
+    // POST (+ _method=PATCH) so multipart avatar uploads work behind cPanel/HTTP2;
+    // plain PATCH with FormData often fails with ERR_HTTP2_PROTOCOL_ERROR.
+    Route::match(['patch', 'post'], 'settings/profile', [ProfileController::class, 'update'])->name('profile.update');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
