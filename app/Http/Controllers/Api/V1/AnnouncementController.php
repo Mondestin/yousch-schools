@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\V1\Concerns\EnsuresStaffAbility;
 use App\Http\Controllers\Controller;
 use App\Models\Announcement;
 use App\Models\User;
+use App\Support\Announcements\AnnouncementNotifier;
 use App\Support\Api\ResourceId;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -15,6 +16,10 @@ use Illuminate\Validation\Rule;
 class AnnouncementController extends Controller
 {
     use EnsuresStaffAbility;
+
+    public function __construct(
+        private readonly AnnouncementNotifier $notifier,
+    ) {}
 
     public function index(Request $request): JsonResponse
     {
@@ -56,7 +61,14 @@ class AnnouncementController extends Controller
             'expires_on' => $validated['expiresOn'] ?? null,
         ]);
 
-        return response()->json(['data' => $announcement->toApiArray()], 201);
+        $emailed = $this->notifier->notifyStaff($announcement, 'created');
+
+        return response()->json([
+            'data' => $announcement->toApiArray(),
+            'meta' => [
+                'staffEmailed' => $emailed,
+            ],
+        ], 201);
     }
 
     public function update(Request $request, string $announcement): JsonResponse
@@ -71,6 +83,12 @@ class AnnouncementController extends Controller
         $model = Announcement::query()->findOrFail($announcement);
         $validated = $this->validatedAnnouncement($request);
 
+        $previous = [
+            'title' => $model->title,
+            'body' => $model->body,
+            'audience' => $model->audience->value,
+        ];
+
         $model->update([
             'title' => $validated['title'],
             'body' => $validated['body'],
@@ -79,7 +97,15 @@ class AnnouncementController extends Controller
             'expires_on' => $validated['expiresOn'] ?? null,
         ]);
 
-        return response()->json(['data' => $model->fresh()->toApiArray()]);
+        $fresh = $model->fresh();
+        $emailed = $this->notifier->notifyStaff($fresh, 'updated', $previous);
+
+        return response()->json([
+            'data' => $fresh->toApiArray(),
+            'meta' => [
+                'staffEmailed' => $emailed,
+            ],
+        ]);
     }
 
     public function destroy(Request $request, string $announcement): JsonResponse

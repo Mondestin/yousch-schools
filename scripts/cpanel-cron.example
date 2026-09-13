@@ -1,0 +1,8 @@
+# cPanel → Cron Jobs (server timezone). Replace PHP_BIN and DEPLOYPATH if needed.
+# These are the bare-minimum ops so scheduled reminders + queued announcement emails run.
+
+# Laravel scheduler (marking-window reminders, etc.)
+* * * * * cd /home/mymo4034/schools.yousch.net && /usr/local/bin/php artisan schedule:run >> /dev/null 2>&1
+
+# Drain the database queue (announcement emails, etc.). Stops before the next minute.
+* * * * * cd /home/mymo4034/schools.yousch.net && /usr/local/bin/php artisan queue:work database --stop-when-empty --max-time=50 --sleep=1 --tries=3 >> /dev/null 2>&1

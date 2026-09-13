@@ -147,6 +147,7 @@ test('creating academic year seeds three terms', function () {
 
 test('classroom code is unique per year and cycle and lycée requires track', function () {
     $this->seed(SchoolTaxonomySeeder::class);
+    setSubscriptionPlan('titanium');
     $this->actingAs(User::factory()->admin()->create());
 
     $this->postJson('/api/v1/classrooms', [
@@ -190,6 +191,7 @@ test('classroom code is unique per year and cycle and lycée requires track', fu
 
 test('tracks are limited to lycée cycles', function () {
     $this->seed(SchoolTaxonomySeeder::class);
+    setSubscriptionPlan('titanium');
     $this->actingAs(User::factory()->admin()->create());
 
     $this->postJson('/api/v1/tracks', [

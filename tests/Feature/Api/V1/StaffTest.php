@@ -23,7 +23,7 @@ test('admin can list create update and delete staff', function () {
             'email' => 'amina.staff@example.test',
             'phone' => '06 500 00 01',
             'role' => 'secretaire',
-            'cycles' => ['primaire', 'college'],
+            'cycles' => ['primaire'],
         ])
         ->assertCreated()
         ->assertJsonPath('data.email', 'amina.staff@example.test')
@@ -55,7 +55,7 @@ test('admin can list create update and delete staff', function () {
             'email' => 'amina.staff@example.test',
             'phone' => '06 500 00 02',
             'role' => 'directeur',
-            'cycles' => ['college'],
+            'cycles' => ['prescolaire', 'primaire'],
         ])
         ->assertOk()
         ->assertJsonPath('data.role', 'directeur')

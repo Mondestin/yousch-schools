@@ -44,6 +44,7 @@ test('staff can create a teacher with photo and cv file', function () {
 });
 
 test('college subject requires coefficient and primaire does not', function () {
+    setSubscriptionPlan('platinium');
     Storage::fake('public');
     $this->seed(SchoolTaxonomySeeder::class);
     $this->actingAs(User::factory()->admin()->create());

@@ -1,4 +1,5 @@
 import type {
+    Cycle,
     SubscriptionMethod,
     SubscriptionPlan,
     SubscriptionStatus,
@@ -9,7 +10,9 @@ export type PlanOffer = {
     label: string;
     monthlyAmount: number;
     seats: number;
-    /** Cycles couverts par la formule. */
+    /** Cycle values covered by the plan. */
+    cycleValues: Cycle[];
+    /** Human-readable cycles line for pricing cards. */
     cycles: string;
     summary: string;
 };
@@ -21,24 +24,33 @@ export const PLAN_OFFERS: PlanOffer[] = [
         label: 'Gold',
         monthlyAmount: 25000,
         seats: 10,
-        cycles: 'Primaire',
-        summary: 'Pour un établissement du primaire.',
+        cycleValues: ['prescolaire', 'primaire'],
+        cycles: 'Préscolaire et primaire',
+        summary: 'Pour le préscolaire et le primaire.',
     },
     {
         plan: 'platinium',
         label: 'Platinium',
         monthlyAmount: 50000,
         seats: 25,
-        cycles: 'Primaire et collège',
-        summary: 'Pour le primaire et le collège.',
+        cycleValues: ['prescolaire', 'primaire', 'college'],
+        cycles: 'Préscolaire, primaire et collège',
+        summary: 'Pour le préscolaire, le primaire et le collège.',
     },
     {
         plan: 'titanium',
         label: 'Titanium',
         monthlyAmount: 75000,
         seats: 60,
-        cycles: 'Primaire, collège et lycée',
-        summary: 'Pour les trois cycles de votre école.',
+        cycleValues: [
+            'prescolaire',
+            'primaire',
+            'college',
+            'lycee_general',
+            'lycee_technique',
+        ],
+        cycles: 'Préscolaire, primaire, collège et lycée',
+        summary: 'Pour tous les cycles, du préscolaire au lycée.',
     },
 ];
 
@@ -48,6 +60,13 @@ export function planOffer(plan: SubscriptionPlan): PlanOffer {
 
 export function planLabel(plan: SubscriptionPlan): string {
     return planOffer(plan).label;
+}
+
+export function planIncludesCycle(
+    plan: SubscriptionPlan,
+    cycle: Cycle,
+): boolean {
+    return planOffer(plan).cycleValues.includes(cycle);
 }
 
 export function subscriptionStatusLabel(status: SubscriptionStatus): string {

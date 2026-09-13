@@ -1,5 +1,15 @@
 ---
+# cPanel Git™ Version Control → schools.yousch.net
+# Also add the two cron lines from scripts/cpanel-cron.example
 deployment:
     tasks:
-        - export DEPLOYPATH=/home/mymo4034/schools.yousch.net/
-        - /usr/bin/rsync -a --delete --exclude='.git' ./ $DEPLOYPATH
+        - export DEPLOYPATH=/home/mymo4034/schools.yousch.net
+        - export PHP_BIN=/usr/local/bin/php
+        - export COMPOSER_BIN=/opt/cpanel/composer/bin/composer
+        - /usr/bin/rsync -a --delete --exclude='.git' --exclude='.env' --exclude='.env.*' --exclude='storage/app' --exclude='storage/framework/cache' --exclude='storage/framework/sessions' --exclude='storage/framework/views' --exclude='storage/logs' --exclude='node_modules' --exclude='vendor' ./ $DEPLOYPATH/
+        - cd $DEPLOYPATH && $PHP_BIN $COMPOSER_BIN install --no-dev --optimize-autoloader --no-interaction
+        - cd $DEPLOYPATH && (command -v npm >/dev/null 2>&1 && npm ci && npm run build || echo 'npm skipped — ensure public/build is present')
+        - cd $DEPLOYPATH && $PHP_BIN artisan migrate --force --no-interaction
+        - cd $DEPLOYPATH && $PHP_BIN artisan config:cache && $PHP_BIN artisan route:cache && $PHP_BIN artisan view:cache
+        - cd $DEPLOYPATH && $PHP_BIN artisan queue:restart
+        - cd $DEPLOYPATH && $PHP_BIN artisan storage:link || true

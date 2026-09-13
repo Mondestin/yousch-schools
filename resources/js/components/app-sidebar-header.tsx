@@ -1,5 +1,6 @@
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { CycleYearSwitcher } from '@/components/cycle-year-switcher';
+import { NotificationBell } from '@/components/notification-bell';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { useYearLock } from '@/hooks/use-year-lock';
 import type { BreadcrumbItem as BreadcrumbItemType } from '@/types';
@@ -20,7 +21,10 @@ export function AppSidebarHeader({
                         <Breadcrumbs breadcrumbs={breadcrumbs} />
                     </div>
                 </div>
-                <CycleYearSwitcher />
+                <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-1.5">
+                    <NotificationBell />
+                    <CycleYearSwitcher />
+                </div>
             </header>
             {locked ? (
                 <div

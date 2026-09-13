@@ -16,20 +16,20 @@
         "idCardBody": "#ffffff"
     },
     "subscription": {
-        "plan": "platinium",
+        "plan": "titanium",
         "status": "active",
-        "seats": 25,
+        "seats": 60,
         "usedSeats": 8,
         "renewsOn": "2027-08-31",
-        "monthlyAmount": 45000,
+        "monthlyAmount": 75000,
         "receipts": [
             {
                 "id": "sr-2609",
                 "reference": "YS-2026-0912",
                 "periodLabel": "Septembre 2026",
                 "paidOn": null,
-                "amount": 45000,
-                "plan": "platinium",
+                "amount": 75000,
+                "plan": "titanium",
                 "method": "mobile_money",
                 "status": "impaye"
             },
@@ -38,8 +38,8 @@
                 "reference": "YS-2026-0841",
                 "periodLabel": "Août 2026",
                 "paidOn": "2026-08-02",
-                "amount": 45000,
-                "plan": "platinium",
+                "amount": 75000,
+                "plan": "titanium",
                 "method": "mobile_money",
                 "status": "partiel"
             },
@@ -48,8 +48,8 @@
                 "reference": "YS-2026-0755",
                 "periodLabel": "Juillet 2026",
                 "paidOn": "2026-07-01",
-                "amount": 45000,
-                "plan": "platinium",
+                "amount": 75000,
+                "plan": "titanium",
                 "method": "virement",
                 "status": "paye"
             },

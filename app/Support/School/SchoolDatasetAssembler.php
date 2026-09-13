@@ -4,6 +4,7 @@ namespace App\Support\School;
 
 use App\Enums\Cycle;
 use App\Enums\StaffRole;
+use App\Enums\SubscriptionPlan;
 use App\Models\AcademicYear;
 use App\Models\Admission;
 use App\Models\Announcement;
@@ -37,6 +38,7 @@ use App\Models\TimetableSlot;
 use App\Models\Track;
 use App\Models\User;
 use App\Models\Venue;
+use App\Support\Billing\SubscriptionCatalog;
 use App\Support\SchoolCatalog;
 use App\Support\Tenancy\CurrentSchool;
 use Illuminate\Support\Facades\DB;
@@ -72,6 +74,12 @@ final class SchoolDatasetAssembler
 
         $profile = SchoolProfile::query()->first();
         $subscription = SchoolSubscription::query()->with('receipts')->first();
+        $planCycles = $subscription !== null
+            ? SubscriptionCatalog::cyclesFor($subscription->plan)
+            : array_map(
+                static fn (Cycle $cycle): string => $cycle->value,
+                Cycle::cases(),
+            );
         $mentions = Mention::query()
             ->orderBy('min')
             ->get()
@@ -82,13 +90,13 @@ final class SchoolDatasetAssembler
         return [
             'profile' => $profile?->toApiArray() ?? $this->emptyProfile(),
             'subscription' => $subscription?->toApiArray() ?? $this->emptySubscription(),
-            'cycles' => array_map(
-                static fn (Cycle $cycle): array => [
-                    'value' => $cycle->value,
-                    'label' => $cycle->label(),
+            'cycles' => array_values(array_map(
+                static fn (string $value): array => [
+                    'value' => $value,
+                    'label' => Cycle::from($value)->label(),
                 ],
-                Cycle::cases(),
-            ),
+                $planCycles,
+            )),
             'fees' => FeeTariff::query()
                 ->orderBy('cycle')
                 ->get()
@@ -337,6 +345,8 @@ final class SchoolDatasetAssembler
      */
     private function emptySubscription(): array
     {
+        $offer = SubscriptionCatalog::offer(SubscriptionPlan::Gold);
+
         return [
             'plan' => 'gold',
             'status' => 'active',
@@ -344,6 +354,18 @@ final class SchoolDatasetAssembler
             'usedSeats' => 0,
             'renewsOn' => now()->toDateString(),
             'monthlyAmount' => 0,
+            'billingPeriod' => 'monthly',
+            'cycles' => $offer['cycles'],
+            'cyclesLabel' => $offer['cyclesLabel'],
+            'billing' => [
+                'name' => null,
+                'email' => null,
+                'address' => null,
+                'city' => null,
+                'country' => null,
+                'vat' => null,
+            ],
+            'payment' => null,
             'receipts' => [],
         ];
     }

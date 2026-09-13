@@ -1,19 +1,27 @@
 import { Head } from '@inertiajs/react';
 import { Printer } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { BulletinLetterhead } from '@/components/sms/bulletin-letterhead';
-import { DocumentAuthenticityQr, useDocumentVerifyUrl } from '@/components/sms/document-authenticity-qr';
+import {
+    DocumentAuthenticityQr,
+    useDocumentVerifyUrl,
+} from '@/components/sms/document-authenticity-qr';
 import { DocumentPied } from '@/components/sms/document-pied';
 import { DocumentStamp } from '@/components/sms/document-stamp';
+import { EmptyState } from '@/components/sms/empty-state';
 import { PageShell } from '@/components/sms/page-shell';
 import { Button } from '@/components/ui/button';
 import { useSchoolContext } from '@/hooks/use-school-context';
+import { apiData } from '@/lib/api';
 import {
     printBulletinDocument,
     type BulletinApiFiche,
 } from '@/lib/school-bulletin-pdf';
-import { bulletinFiche, defaultTermId, formatNote } from '@/lib/school-grades';
+import { defaultTermId, formatNote } from '@/lib/school-grades';
 import { COUNTRY_MOTTO, COUNTRY_NAME, formatFrDate } from '@/lib/school-rows';
 import { genderLabel } from '@/lib/school-students';
+import { toastApiError } from '@/lib/school-toast';
+import { bulletin as studentBulletin } from '@/routes/api/v1/students';
 import { index as reports } from '@/routes/reports';
 import type { SchoolDataset } from '@/types/school';
 
@@ -32,7 +40,9 @@ export default function ReportShowPage({
 }) {
     const { filter } = useSchoolContext();
     const resolvedTermId = termId || defaultTermId(catalog, filter);
-    const fiche = bulletinFiche(catalog, studentId, resolvedTermId);
+    const [bulletin, setBulletin] = useState<BulletinApiFiche | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     const authenticityClaims = {
         type: 'bulletin' as const,
@@ -43,11 +53,80 @@ export default function ReportShowPage({
     };
     const verifyUrl = useDocumentVerifyUrl(authenticityClaims);
 
-    if (!fiche) {
-        return null;
+    useEffect(() => {
+        if (!resolvedTermId) {
+            setBulletin(null);
+            setLoading(false);
+            setError('Trimestre introuvable.');
+
+            return;
+        }
+
+        let cancelled = false;
+
+        setLoading(true);
+        setError(null);
+
+        void apiData<BulletinApiFiche>(
+            studentBulletin.url(studentId, {
+                query: { termId: resolvedTermId },
+            }),
+        )
+            .then((data) => {
+                if (!cancelled) {
+                    setBulletin(data);
+                }
+            })
+            .catch((err) => {
+                if (!cancelled) {
+                    setBulletin(null);
+                    setError('Impossible de charger le bulletin.');
+                    toastApiError(err, 'Impossible de charger le bulletin');
+                }
+            })
+            .finally(() => {
+                if (!cancelled) {
+                    setLoading(false);
+                }
+            });
+
+        return () => {
+            cancelled = true;
+        };
+    }, [resolvedTermId, studentId]);
+
+    if (loading) {
+        return (
+            <>
+                <Head title="Bulletin" />
+                <PageShell>
+                    <EmptyState
+                        icon={Printer}
+                        title="Chargement du bulletin"
+                        description="Calcul des moyennes et du rang en cours."
+                    />
+                </PageShell>
+            </>
+        );
     }
 
-    const bulletin = fiche;
+    if (!bulletin) {
+        return (
+            <>
+                <Head title="Bulletin" />
+                <PageShell>
+                    <EmptyState
+                        icon={Printer}
+                        title="Bulletin indisponible"
+                        description={
+                            error ??
+                            'Le bulletin n’est pas encore prêt pour cet élève.'
+                        }
+                    />
+                </PageShell>
+            </>
+        );
+    }
 
     const identity: Array<[string, string]> = [
         ['Numéro d’élève', bulletin.student.matricule],
@@ -65,12 +144,10 @@ export default function ReportShowPage({
         identity.splice(2, 0, ['Série', bulletin.trackCode]);
     }
 
-    function printMaquette(): void {
-        void printBulletinDocument(
-            `Bulletin : ${bulletin.name}`,
-            bulletin as BulletinApiFiche,
-            { verifyUrl },
-        );
+    function printBulletin(): void {
+        void printBulletinDocument(`Bulletin : ${bulletin!.name}`, bulletin!, {
+            verifyUrl,
+        });
     }
 
     return (
@@ -78,7 +155,7 @@ export default function ReportShowPage({
             <Head title={`Bulletin : ${bulletin.name}`} />
             <PageShell>
                 <div className="no-print mb-4 flex justify-end">
-                    <Button type="button" onClick={printMaquette}>
+                    <Button type="button" onClick={printBulletin}>
                         <Printer />
                         Imprimer
                     </Button>
@@ -102,62 +179,66 @@ export default function ReportShowPage({
                         </div>
                     </header>
 
-                    <h1 className="mt-8 mb-6 text-center text-[22px] font-bold uppercase">
+                    <h1 className="mt-8 text-center text-[16px] font-semibold uppercase tracking-wide">
                         Bulletin de notes
                     </h1>
 
-                    <section className="mb-6 grid grid-cols-2 gap-x-8 gap-y-1 text-[14px]">
+                    <div className="mt-6 grid grid-cols-2 gap-x-8 gap-y-1 text-[12px]">
                         {identity.map(([label, value]) => (
                             <p key={label}>
-                                {label}
-                                <span className="mx-2">:</span>
+                                <span className="text-muted-foreground">
+                                    {label} :{' '}
+                                </span>
                                 <strong>{value}</strong>
                             </p>
                         ))}
-                    </section>
+                    </div>
 
-                    <table className="w-full border-collapse border text-[13px]">
+                    <table className="mt-6 w-full border-collapse text-[11px]">
                         <thead>
-                            <tr className="bg-zinc-100">
-                                <th className="border px-2 py-2 text-left font-semibold">
+                            <tr className="border-b text-left">
+                                <th className="py-1.5 pr-2 font-semibold">
                                     Matière
                                 </th>
-                                <th className="border px-2 py-2 font-semibold">
-                                    Moyenne de classe
+                                <th className="py-1.5 px-2 font-semibold">
+                                    Coef.
                                 </th>
-                                <th className="border px-2 py-2 font-semibold">
+                                <th className="py-1.5 px-2 font-semibold">
+                                    Devoir
+                                </th>
+                                <th className="py-1.5 px-2 font-semibold">
                                     Composition
                                 </th>
-                                <th className="border px-2 py-2 font-semibold">
+                                <th className="py-1.5 px-2 font-semibold">
                                     Moyenne
                                 </th>
-                                <th className="border px-2 py-2 font-semibold">
-                                    Coefficient
-                                </th>
-                                <th className="border px-2 py-2 font-semibold">
-                                    Moyenne finale
+                                <th className="py-1.5 pl-2 font-semibold">
+                                    Pondéré
                                 </th>
                             </tr>
                         </thead>
                         <tbody>
                             {bulletin.lines.map((line) => (
-                                <tr key={line.subjectId}>
-                                    <td className="border px-2 py-1.5 uppercase">
-                                        {line.name}
+                                <tr
+                                    key={line.subjectId}
+                                    className="border-b border-black/10"
+                                >
+                                    <td className="py-1.5 pr-2">
+                                        {line.code} · {line.name}
                                     </td>
-                                    <td className="border px-2 py-1.5 text-center">
-                                        {noteCell(line.devoir)}
-                                    </td>
-                                    <td className="border px-2 py-1.5 text-center">
-                                        {noteCell(line.composition)}
-                                    </td>
-                                    <td className="border px-2 py-1.5 text-center">
-                                        {noteCell(line.average)}
-                                    </td>
-                                    <td className="border px-2 py-1.5 text-center">
+                                    <td className="py-1.5 px-2">
                                         {line.coefficient}
                                     </td>
-                                    <td className="border px-2 py-1.5 text-center">
+                                    <td className="py-1.5 px-2">
+                                        {noteCell(line.devoir)}
+                                    </td>
+                                    <td className="py-1.5 px-2">
+                                        {noteCell(line.composition)}
+                                    </td>
+                                    <td className="py-1.5 px-2">
+                                        {noteCell(line.average)}
+                                    </td>
+                                    <td className="py-1.5 pl-2">
                                         {noteCell(line.weighted)}
                                     </td>
                                 </tr>
@@ -165,14 +246,14 @@ export default function ReportShowPage({
                         </tbody>
                     </table>
 
-                    <section className="mt-8 grid grid-cols-2 gap-8 text-[14px]">
-                        <div className="space-y-3">
+                    <div className="mt-6 grid grid-cols-2 gap-6 text-[12px]">
+                        <div className="space-y-1">
                             <p>
                                 Mention :{' '}
                                 <strong>{bulletin.mention ?? ''}</strong>
                             </p>
                             <p>
-                                Résultat :{' '}
+                                Décision :{' '}
                                 <strong>{bulletin.result ?? ''}</strong>
                             </p>
                             <p>
@@ -188,7 +269,7 @@ export default function ReportShowPage({
                                 <strong>{bulletin.appreciation}</strong>
                             </p>
                         </div>
-                        <div className="space-y-3">
+                        <div className="space-y-1 text-right">
                             <p>
                                 Total général :{' '}
                                 <strong>
@@ -200,33 +281,34 @@ export default function ReportShowPage({
                                 </strong>
                             </p>
                             <p>
-                                Moyenne :{' '}
+                                Moyenne générale :{' '}
                                 <strong>
                                     {bulletin.average === null
                                         ? ''
                                         : formatNote(bulletin.average)}
                                 </strong>
                             </p>
-                            <p>
+                            <p className="pt-4">
                                 Fait à {bulletin.profile.city} le,{' '}
                                 {bulletin.issuedOn}
                             </p>
                             <DocumentStamp
                                 url={bulletin.profile.stampUrl}
-                                className="mt-4"
+                                className="ml-auto"
                             />
-                            <p className="pt-6">
-                                Le Directeur
-                                <br />
+                            <p className="pt-2">
                                 <strong>{bulletin.profile.directorName}</strong>
                             </p>
+                            <DocumentPied
+                                profile={bulletin.profile}
+                                className="mt-4 text-left"
+                            />
+                            <DocumentAuthenticityQr
+                                url={verifyUrl}
+                                className="mt-3 ml-auto"
+                            />
                         </div>
-                    </section>
-                    <DocumentAuthenticityQr
-                        claims={authenticityClaims}
-                        verifyUrl={verifyUrl}
-                    />
-                    <DocumentPied />
+                    </div>
                 </article>
             </PageShell>
         </>
@@ -236,6 +318,6 @@ export default function ReportShowPage({
 ReportShowPage.layout = {
     breadcrumbs: [
         { title: 'Bulletins', href: reports() },
-        { title: 'Maquette', href: reports() },
+        { title: 'Bulletin', href: '#' },
     ],
 };

@@ -551,7 +551,7 @@ test('catalog includes office datasets for a production school desk', function (
         ->and($catalog['cashMovements'])->not->toBeEmpty()
         ->and($catalog['announcements'])->not->toBeEmpty()
         ->and($catalog['sanctions'])->not->toBeEmpty()
-        ->and($catalog['subscription']['plan'])->toBe('platinium')
+        ->and($catalog['subscription']['plan'])->toBe('titanium')
         ->and($catalog['subscription']['receipts'])->not->toBeEmpty();
 
     $cycleValues = collect($catalog['cycles'])->pluck('value')->sort()->values();

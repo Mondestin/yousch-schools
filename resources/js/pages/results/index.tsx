@@ -1,6 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import { CircleDot, Hash, Printer, Trophy, User } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
     DATA_TABLE_CONTAINER,
     DataTable,
@@ -31,13 +31,33 @@ import {
 } from '@/components/ui/table';
 import { useClientTable } from '@/hooks/use-client-table';
 import { useSchoolContext } from '@/hooks/use-school-context';
-import { classResults, defaultTermId, formatNote } from '@/lib/school-grades';
+import { apiData } from '@/lib/api';
+import { defaultTermId, formatNote } from '@/lib/school-grades';
 import { classroomsForOffice } from '@/lib/school-office';
 import { printHtmlDocument } from '@/lib/school-export';
 import { cycleLabel } from '@/lib/school-rows';
+import { toastApiError } from '@/lib/school-toast';
+import { results as classroomResults } from '@/routes/api/v1/classrooms';
 import { index as reports, show as showReport } from '@/routes/reports';
 import { index as results } from '@/routes/results';
 import type { SchoolDataset } from '@/types/school';
+
+type ClassResultRow = {
+    studentId: string;
+    matricule: string;
+    name: string;
+    average: number | null;
+    mention: string | null;
+    result: 'Admis' | 'Échoué' | null;
+    rank: number | null;
+};
+
+type ClassResultsReport = {
+    rows: ClassResultRow[];
+    admitted: number;
+    failed: number;
+    classAverage: number | null;
+};
 
 function escapePrint(value: string): string {
     return value
@@ -55,18 +75,56 @@ export default function ResultsIndex({ catalog }: { catalog: SchoolDataset }) {
     );
     const [classroomId, setClassroomId] = useState(classrooms[0]?.id ?? '');
     const [termId, setTermId] = useState(defaultTermId(catalog, filter));
-    const report = useMemo(
-        () =>
-            classroomId && termId
-                ? classResults(catalog, classroomId, termId)
-                : null,
-        [catalog, classroomId, termId],
-    );
+    const [report, setReport] = useState<ClassResultsReport | null>(null);
+    const [loading, setLoading] = useState(false);
     const rows = report?.rows ?? [];
     const table = useClientTable(rows);
     const classroomName =
         classrooms.find((item) => item.id === classroomId)?.name ?? '';
     const termName = terms.find((term) => term.id === termId)?.name ?? '';
+
+    useEffect(() => {
+        setClassroomId(classrooms[0]?.id ?? '');
+        setTermId(defaultTermId(catalog, filter));
+    }, [catalog, filter.academicYearId, filter.cycle]);
+
+    useEffect(() => {
+        if (!classroomId || !termId) {
+            setReport(null);
+
+            return;
+        }
+
+        let cancelled = false;
+
+        setLoading(true);
+
+        void apiData<ClassResultsReport>(
+            classroomResults.url(classroomId, {
+                query: { termId },
+            }),
+        )
+            .then((data) => {
+                if (!cancelled) {
+                    setReport(data);
+                }
+            })
+            .catch((error) => {
+                if (!cancelled) {
+                    setReport(null);
+                    toastApiError(error, 'Impossible de charger les résultats');
+                }
+            })
+            .finally(() => {
+                if (!cancelled) {
+                    setLoading(false);
+                }
+            });
+
+        return () => {
+            cancelled = true;
+        };
+    }, [classroomId, termId]);
 
     function handlePrint(): void {
         if (rows.length === 0) {
@@ -200,8 +258,16 @@ ${meta}
                     rows.length === 0 ? (
                         <EmptyState
                             icon={Trophy}
-                            title="Aucun résultat à afficher"
-                            description="Il faut une classe, un trimestre, et des notes saisies."
+                            title={
+                                loading
+                                    ? 'Chargement'
+                                    : 'Aucun résultat à afficher'
+                            }
+                            description={
+                                loading
+                                    ? 'Calcul des résultats de la classe…'
+                                    : 'Il faut une classe, un trimestre, et des notes saisies.'
+                            }
                         />
                     ) : undefined
                 }
