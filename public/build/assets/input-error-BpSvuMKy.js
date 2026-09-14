@@ -1,0 +1,1 @@
+import{t as e}from"./jsx-runtime-DXLt3b3x.js";import{r as t}from"./wayfinder-DX7UQcfH.js";var n=e();function r({message:e,className:r=``,...i}){return e?(0,n.jsx)(`p`,{...i,className:t(`text-danger text-sm`,r),children:e}):null}export{r as t};

@@ -2,7 +2,7 @@ import { Head, Link } from '@inertiajs/react';
 import { Printer, Wallet } from 'lucide-react';
 import { DocumentAuthenticityQr } from '@/components/sms/document-authenticity-qr';
 import { DocumentPied } from '@/components/sms/document-pied';
-import { DocumentStamp } from '@/components/sms/document-stamp';
+import { DocumentSignatureBlock } from '@/components/sms/document-signature';
 import { PageHeader } from '@/components/sms/page-header';
 import { PageShell } from '@/components/sms/page-shell';
 import { Button } from '@/components/ui/button';
@@ -82,7 +82,7 @@ export default function PaymentShowPage({
                     data-print-root="statement"
                     className="print-bulletin mx-auto max-w-[210mm] bg-white p-8 text-black"
                 >
-                    <header className="grid grid-cols-[1fr_auto_1fr] items-start gap-4">
+                    <header className="grid grid-cols-2 items-start gap-4">
                         <div className="text-center text-[12px] leading-5">
                             {fiche.profile.logoUrl ? (
                                 <img
@@ -101,9 +101,6 @@ export default function PaymentShowPage({
                                 {fiche.profile.city}, {COUNTRY_SHORT}
                             </p>
                         </div>
-                        <p className="pt-8 text-center text-[13px] font-medium">
-                            {fiche.profile.motto}
-                        </p>
                         <div className="text-center text-[12px] leading-5">
                             <p className="text-[14px] font-semibold uppercase">
                                 {COUNTRY_NAME}
@@ -185,9 +182,20 @@ export default function PaymentShowPage({
                         </tbody>
                     </table>
 
-                    <section className="mt-8 grid grid-cols-2 gap-8 text-[14px]">
-                        <div />
-                        <div className="space-y-3 text-right">
+                    <section className="print-closing mt-8 grid grid-cols-2 gap-8 text-[14px]">
+                        <div className="flex flex-col justify-end">
+                            <DocumentAuthenticityQr
+                                claims={{
+                                    type: 'payment_statement',
+                                    studentId,
+                                    academicYearId: filter.academicYearId,
+                                    issuedOn: new Date()
+                                        .toISOString()
+                                        .slice(0, 10),
+                                }}
+                            />
+                        </div>
+                        <div className="space-y-3 text-left">
                             <p>
                                 Net à payer :{' '}
                                 <strong>
@@ -202,29 +210,19 @@ export default function PaymentShowPage({
                                 Total impayé :{' '}
                                 <strong>{formatFcfa(fiche.unpaidTotal)}</strong>
                             </p>
-                            <p className="pt-6 text-left">
-                                Fait à {fiche.profile.city} le, {fiche.issuedOn}
-                            </p>
-                            <DocumentStamp
-                                url={fiche.profile.stampUrl}
+                            <DocumentSignatureBlock
                                 className="mt-4"
+                                city={fiche.profile.city}
+                                issuedOn={fiche.issuedOn}
+                                stampUrl={fiche.profile.stampUrl}
+                                role="La Direction"
+                                name={fiche.profile.directorName}
                             />
-                            <p className="pt-6 text-left">
-                                La Direction
-                                <br />
-                                <strong>{fiche.profile.directorName}</strong>
-                            </p>
+                        </div>
+                        <div className="col-span-2">
+                            <DocumentPied />
                         </div>
                     </section>
-                    <DocumentAuthenticityQr
-                        claims={{
-                            type: 'payment_statement',
-                            studentId,
-                            academicYearId: filter.academicYearId,
-                            issuedOn: new Date().toISOString().slice(0, 10),
-                        }}
-                    />
-                    <DocumentPied />
                 </article>
             </PageShell>
         </>

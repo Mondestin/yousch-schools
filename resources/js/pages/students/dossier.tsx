@@ -1,6 +1,7 @@
 import { Head } from '@inertiajs/react';
 import { GraduationCap } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { DossierChecklistPanel } from '@/components/sms/dossier-checklist';
 import { DetailSectionCard } from '@/components/sms/person-profile-header';
 import { FileListField } from '@/components/sms/file-list-field';
 import { FormSheet } from '@/components/sms/form-sheet';
@@ -151,6 +152,11 @@ export default function StudentDossierPage({
                     ) : null
                 }
             >
+                <DossierChecklistPanel
+                    className="mb-5"
+                    photoUrl={photoPreview}
+                    files={files}
+                />
                 <div className="mb-5 flex items-center gap-4">
                     {photoPreview ? (
                         <img

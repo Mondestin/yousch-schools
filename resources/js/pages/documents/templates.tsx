@@ -2,7 +2,8 @@ import { Head } from '@inertiajs/react';
 import { FileStack, Save } from 'lucide-react';
 import { useMemo, useState, type ReactNode } from 'react';
 import { DocumentPied } from '@/components/sms/document-pied';
-import { DocumentStamp } from '@/components/sms/document-stamp';
+import { DocumentSchoolHeader } from '@/components/sms/document-school-header';
+import { DocumentSignatureBlock } from '@/components/sms/document-signature';
 import { EmptyState } from '@/components/sms/empty-state';
 import { Field } from '@/components/sms/field';
 import { SearchSelect } from '@/components/sms/search-select';
@@ -11,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useSchoolContext } from '@/hooks/use-school-context';
 import { apiData } from '@/lib/api';
-import { COUNTRY_SHORT, formatFrDate } from '@/lib/school-rows';
+import { formatFrDate } from '@/lib/school-rows';
 import { toastApiError, toastSaved } from '@/lib/school-toast';
 import {
     index as documentsHub,
@@ -53,7 +54,7 @@ export default function DocumentTemplatesPage({
     catalog: SchoolDataset;
     documentTemplates: DocumentTemplate[];
 }) {
-    const { filter } = useSchoolContext();
+    const { academicYearLabel } = useSchoolContext();
     const [templates, setTemplates] = useState(documentTemplates);
     const [selectedId, setSelectedId] = useState<string | null>(
         documentTemplates[0]?.id ?? null,
@@ -83,7 +84,7 @@ export default function DocumentTemplatesPage({
             name: 'Rokia Cissé',
             matricule: 'YS-2026-00072',
             classroomName: 'CM2 A',
-            yearLabel: filter.academicYearLabel,
+            yearLabel: academicYearLabel || '—',
             trackSuffix: '',
             bornOnLabel: formatFrDate('2014-03-12'),
             genderLabel: 'féminin',
@@ -98,7 +99,7 @@ export default function DocumentTemplatesPage({
             number: 'ATT-2026-0001',
             title: title.trim() || 'Document',
         };
-    }, [catalog.profile, filter.academicYearLabel, title]);
+    }, [academicYearLabel, catalog.profile, title]);
 
     const previewBody = useMemo(
         () => fillPlaceholders(body || '', sampleValues),
@@ -365,21 +366,7 @@ function TemplateCertificate({
 
     return (
         <article className="print-bulletin mx-auto max-w-[210mm] bg-white p-8 text-black sm:p-10">
-            <header className="text-center text-[13px]">
-                <p className="text-[16px] font-semibold uppercase tracking-[0.02em]">
-                    {profile.name}
-                </p>
-                <p className="text-black/70">
-                    {profile.address || 'Adresse de l’établissement'}
-                </p>
-                <p className="text-black/70">
-                    {profile.city || 'Brazzaville'}, {COUNTRY_SHORT}
-                    {profile.phone ? ` · ${profile.phone}` : ''}
-                </p>
-                <p className="mt-2 font-mono text-[12px] tracking-wide text-black/60">
-                    N° {number}
-                </p>
-            </header>
+            <DocumentSchoolHeader profile={profile} number={number} />
             <h1 className="mt-10 mb-8 text-center text-[20px] font-bold tracking-[0.04em] uppercase sm:text-[22px]">
                 {title}
             </h1>
@@ -396,18 +383,12 @@ function TemplateCertificate({
                     </p>
                 )}
             </div>
-            <p className="mt-10 text-right text-[14px]">
-                Fait à {city}, le {issuedOn}
-            </p>
-            <DocumentStamp
-                url={profile.stampUrl}
-                className="mt-6 ml-auto"
+            <DocumentSignatureBlock
+                city={city}
+                issuedOn={issuedOn}
+                stampUrl={profile.stampUrl}
+                name={directorName}
             />
-            <p className="mt-8 text-right text-[14px] font-medium">
-                Le chef d’établissement
-                <br />
-                {directorName}
-            </p>
             <DocumentPied />
         </article>
     );

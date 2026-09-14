@@ -242,7 +242,8 @@ final class SchoolStructureProvisioner
      *         startsAt: string,
      *         endsAt: string,
      *         recess: array{startsAt: string, endsAt: string},
-     *         lunch: array{startsAt: string, endsAt: string}
+     *         lunch: array{startsAt: string, endsAt: string},
+     *         breaks: list<array{id: string, label: string, startsAt: string, endsAt: string}>
      *     },
      *     periods: list<array{id: string, startsAt: string, endsAt: string}>
      * }
@@ -260,6 +261,20 @@ final class SchoolStructureProvisioner
                 'lunch' => [
                     'startsAt' => '12:00',
                     'endsAt' => '13:00',
+                ],
+                'breaks' => [
+                    [
+                        'id' => 'break-recess',
+                        'label' => 'Récréation',
+                        'startsAt' => '10:00',
+                        'endsAt' => '10:30',
+                    ],
+                    [
+                        'id' => 'break-lunch',
+                        'label' => 'Pause de midi',
+                        'startsAt' => '12:00',
+                        'endsAt' => '13:00',
+                    ],
                 ],
             ],
             'periods' => [

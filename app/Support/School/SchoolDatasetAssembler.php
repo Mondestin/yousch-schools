@@ -151,7 +151,7 @@ final class SchoolDatasetAssembler
                     'value' => $role->value,
                     'label' => $role->label(),
                 ],
-                StaffRole::cases(),
+                StaffRole::staffCases(),
             ),
             'students' => Student::query()
                 ->with('dossierFiles')

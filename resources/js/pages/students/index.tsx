@@ -2,6 +2,7 @@ import { Head, Link, router } from '@inertiajs/react';
 import {
     CircleDot,
     EllipsisVertical,
+    FolderOpen,
     GraduationCap,
     Hash,
     Layers,
@@ -9,7 +10,6 @@ import {
     School,
     User,
     UserCheck,
-    UserMinus,
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { CodeBadge, TrackBadge } from '@/components/sms/code-badge';
@@ -26,6 +26,13 @@ import { Button } from '@/components/ui/button';
 import { PersonCell } from '@/components/sms/person-cell';
 import { SearchSelect } from '@/components/sms/search-select';
 import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import {
     Table,
     TableBody,
     TableCell,
@@ -36,6 +43,8 @@ import {
 import { useSchoolContext } from '@/hooks/use-school-context';
 import { useCrudItems } from '@/hooks/use-crud-items';
 import { apiJson } from '@/lib/api';
+import { evaluateDossier } from '@/lib/school-dossier';
+import { dossierFilesOf } from '@/lib/school-files';
 import {
     cycleLabel,
     enrollmentStatusLabel,
@@ -54,12 +63,19 @@ export default function StudentsIndex({ catalog }: { catalog: SchoolDataset }) {
     const { filter, query, academicYearLabel } = useSchoolContext();
     const [search, setSearch] = useState('');
     const [classroomId, setClassroomId] = useState('all');
+    const [dossierFilter, setDossierFilter] = useState<
+        'all' | 'incomplete' | 'complete'
+    >('all');
     const [removed, setRemoved] = useState<string[]>([]);
     const lycee = isLyceeCycle(filter.cycle);
     const classrooms = catalog.classrooms.filter(
         (classroom) =>
             classroom.cycle === filter.cycle &&
             classroom.academicYearId === filter.academicYearId,
+    );
+    const studentsById = useMemo(
+        () => new Map(catalog.students.map((student) => [student.id, student])),
+        [catalog.students],
     );
     const scoped = useMemo(
         () =>
@@ -68,23 +84,48 @@ export default function StudentsIndex({ catalog }: { catalog: SchoolDataset }) {
             ),
         [catalog, filter, removed],
     );
-    const stats = useMemo(
-        () => ({
+    const stats = useMemo(() => {
+        const incomplete = scoped.filter((row) => {
+            const student = studentsById.get(row.studentId);
+
+            return !evaluateDossier(
+                student?.photoUrl,
+                dossierFilesOf(student),
+            ).complete;
+        }).length;
+
+        return {
             total: scoped.length,
             enrolled: scoped.filter((row) => row.status === 'inscrit').length,
             transferred: scoped.filter((row) => row.status === 'transfere')
                 .length,
             dropped: scoped.filter((row) => row.status === 'abandonne').length,
             classrooms: classrooms.length,
-        }),
-        [classrooms.length, scoped],
-    );
+            incomplete,
+        };
+    }, [classrooms.length, scoped, studentsById]);
     const rows = useMemo(() => {
         const needle = search.trim().toLowerCase();
 
         return scoped.filter((row) => {
             if (classroomId !== 'all' && row.classroomId !== classroomId) {
                 return false;
+            }
+
+            if (dossierFilter !== 'all') {
+                const student = studentsById.get(row.studentId);
+                const complete = evaluateDossier(
+                    student?.photoUrl,
+                    dossierFilesOf(student),
+                ).complete;
+
+                if (dossierFilter === 'incomplete' && complete) {
+                    return false;
+                }
+
+                if (dossierFilter === 'complete' && !complete) {
+                    return false;
+                }
             }
 
             if (needle === '') {
@@ -102,7 +143,7 @@ export default function StudentsIndex({ catalog }: { catalog: SchoolDataset }) {
                 .toLowerCase()
                 .includes(needle);
         });
-    }, [classroomId, scoped, search]);
+    }, [classroomId, dossierFilter, scoped, search, studentsById]);
     const table = useClientTable(rows);
 
     async function removeEnrollment(
@@ -152,29 +193,57 @@ export default function StudentsIndex({ catalog }: { catalog: SchoolDataset }) {
                             hint={`${cycleLabel(filter.cycle)} · ${academicYearLabel}`}
                         />
                         <KpiCard
-                            icon={UserMinus}
-                            label="Sorties"
-                            value={String(stats.transferred + stats.dropped)}
-                            hint={`${cycleLabel(filter.cycle)} · ${academicYearLabel}`}
+                            icon={FolderOpen}
+                            label="Dossiers incomplets"
+                            value={String(stats.incomplete)}
+                            hint="Pièces manquantes"
                         />
                     </KpiGrid>
                 }
                 filters={
-                    <SearchSelect
-                        value={classroomId}
-                        onValueChange={setClassroomId}
-                        className="w-[11rem]"
-                        aria-label="Filtrer par classe"
-                        placeholder="Toutes les classes"
-                        searchPlaceholder="Rechercher une classe..."
-                        options={[
-                            { value: 'all', label: 'Toutes les classes' },
-                            ...classrooms.map((classroom) => ({
-                                value: classroom.id,
-                                label: classroom.name,
-                            })),
-                        ]}
-                    />
+                    <>
+                        <SearchSelect
+                            value={classroomId}
+                            onValueChange={setClassroomId}
+                            className="w-[11rem]"
+                            aria-label="Filtrer par classe"
+                            placeholder="Toutes les classes"
+                            searchPlaceholder="Rechercher une classe..."
+                            options={[
+                                { value: 'all', label: 'Toutes les classes' },
+                                ...classrooms.map((classroom) => ({
+                                    value: classroom.id,
+                                    label: classroom.name,
+                                })),
+                            ]}
+                        />
+                        <Select
+                            value={dossierFilter}
+                            onValueChange={(value) =>
+                                setDossierFilter(
+                                    value as 'all' | 'incomplete' | 'complete',
+                                )
+                            }
+                        >
+                            <SelectTrigger
+                                className="w-[12rem]"
+                                aria-label="Filtrer par dossier"
+                            >
+                                <SelectValue placeholder="Tous les dossiers" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">
+                                    Tous les dossiers
+                                </SelectItem>
+                                <SelectItem value="incomplete">
+                                    Dossiers incomplets
+                                </SelectItem>
+                                <SelectItem value="complete">
+                                    Dossiers complets
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </>
                 }
                 actions={
                     <Button type="button" size="sm" asChild>
@@ -186,11 +255,15 @@ export default function StudentsIndex({ catalog }: { catalog: SchoolDataset }) {
                 }
                 empty={{
                     title:
-                        search.trim() || classroomId !== 'all'
+                        search.trim() ||
+                        classroomId !== 'all' ||
+                        dossierFilter !== 'all'
                             ? 'Aucun résultat'
                             : 'Aucun élève dans ce cycle',
                     description:
-                        search.trim() || classroomId !== 'all'
+                        search.trim() ||
+                        classroomId !== 'all' ||
+                        dossierFilter !== 'all'
                             ? undefined
                             : `Aucune inscription en ${cycleLabel(filter.cycle)} pour ${academicYearLabel}.`,
                 }}
@@ -229,6 +302,11 @@ export default function StudentsIndex({ catalog }: { catalog: SchoolDataset }) {
                             <TableHead>
                                 <DataTableColumnHeader icon={CircleDot}>
                                     Statut
+                                </DataTableColumnHeader>
+                            </TableHead>
+                            <TableHead>
+                                <DataTableColumnHeader icon={FolderOpen}>
+                                    Dossier
                                 </DataTableColumnHeader>
                             </TableHead>
                             <TableHead className="w-14 text-center">
@@ -271,6 +349,31 @@ export default function StudentsIndex({ catalog }: { catalog: SchoolDataset }) {
                                     >
                                         {enrollmentStatusLabel(row.status)}
                                     </Badge>
+                                </TableCell>
+                                <TableCell>
+                                    {(() => {
+                                        const student = studentsById.get(
+                                            row.studentId,
+                                        );
+                                        const dossier = evaluateDossier(
+                                            student?.photoUrl,
+                                            dossierFilesOf(student),
+                                        );
+
+                                        return (
+                                            <Badge
+                                                variant={
+                                                    dossier.complete
+                                                        ? 'success'
+                                                        : 'warning'
+                                                }
+                                            >
+                                                {dossier.complete
+                                                    ? 'Complet'
+                                                    : `${dossier.missing.length} manq.`}
+                                            </Badge>
+                                        );
+                                    })()}
                                 </TableCell>
                                 <TableCell className="px-3 py-1.5 text-center">
                                     <RowMenu

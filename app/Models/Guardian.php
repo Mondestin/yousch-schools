@@ -8,6 +8,7 @@ use Database\Factories\GuardianFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Carbon;
 
@@ -22,6 +23,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $city
  * @property string|null $neighborhood
  * @property string|null $address
+ * @property int|null $user_id
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
@@ -36,6 +38,7 @@ use Illuminate\Support\Carbon;
     'city',
     'neighborhood',
     'address',
+    'user_id',
     'school_id',
 ])]
 class Guardian extends Model
@@ -60,6 +63,14 @@ class Guardian extends Model
     }
 
     /**
+     * @return BelongsTo<User, $this>
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    /**
      * @return BelongsToMany<Student, $this>
      */
     public function students(): BelongsToMany
@@ -80,7 +91,8 @@ class Guardian extends Model
      *     email: string|null,
      *     city: string|null,
      *     neighborhood: string|null,
-     *     address: string|null
+     *     address: string|null,
+     *     hasPortalAccount: bool
      * }
      */
     public function toApiArray(): array
@@ -96,6 +108,7 @@ class Guardian extends Model
             'city' => $this->city,
             'neighborhood' => $this->neighborhood,
             'address' => $this->address,
+            'hasPortalAccount' => $this->user_id !== null,
         ];
     }
 }

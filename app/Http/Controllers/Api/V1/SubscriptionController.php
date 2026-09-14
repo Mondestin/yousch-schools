@@ -2,16 +2,23 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Enums\PaymentMethod;
+use App\Enums\PaymentStatus;
 use App\Enums\SubscriptionPlan;
 use App\Enums\SubscriptionStatus;
+use App\Enums\SubscriptionValidationStatus;
 use App\Http\Controllers\Controller;
 use App\Models\SchoolSubscription;
+use App\Models\SubscriptionReceipt;
 use App\Models\User;
+use App\Notifications\SubscriptionPaymentSubmittedNotification;
 use App\Support\Billing\SubscriptionCatalog;
 use App\Support\Billing\SubscriptionSeats;
 use App\Support\SchoolCatalog;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
@@ -117,23 +124,226 @@ class SubscriptionController extends Controller
         }
 
         $validated = $request->validate([
-            'provider' => ['required', 'string', Rule::in(['airtel', 'mtn', 'moov', 'orange'])],
-            'phone' => ['required', 'string', 'max:32'],
+            'provider' => ['required', 'string', Rule::in(['airtel', 'mtn'])],
+            'transactionId' => ['required', 'string', 'min:4', 'max:64'],
         ], [
             'provider.required' => 'Le fournisseur est obligatoire.',
-            'phone.required' => 'Le numéro Mobile Money est obligatoire.',
+            'provider.in' => 'Choisissez Airtel Money ou MTN Mobile Money.',
+            'transactionId.required' => 'Le numéro de transaction est obligatoire.',
+            'transactionId.min' => 'Le numéro de transaction est trop court.',
+            'transactionId.max' => 'Le numéro de transaction est trop long.',
         ]);
+
+        $phone = config('billing.mobile_money.'.$validated['provider']);
+
+        if (! is_string($phone) || $phone === '') {
+            return response()->json([
+                'message' => 'Le numéro Mobile Money YouSch est indisponible pour cet opérateur.',
+            ], 422);
+        }
+
+        $transactionId = preg_replace('/\s+/', '', $validated['transactionId']) ?? '';
+
+        if ($transactionId === '') {
+            return response()->json([
+                'message' => 'Le numéro de transaction est obligatoire.',
+            ], 422);
+        }
 
         $subscription = $this->requireSubscription();
         $subscription->update([
             'payment_provider' => $validated['provider'],
-            'payment_phone' => $validated['phone'],
+            'payment_phone' => $phone,
         ]);
+
+        $receipt = $this->recordPendingMobileMoneyReceipt(
+            $subscription,
+            $validated['provider'],
+            $transactionId,
+        );
+
+        $this->notifyPaymentSubmitted(
+            $subscription->fresh(),
+            $receipt,
+            $validated['provider'],
+            $phone,
+        );
 
         return response()->json([
             'data' => $this->payload($subscription->fresh('receipts')),
-            'message' => 'Préférence de paiement enregistrée.',
+            'message' => 'Paiement soumis — en attente de validation.',
         ]);
+    }
+
+    public function submitReceiptTransaction(Request $request, string $receipt): JsonResponse
+    {
+        if ($denied = $this->denyUnlessCan($request)) {
+            return $denied;
+        }
+
+        $validated = $request->validate([
+            'transactionId' => ['required', 'string', 'min:4', 'max:64'],
+            'provider' => ['nullable', 'string', Rule::in(['airtel', 'mtn'])],
+        ], [
+            'transactionId.required' => 'Le numéro de transaction est obligatoire.',
+            'transactionId.min' => 'Le numéro de transaction est trop court.',
+            'transactionId.max' => 'Le numéro de transaction est trop long.',
+            'provider.in' => 'Choisissez Airtel Money ou MTN Mobile Money.',
+        ]);
+
+        $subscription = $this->requireSubscription();
+        $model = $subscription->receipts()->whereKey($receipt)->first();
+
+        if ($model === null) {
+            return response()->json(['message' => 'Facture introuvable.'], 404);
+        }
+
+        if ($model->status === PaymentStatus::Paye
+            || $model->validation_status === SubscriptionValidationStatus::Valide) {
+            return response()->json([
+                'message' => 'Cette facture est déjà validée.',
+            ], 422);
+        }
+
+        $provider = $validated['provider']
+            ?? $subscription->payment_provider
+            ?? 'airtel';
+
+        if (! in_array($provider, ['airtel', 'mtn'], true)) {
+            $provider = 'airtel';
+        }
+
+        $phone = config('billing.mobile_money.'.$provider);
+
+        if (! is_string($phone) || $phone === '') {
+            return response()->json([
+                'message' => 'Le numéro Mobile Money YouSch est indisponible pour cet opérateur.',
+            ], 422);
+        }
+
+        $transactionId = preg_replace('/\s+/', '', $validated['transactionId']) ?? '';
+
+        if ($transactionId === '') {
+            return response()->json([
+                'message' => 'Le numéro de transaction est obligatoire.',
+            ], 422);
+        }
+
+        $method = $provider === 'mtn'
+            ? PaymentMethod::MtnMoney
+            : PaymentMethod::AirtelMoney;
+
+        $subscription->update([
+            'payment_provider' => $provider,
+            'payment_phone' => $phone,
+        ]);
+
+        $model->update([
+            'method' => $method,
+            'status' => PaymentStatus::Impaye,
+            'transaction_id' => $transactionId,
+            'validation_status' => SubscriptionValidationStatus::EnAttente,
+            'paid_on' => null,
+        ]);
+
+        $this->notifyPaymentSubmitted(
+            $subscription->fresh(),
+            $model->fresh(),
+            $provider,
+            $phone,
+        );
+
+        return response()->json([
+            'data' => $this->payload($subscription->fresh('receipts')),
+            'message' => 'Paiement soumis — en attente de validation.',
+        ]);
+    }
+
+    /**
+     * Attach or refresh the open subscription receipt with a MoMo transaction ID.
+     */
+    private function recordPendingMobileMoneyReceipt(
+        SchoolSubscription $subscription,
+        string $provider,
+        string $transactionId,
+        ?SubscriptionReceipt $target = null,
+    ): SubscriptionReceipt {
+        $method = $provider === 'mtn'
+            ? PaymentMethod::MtnMoney
+            : PaymentMethod::AirtelMoney;
+
+        $receipt = $target ?? $subscription->receipts()
+            ->whereIn('status', [
+                PaymentStatus::Impaye->value,
+                PaymentStatus::Partiel->value,
+            ])
+            ->where(function ($query): void {
+                $query->whereNull('validation_status')
+                    ->orWhereIn('validation_status', [
+                        SubscriptionValidationStatus::EnAttente->value,
+                        SubscriptionValidationStatus::Rejete->value,
+                    ]);
+            })
+            ->orderByDesc('created_at')
+            ->first();
+
+        $periodLabel = Carbon::now()
+            ->locale('fr')
+            ->isoFormat('MMMM YYYY');
+        $periodLabel = mb_convert_case($periodLabel, MB_CASE_TITLE, 'UTF-8');
+
+        if ($receipt === null) {
+            return SubscriptionReceipt::query()->create([
+                'id' => (string) Str::ulid(),
+                'school_subscription_id' => $subscription->id,
+                'reference' => sprintf('YS-%s-%s', now()->format('Y'), now()->format('mdHi')),
+                'period_label' => $periodLabel,
+                'paid_on' => null,
+                'amount' => $subscription->monthly_amount,
+                'plan' => $subscription->plan,
+                'method' => $method,
+                'status' => PaymentStatus::Impaye,
+                'transaction_id' => $transactionId,
+                'validation_status' => SubscriptionValidationStatus::EnAttente,
+            ]);
+        }
+
+        $receipt->update([
+            'method' => $method,
+            'status' => PaymentStatus::Impaye,
+            'transaction_id' => $transactionId,
+            'validation_status' => SubscriptionValidationStatus::EnAttente,
+            'paid_on' => null,
+            'amount' => $subscription->monthly_amount,
+            'plan' => $subscription->plan,
+        ]);
+
+        return $receipt->fresh() ?? $receipt;
+    }
+
+    private function notifyPaymentSubmitted(
+        SchoolSubscription $subscription,
+        SubscriptionReceipt $receipt,
+        string $provider,
+        string $phone,
+    ): void {
+        $email = $subscription->billing_email;
+
+        if (! is_string($email) || $email === '') {
+            return;
+        }
+
+        $providerLabel = $provider === 'mtn' ? 'MTN Mobile Money' : 'Airtel Money';
+        $schoolName = $subscription->billing_name
+            ?: (SchoolCatalog::dataset()['profile']['name'] ?? 'Votre établissement');
+
+        Notification::route('mail', $email)
+            ->notify(new SubscriptionPaymentSubmittedNotification(
+                receipt: $receipt,
+                schoolName: is_string($schoolName) ? $schoolName : 'Votre établissement',
+                providerLabel: $providerLabel,
+                collectionPhone: $phone,
+            ));
     }
 
     public function cancel(Request $request): JsonResponse

@@ -6,33 +6,30 @@ import { assessmentTypeLabel } from '@/lib/school-students';
 import {
     assessmentTimeRange,
     assessmentsOnPeriod,
-    breakCoveringTime,
     capitalizeFr,
     findSlot,
-    firstHalfHourForPeriod,
-    halfHourSlots,
-    periodCoveringTime,
     periodLabel,
-    resolvePeriodIdForTime,
     schoolHoursForClassroom,
     slotDisplay,
     subjectTone,
     timeToMinutes,
+    timetableDaySegments,
     timetablePeriodsForClassroom,
     weekdayFromDate,
-    type HalfHourSlot,
+    type TimetableDaySegment,
 } from '@/lib/school-timetable';
 import { cn } from '@/lib/utils';
 import type {
+    Assessment,
     SchoolDataset,
-    SchoolHours,
     TimetablePeriod,
     TimetableSlot,
     Weekday,
 } from '@/types/school';
 
-/** Pixel height of one full 30-minute box. */
+/** Pixel height of one full 30-minute block — used to scale all segments. */
 const HALF_HOUR_HEIGHT_PX = 56;
+const PX_PER_MINUTE = HALF_HOUR_HEIGHT_PX / 30;
 
 export function TimetableWeek({
     catalog,
@@ -41,7 +38,8 @@ export function TimetableWeek({
     days,
     onSelectDay,
     onCreate,
-    onEdit,
+    onOpenSlot,
+    onOpenExam,
 }: {
     catalog: SchoolDataset;
     classroomId: string;
@@ -49,13 +47,14 @@ export function TimetableWeek({
     days: Date[];
     onSelectDay?: (day: Date) => void;
     onCreate: (weekday: Weekday, periodId: string) => void;
-    onEdit: (slot: TimetableSlot) => void;
+    onOpenSlot: (slot: TimetableSlot) => void;
+    onOpenExam?: (exam: Assessment) => void;
 }) {
     const today = new Date();
     const singleDay = days.length === 1;
     const periods = timetablePeriodsForClassroom(catalog, classroomId);
     const hours = schoolHoursForClassroom(catalog, classroomId);
-    const halves = halfHourSlots(hours);
+    const segments = timetableDaySegments(periods, hours);
 
     return (
         <div
@@ -97,29 +96,44 @@ export function TimetableWeek({
                 </>
             )}
 
-            {halves.map((half, index) => (
-                <HalfHourRow
-                    key={half.startsAt}
+            {segments.map((segment) => (
+                <SegmentRow
+                    key={`${segment.kind}-${segment.startsAt}-${segment.endsAt}`}
                     catalog={catalog}
                     classroomId={classroomId}
                     slots={slots}
                     days={days}
-                    half={half}
-                    halves={halves}
+                    segment={segment}
                     periods={periods}
-                    hours={hours}
-                    showEndLabel={index === halves.length - 1}
                     today={singleDay ? null : today}
                     onCreate={onCreate}
-                    onEdit={onEdit}
+                    onOpenSlot={onOpenSlot}
+                    onOpenExam={onOpenExam}
                 />
             ))}
+
+            {hours.endsAt ? (
+                <>
+                    <div className="text-muted-foreground border-border flex items-start justify-end border-t px-2 pt-1.5 pb-2 text-xs leading-none">
+                        {hours.endsAt}
+                    </div>
+                    <div
+                        className="border-border border-t"
+                        style={{ gridColumn: `2 / span ${days.length}` }}
+                    />
+                </>
+            ) : null}
         </div>
     );
 }
 
-function halfHeight(half: HalfHourSlot): number {
-    return Math.max(24, (half.minutes / 30) * HALF_HOUR_HEIGHT_PX);
+function segmentHeight(segment: Pick<TimetableDaySegment, 'startsAt' | 'endsAt'>): number {
+    const minutes = Math.max(
+        1,
+        timeToMinutes(segment.endsAt) - timeToMinutes(segment.startsAt),
+    );
+
+    return Math.max(28, minutes * PX_PER_MINUTE);
 }
 
 function AddBox({ height, onClick }: { height: number; onClick: () => void }) {
@@ -136,43 +150,30 @@ function AddBox({ height, onClick }: { height: number; onClick: () => void }) {
     );
 }
 
-function HalfHourRow({
+function SegmentRow({
     catalog,
     classroomId,
     slots,
     days,
-    half,
-    halves,
+    segment,
     periods,
-    hours,
-    showEndLabel,
     today,
     onCreate,
-    onEdit,
+    onOpenSlot,
+    onOpenExam,
 }: {
     catalog: SchoolDataset;
     classroomId: string;
     slots: TimetableSlot[];
     days: Date[];
-    half: HalfHourSlot;
-    halves: HalfHourSlot[];
+    segment: TimetableDaySegment;
     periods: TimetablePeriod[];
-    hours: SchoolHours;
-    showEndLabel: boolean;
     today: Date | null;
     onCreate: (weekday: Weekday, periodId: string) => void;
-    onEdit: (slot: TimetableSlot) => void;
+    onOpenSlot: (slot: TimetableSlot) => void;
+    onOpenExam?: (exam: Assessment) => void;
 }) {
-    const height = halfHeight(half);
-    const pause = breakCoveringTime(hours, half.startsAt);
-    const periodCover = periodCoveringTime(periods, half.startsAt);
-    const periodHead =
-        periodCover === null
-            ? null
-            : firstHalfHourForPeriod(halves, periodCover, periods);
-    const isPeriodHead =
-        periodCover !== null && periodHead?.startsAt === half.startsAt;
-    const isPeriodContinuation = periodCover !== null && !isPeriodHead;
+    const height = segmentHeight(segment);
 
     return (
         <>
@@ -180,7 +181,7 @@ function HalfHourRow({
                 className="text-muted-foreground border-border flex items-start justify-end border-t px-2 pt-1.5 text-xs leading-none"
                 style={{ height }}
             >
-                {half.startsAt}
+                {segment.startsAt}
             </div>
             {days.map((day) => {
                 const weekday = weekdayFromDate(day);
@@ -196,24 +197,22 @@ function HalfHourRow({
                     );
                 }
 
-                if (pause) {
-                    const showLabel = pause.startsAt === half.startsAt;
-
+                if (segment.kind === 'break') {
                     return (
                         <div
-                            key={`${day.toISOString()}-${half.startsAt}-break`}
-                            className="border-border bg-muted/40 text-muted-foreground flex items-center justify-center border-t border-l text-[10px] font-medium tracking-[0.1em] uppercase"
+                            key={`${day.toISOString()}-${segment.startsAt}-break`}
+                            className="border-border bg-muted/40 text-muted-foreground flex items-center justify-center border-t border-l px-2 text-center text-[10px] font-medium tracking-[0.08em] uppercase"
                             style={{ height }}
                         >
-                            {showLabel ? pause.label : null}
+                            {segment.label}
                         </div>
                     );
                 }
 
-                if (isPeriodContinuation) {
+                if (segment.kind === 'gap') {
                     return (
                         <div
-                            key={`${day.toISOString()}-${half.startsAt}-cont`}
+                            key={`${day.toISOString()}-${segment.startsAt}-gap`}
                             className={cn(
                                 'border-border border-t border-l',
                                 isToday && 'bg-primary/[0.03]',
@@ -223,117 +222,62 @@ function HalfHourRow({
                     );
                 }
 
-                const period = periodCover;
-                const periodId =
-                    period?.id ??
-                    resolvePeriodIdForTime(periods, half.startsAt);
-
-                if (period && isPeriodHead) {
-                    const slot = findSlot(
-                        slots,
-                        classroomId,
-                        weekday,
-                        period.id,
-                    );
-                    const exams = assessmentsOnPeriod(
-                        catalog,
-                        classroomId,
-                        day,
-                        period.id,
-                    );
-                    const display = slot ? slotDisplay(catalog, slot) : null;
-                    const spanMinutes = Math.max(
-                        30,
-                        timeToMinutes(period.endsAt) -
-                            timeToMinutes(half.startsAt),
-                    );
-                    const eventHeight = Math.max(
-                        height,
-                        (spanMinutes / 30) * HALF_HOUR_HEIGHT_PX - 2,
-                    );
-
-                    return (
-                        <div
-                            key={`${day.toISOString()}-${half.startsAt}-period`}
-                            className={cn(
-                                'border-border group relative overflow-visible border-t border-l p-1',
-                                isToday && 'bg-primary/[0.03]',
-                            )}
-                            style={{ height }}
-                        >
-                            <div
-                                className="absolute inset-x-1 top-1 z-10 flex flex-col gap-1"
-                                style={{ height: eventHeight }}
-                            >
-                                {slot && display ? (
-                                    <TimetableEvent
-                                        block
-                                        tone={subjectTone(
-                                            catalog,
-                                            slot.subjectId,
-                                        )}
-                                        title={display.subjectName}
-                                        time={periodLabel(
-                                            slot.periodId,
-                                            periods,
-                                        )}
-                                        hint={
-                                            display.room
-                                                ? `${display.teacherLastName} · ${display.room}`
-                                                : display.teacherLastName
-                                        }
-                                        onClick={() => onEdit(slot)}
-                                    />
-                                ) : exams.length === 0 && periodId ? (
-                                    <AddBox
-                                        height={eventHeight}
-                                        onClick={() =>
-                                            onCreate(weekday, periodId)
-                                        }
-                                    />
-                                ) : null}
-                                {exams.map((exam) => (
-                                    <TimetableEvent
-                                        key={exam.id}
-                                        tone="exam"
-                                        title={exam.name}
-                                        time={`${assessmentTypeLabel(exam.type)} · ${assessmentTimeRange(exam)}`}
-                                    />
-                                ))}
-                            </div>
-                        </div>
-                    );
-                }
+                const period = segment.period;
+                const slot = findSlot(slots, classroomId, weekday, period.id);
+                const exams = assessmentsOnPeriod(
+                    catalog,
+                    classroomId,
+                    day,
+                    period.id,
+                );
+                const display = slot ? slotDisplay(catalog, slot) : null;
 
                 return (
                     <div
-                        key={`${day.toISOString()}-${half.startsAt}-add`}
+                        key={`${day.toISOString()}-${segment.startsAt}-period`}
                         className={cn(
                             'border-border group relative border-t border-l p-1',
                             isToday && 'bg-primary/[0.03]',
                         )}
                         style={{ height }}
                     >
-                        {periodId ? (
-                            <AddBox
-                                height={height}
-                                onClick={() => onCreate(weekday, periodId)}
-                            />
-                        ) : null}
+                        <div className="flex h-full flex-col gap-1">
+                            {slot && display ? (
+                                <TimetableEvent
+                                    block
+                                    tone={subjectTone(catalog, slot.subjectId)}
+                                    title={display.subjectName}
+                                    time={periodLabel(slot.periodId, periods)}
+                                    hint={
+                                        display.room
+                                            ? `${display.teacherLastName} · ${display.room}`
+                                            : display.teacherLastName
+                                    }
+                                    onClick={() => onOpenSlot(slot)}
+                                />
+                            ) : exams.length === 0 ? (
+                                <AddBox
+                                    height={height}
+                                    onClick={() => onCreate(weekday, period.id)}
+                                />
+                            ) : null}
+                            {exams.map((exam) => (
+                                <TimetableEvent
+                                    key={exam.id}
+                                    tone="exam"
+                                    title={exam.name}
+                                    time={`${assessmentTypeLabel(exam.type)} · ${assessmentTimeRange(exam)}`}
+                                    onClick={
+                                        onOpenExam
+                                            ? () => onOpenExam(exam)
+                                            : undefined
+                                    }
+                                />
+                            ))}
+                        </div>
                     </div>
                 );
             })}
-            {showEndLabel ? (
-                <>
-                    <div className="text-muted-foreground border-border flex items-start justify-end border-t px-2 pt-1.5 pb-2 text-xs leading-none">
-                        {hours.endsAt}
-                    </div>
-                    <div
-                        className="border-border border-t"
-                        style={{ gridColumn: `2 / span ${days.length}` }}
-                    />
-                </>
-            ) : null}
         </>
     );
 }

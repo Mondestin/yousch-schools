@@ -33,4 +33,10 @@ enum Cycle: string
             default => false,
         };
     }
+
+    /** Collège and lycée — pupils get a portal account when enrolled. */
+    public function needsStudentPortal(): bool
+    {
+        return $this->needsCoefficient();
+    }
 }

@@ -52,12 +52,26 @@ export const DEFAULT_SCHOOL_HOURS: SchoolHours = {
     endsAt: '14:30',
     recess: { startsAt: '10:00', endsAt: '10:30' },
     lunch: { startsAt: '12:00', endsAt: '13:00' },
+    breaks: [
+        {
+            id: 'break-recess',
+            label: 'Récréation',
+            startsAt: '10:00',
+            endsAt: '10:30',
+        },
+        {
+            id: 'break-lunch',
+            label: 'Pause de midi',
+            startsAt: '12:00',
+            endsAt: '13:00',
+        },
+    ],
 };
 
 export function defaultCycleSchedule(cycle: Cycle): CycleSchedule {
     return {
         cycle,
-        hours: {
+        hours: normalizeSchoolHours({
             startsAt: DEFAULT_SCHOOL_HOURS.startsAt,
             endsAt: DEFAULT_SCHOOL_HOURS.endsAt,
             recess: DEFAULT_SCHOOL_HOURS.recess
@@ -66,7 +80,8 @@ export function defaultCycleSchedule(cycle: Cycle): CycleSchedule {
             lunch: DEFAULT_SCHOOL_HOURS.lunch
                 ? { ...DEFAULT_SCHOOL_HOURS.lunch }
                 : null,
-        },
+            breaks: DEFAULT_SCHOOL_HOURS.breaks?.map((item) => ({ ...item })),
+        }),
         periods: TIMETABLE_PERIODS.map((period) => ({ ...period })),
     };
 }
@@ -92,9 +107,9 @@ export function schoolHoursOf(
     catalog: Pick<SchoolDataset, 'schedules'>,
     cycle?: Cycle | null,
 ): SchoolHours {
-    return (
+    return normalizeSchoolHours(
         catalog.schedules?.find((item) => item.cycle === cycle)?.hours ??
-        DEFAULT_SCHOOL_HOURS
+            DEFAULT_SCHOOL_HOURS,
     );
 }
 
@@ -306,24 +321,72 @@ export function completeBreak(item: SchoolBreak | null): SchoolBreak | null {
     return item;
 }
 
-export function schoolBreaks(
-    hours: SchoolHours,
-): Array<SchoolBreak & { label: string }> {
-    const items: Array<SchoolBreak & { label: string }> = [];
+/** Normalize legacy recess/lunch into the labeled `breaks` list. */
+export function normalizeSchoolHours(hours: SchoolHours): SchoolHours {
+    const labeled =
+        hours.breaks
+            ?.filter((item) => item.startsAt && item.endsAt && item.label.trim())
+            .map((item, index) => ({
+                id: item.id || `break-${index + 1}`,
+                label: item.label.trim(),
+                startsAt: item.startsAt,
+                endsAt: item.endsAt,
+            })) ?? [];
+
+    if (labeled.length > 0) {
+        const sorted = [...labeled].sort((left, right) =>
+            left.startsAt.localeCompare(right.startsAt),
+        );
+
+        return {
+            startsAt: hours.startsAt,
+            endsAt: hours.endsAt,
+            breaks: sorted,
+            recess: sorted[0]
+                ? { startsAt: sorted[0].startsAt, endsAt: sorted[0].endsAt }
+                : null,
+            lunch: sorted[1]
+                ? { startsAt: sorted[1].startsAt, endsAt: sorted[1].endsAt }
+                : null,
+        };
+    }
+
+    const legacy: Array<{ id: string; label: string; startsAt: string; endsAt: string }> =
+        [];
     const recess = completeBreak(hours.recess);
     const lunch = completeBreak(hours.lunch);
 
     if (recess) {
-        items.push({ ...recess, label: 'Récréation' });
+        legacy.push({
+            id: 'break-recess',
+            label: 'Récréation',
+            startsAt: recess.startsAt,
+            endsAt: recess.endsAt,
+        });
     }
 
     if (lunch) {
-        items.push({ ...lunch, label: 'Pause de midi' });
+        legacy.push({
+            id: 'break-lunch',
+            label: 'Pause de midi',
+            startsAt: lunch.startsAt,
+            endsAt: lunch.endsAt,
+        });
     }
 
-    return items.sort((left, right) =>
-        left.startsAt.localeCompare(right.startsAt),
-    );
+    return {
+        startsAt: hours.startsAt,
+        endsAt: hours.endsAt,
+        breaks: legacy,
+        recess,
+        lunch,
+    };
+}
+
+export function schoolBreaks(
+    hours: SchoolHours,
+): Array<SchoolBreak & { label: string }> {
+    return normalizeSchoolHours(hours).breaks ?? [];
 }
 
 export function periodFitsHours(
@@ -487,6 +550,29 @@ export function breakCoveringTime(
     return (
         schoolBreaks(hours).find(
             (item) => item.startsAt <= time && time < item.endsAt,
+        ) ?? null
+    );
+}
+
+/** True when [aStart, aEnd) overlaps [bStart, bEnd). */
+export function timeRangesOverlap(
+    aStart: string,
+    aEnd: string,
+    bStart: string,
+    bEnd: string,
+): boolean {
+    return aStart < bEnd && bStart < aEnd;
+}
+
+/** Break overlapping a half-hour (or other) grid cell, if any. */
+export function breakOverlappingRange(
+    hours: SchoolHours,
+    startsAt: string,
+    endsAt: string,
+): (SchoolBreak & { label: string }) | null {
+    return (
+        schoolBreaks(hours).find((item) =>
+            timeRangesOverlap(startsAt, endsAt, item.startsAt, item.endsAt),
         ) ?? null
     );
 }

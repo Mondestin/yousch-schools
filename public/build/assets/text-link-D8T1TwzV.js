@@ -1,0 +1,1 @@
+import{a as e,t}from"./jsx-runtime-DXLt3b3x.js";import{r as n}from"./wayfinder-DX7UQcfH.js";var r=t();function i({className:t=``,children:i,...a}){return(0,r.jsx)(e,{className:n(`text-primary decoration-primary/30 hover:decoration-primary underline underline-offset-4 transition-colors duration-300 ease-out`,t),...a,children:i})}export{i as t};

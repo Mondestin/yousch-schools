@@ -40,6 +40,7 @@ import {
     formatFcfa,
     formatFrDate,
     paymentStatusLabel,
+    subscriptionValidationStatusLabel,
 } from '@/lib/school-rows';
 import {
     PLAN_OFFERS,
@@ -49,9 +50,10 @@ import {
     type PlanOffer,
 } from '@/lib/school-subscription';
 import { toastApiError, toastSaved } from '@/lib/school-toast';
+import { toast } from 'sonner';
 import {
+    formatMobileMoneyPhone,
     MOBILE_MONEY_PROVIDERS,
-    normalizeMobileMoneyPhone,
     type MobileMoneyAccount,
     type MobileMoneyProvider,
 } from '@/lib/school-mobile-money';
@@ -61,6 +63,8 @@ import {
     payment as updatePayment,
     plan as updatePlan,
 } from '@/routes/api/v1/subscription';
+import { transaction as submitReceiptTransaction } from '@/routes/api/v1/subscription/receipts';
+import { SubscriptionBillingBanner } from '@/components/sms/subscription-billing-banner';
 import { subscription } from '@/routes/organisation';
 import type {
     PaymentStatus,
@@ -68,6 +72,7 @@ import type {
     Subscription,
     SubscriptionPlan,
     SubscriptionReceipt,
+    SubscriptionValidationStatus,
 } from '@/types/school';
 
 type BillingPeriod = 'monthly' | 'annual';
@@ -84,6 +89,15 @@ const statusVariant: Record<PaymentStatus, 'success' | 'warning' | 'danger'> = {
     paye: 'success',
     partiel: 'warning',
     impaye: 'danger',
+};
+
+const validationVariant: Record<
+    SubscriptionValidationStatus,
+    'success' | 'warning' | 'danger'
+> = {
+    en_attente: 'warning',
+    valide: 'success',
+    rejete: 'danger',
 };
 
 export default function OrganisationSubscriptionPage({
@@ -107,8 +121,8 @@ export default function OrganisationSubscriptionPage({
     );
     const [draftProvider, setDraftProvider] =
         useState<MobileMoneyProvider>('airtel');
-    const [draftPhone, setDraftPhone] = useState('');
-    const [phoneError, setPhoneError] = useState('');
+    const [draftTransactionId, setDraftTransactionId] = useState('');
+    const [txnDrafts, setTxnDrafts] = useState<Record<string, string>>({});
     const [address, setAddress] = useState<Address>({
         name: initial.billing?.name || profile.name,
         email: initial.billing?.email || profile.email,
@@ -123,7 +137,12 @@ export default function OrganisationSubscriptionPage({
     const [paymentOpen, setPaymentOpen] = useState(false);
     const nextReceipt = useMemo(
         () =>
-            item.receipts.find((receipt) => receipt.status !== 'paye') ?? null,
+            item.receipts.find(
+                (receipt) =>
+                    receipt.status !== 'paye' ||
+                    receipt.validationStatus === 'en_attente' ||
+                    receipt.validationStatus === 'rejete',
+            ) ?? null,
         [item.receipts],
     );
     const offer =
@@ -171,8 +190,7 @@ export default function OrganisationSubscriptionPage({
     function openPaymentDialog(open: boolean): void {
         if (open) {
             setDraftProvider(payment?.provider ?? 'airtel');
-            setDraftPhone(payment?.phone ?? '');
-            setPhoneError('');
+            setDraftTransactionId(nextReceipt?.transactionId ?? '');
         }
         setPaymentOpen(open);
     }
@@ -181,24 +199,70 @@ export default function OrganisationSubscriptionPage({
         event: FormEvent<HTMLFormElement>,
     ): Promise<void> {
         event.preventDefault();
-        const phone = normalizeMobileMoneyPhone(draftPhone);
-        if (!phone) {
-            setPhoneError(
-                'Saisissez un numéro avec son indicatif pays, par exemple +242 06 123 45 67.',
+        setSaving(true);
+
+        try {
+            const saved = await apiData<Subscription>(updatePayment.url(), {
+                method: 'PUT',
+                body: {
+                    provider: draftProvider,
+                    transactionId: draftTransactionId.trim(),
+                },
+            });
+            applySubscription(saved);
+            setPaymentOpen(false);
+            toastSaved('Paiement soumis — confirmation envoyée par e-mail');
+        } catch (error) {
+            toastApiError(error);
+        } finally {
+            setSaving(false);
+        }
+    }
+
+    function receiptAllowsTransaction(receipt: SubscriptionReceipt): boolean {
+        return (
+            receipt.status !== 'paye' && receipt.validationStatus !== 'valide'
+        );
+    }
+
+    async function saveReceiptTransaction(
+        receipt: SubscriptionReceipt,
+    ): Promise<void> {
+        const transactionId = (
+            txnDrafts[receipt.id] ??
+            receipt.transactionId ??
+            ''
+        ).trim();
+
+        if (transactionId.length < 4) {
+            toast.error(
+                'Indiquez un n° de transaction d’au moins 4 caractères.',
             );
+
             return;
         }
 
         setSaving(true);
 
         try {
-            const saved = await apiData<Subscription>(updatePayment.url(), {
-                method: 'PUT',
-                body: { provider: draftProvider, phone },
-            });
+            const saved = await apiData<Subscription>(
+                submitReceiptTransaction.url(receipt.id),
+                {
+                    method: 'PUT',
+                    body: {
+                        transactionId,
+                        provider: payment?.provider ?? draftProvider,
+                    },
+                },
+            );
             applySubscription(saved);
-            setPaymentOpen(false);
-            toastSaved('Préférence de paiement enregistrée');
+            setTxnDrafts((current) => {
+                const next = { ...current };
+                delete next[receipt.id];
+
+                return next;
+            });
+            toastSaved('Paiement soumis — confirmation envoyée par e-mail');
         } catch (error) {
             toastApiError(error);
         } finally {
@@ -274,6 +338,10 @@ export default function OrganisationSubscriptionPage({
             <Head title="Facturation" />
             <main className="min-h-0 flex-1 overflow-y-auto px-6 py-6">
                 <div className="mx-auto flex max-w-6xl flex-col gap-12 pb-8 sm:gap-14">
+                    <SubscriptionBillingBanner
+                        alert={item.billingAlert}
+                        className="-mb-6"
+                    />
                     <header>
                         <h1 className="text-[24px] font-semibold tracking-tight">
                             Facturation
@@ -448,10 +516,12 @@ export default function OrganisationSubscriptionPage({
                                             </div>
                                             <div className="shrink-0 border-t pt-4 sm:border-t-0 sm:pt-0 sm:text-right">
                                                 <p className="text-muted-foreground text-[11px] font-medium tracking-wide uppercase">
-                                                    Numéro
+                                                    Envoyer vers
                                                 </p>
                                                 <p className="mt-1 text-[18px] font-semibold tracking-tight tabular-nums">
-                                                    {payment.phone}
+                                                    {formatMobileMoneyPhone(
+                                                        payment.phone,
+                                                    )}
                                                 </p>
                                             </div>
                                         </div>
@@ -511,19 +581,26 @@ export default function OrganisationSubscriptionPage({
                         <Table
                             aria-label="Historique des factures"
                             containerClassName="rounded-xl border-border/80 bg-card shadow-[0_1px_3px_rgba(15,23,42,0.06)]"
-                            className="[&_th]:border-border/80 [&_th]:bg-muted/40 [&_th]:text-muted-foreground [&_td]:border-border/60 min-w-[640px] text-left text-[13px] [&_tbody_tr:last-child_td]:border-b-0 [&_td]:border-r-0 [&_td]:px-5 [&_td]:py-3.5 [&_th]:static [&_th]:border-r-0 [&_th]:px-5 [&_th]:py-3"
+                            className="[&_th]:border-border/80 [&_th]:bg-muted/40 [&_th]:text-muted-foreground [&_td]:border-border/60 min-w-[920px] text-left text-[13px] [&_tbody_tr:last-child_td]:border-b-0 [&_td]:border-r-0 [&_td]:px-5 [&_td]:py-3.5 [&_th]:static [&_th]:border-r-0 [&_th]:px-5 [&_th]:py-3"
                         >
                             <TableHeader>
                                 <TableRow>
                                     <TableHead scope="col">Référence</TableHead>
+                                    <TableHead scope="col">
+                                        N° transaction
+                                    </TableHead>
                                     <TableHead scope="col">Total TTC</TableHead>
                                     <TableHead scope="col">Date</TableHead>
+                                    <TableHead scope="col">Paiement</TableHead>
+                                    <TableHead scope="col">
+                                        Validation
+                                    </TableHead>
                                     <TableHead
                                         scope="col"
                                         className="text-right"
                                     >
                                         <span className="sr-only">
-                                            Statut et téléchargement
+                                            Téléchargement
                                         </span>
                                     </TableHead>
                                 </TableRow>
@@ -531,13 +608,26 @@ export default function OrganisationSubscriptionPage({
                             <TableBody>
                                 <TableRow className="hover:[&>td]:bg-secondary/60">
                                     <TableCell>À venir</TableCell>
+                                    <TableCell>
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            className="h-8 text-[12px]"
+                                            onClick={() =>
+                                                openPaymentDialog(true)
+                                            }
+                                        >
+                                            Saisir le n°
+                                        </Button>
+                                    </TableCell>
                                     <TableCell className="tabular-nums">
                                         {formatFcfa(amount)}
                                     </TableCell>
                                     <TableCell>
                                         {formatFrDate(item.renewsOn)}
                                     </TableCell>
-                                    <TableCell className="text-right">
+                                    <TableCell>
                                         <Badge
                                             variant="muted"
                                             className="border-transparent leading-none"
@@ -545,6 +635,10 @@ export default function OrganisationSubscriptionPage({
                                             À venir
                                         </Badge>
                                     </TableCell>
+                                    <TableCell className="text-muted-foreground">
+                                        —
+                                    </TableCell>
+                                    <TableCell />
                                 </TableRow>
                                 {item.receipts.map((receipt) => (
                                     <TableRow
@@ -553,6 +647,56 @@ export default function OrganisationSubscriptionPage({
                                     >
                                         <TableCell>
                                             {receipt.reference}
+                                        </TableCell>
+                                        <TableCell>
+                                            {receiptAllowsTransaction(
+                                                receipt,
+                                            ) ? (
+                                                <div className="flex min-w-[12rem] items-center gap-2">
+                                                    <Input
+                                                        value={
+                                                            txnDrafts[
+                                                                receipt.id
+                                                            ] ??
+                                                            receipt.transactionId ??
+                                                            ''
+                                                        }
+                                                        onChange={(event) =>
+                                                            setTxnDrafts(
+                                                                (current) => ({
+                                                                    ...current,
+                                                                    [receipt.id]:
+                                                                        event
+                                                                            .target
+                                                                            .value,
+                                                                }),
+                                                            )
+                                                        }
+                                                        placeholder="N° transaction"
+                                                        className="h-8 font-mono text-[12px]"
+                                                        maxLength={64}
+                                                    />
+                                                    <Button
+                                                        type="button"
+                                                        size="sm"
+                                                        className="h-8 shrink-0 px-2 text-[12px]"
+                                                        disabled={saving}
+                                                        onClick={() => {
+                                                            void saveReceiptTransaction(
+                                                                receipt,
+                                                            );
+                                                        }}
+                                                    >
+                                                        Envoyer
+                                                    </Button>
+                                                </div>
+                                            ) : (
+                                                <span className="font-mono text-[12px] tracking-tight">
+                                                    {receipt.transactionId?.trim()
+                                                        ? receipt.transactionId
+                                                        : '—'}
+                                                </span>
+                                            )}
                                         </TableCell>
                                         <TableCell className="tabular-nums">
                                             {formatFcfa(receipt.amount)}
@@ -563,35 +707,56 @@ export default function OrganisationSubscriptionPage({
                                             )}
                                         </TableCell>
                                         <TableCell>
-                                            <div className="flex items-center justify-end gap-2">
+                                            <Badge
+                                                variant={
+                                                    statusVariant[
+                                                        receipt.status
+                                                    ]
+                                                }
+                                                className="border-transparent leading-none"
+                                            >
+                                                {paymentStatusLabel(
+                                                    receipt.status,
+                                                )}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell>
+                                            {receipt.validationStatus ? (
                                                 <Badge
                                                     variant={
-                                                        statusVariant[
-                                                            receipt.status
+                                                        validationVariant[
+                                                            receipt
+                                                                .validationStatus
                                                         ]
                                                     }
                                                     className="border-transparent leading-none"
                                                 >
-                                                    {paymentStatusLabel(
-                                                        receipt.status,
+                                                    {subscriptionValidationStatusLabel(
+                                                        receipt.validationStatus,
                                                     )}
                                                 </Badge>
-                                                <Button
-                                                    type="button"
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="text-muted-foreground hover:bg-secondary hover:text-sidebar-foreground size-8 rounded-md"
-                                                    aria-label={
-                                                        'Télécharger la facture ' +
-                                                        receipt.reference
-                                                    }
-                                                    onClick={() =>
-                                                        downloadReceipt(receipt)
-                                                    }
-                                                >
-                                                    <Download className="size-4" />
-                                                </Button>
-                                            </div>
+                                            ) : (
+                                                <span className="text-muted-foreground">
+                                                    —
+                                                </span>
+                                            )}
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="icon"
+                                                className="text-muted-foreground hover:bg-secondary hover:text-sidebar-foreground size-8 rounded-md"
+                                                aria-label={
+                                                    'Télécharger la facture ' +
+                                                    receipt.reference
+                                                }
+                                                onClick={() =>
+                                                    downloadReceipt(receipt)
+                                                }
+                                            >
+                                                <Download className="size-4" />
+                                            </Button>
                                         </TableCell>
                                     </TableRow>
                                 ))}
@@ -770,8 +935,9 @@ export default function OrganisationSubscriptionPage({
                                 : 'Ajouter un moyen de paiement'}
                         </DialogTitle>
                         <DialogDescription>
-                            Choisissez votre opérateur et renseignez le numéro
-                            associé à votre compte Mobile Money.
+                            Choisissez l’opérateur, envoyez le montant au numéro
+                            YouSch affiché, puis saisissez le n° de transaction
+                            reçu. Le paiement restera en attente de validation.
                         </DialogDescription>
                     </DialogHeader>
                     <form
@@ -822,45 +988,47 @@ export default function OrganisationSubscriptionPage({
                             </div>
                         </fieldset>
                         <div className="space-y-2">
-                            <Label htmlFor="mobile-money-phone">
-                                Numéro de téléphone
+                            <p className="text-[13px] font-medium">
+                                Numéro à créditer
+                            </p>
+                            <div className="bg-muted/50 border-border rounded-[8px] border px-4 py-3">
+                                <p className="text-[18px] font-semibold tracking-tight tabular-nums">
+                                    {formatMobileMoneyPhone(
+                                        MOBILE_MONEY_PROVIDERS[draftProvider]
+                                            .payToPhone,
+                                    )}
+                                </p>
+                                <p className="text-muted-foreground mt-1 text-[13px]">
+                                    Envoyez le paiement de l’abonnement à ce
+                                    numéro{' '}
+                                    {
+                                        MOBILE_MONEY_PROVIDERS[draftProvider]
+                                            .label
+                                    }
+                                    .
+                                </p>
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="subscription-transaction-id">
+                                N° de transaction
                             </Label>
                             <Input
-                                id="mobile-money-phone"
-                                type="tel"
-                                inputMode="tel"
-                                autoComplete="tel"
-                                placeholder="+242 06 123 45 67"
-                                required
-                                value={draftPhone}
-                                onChange={(event) => {
-                                    setDraftPhone(event.target.value);
-                                    setPhoneError('');
-                                }}
-                                aria-invalid={Boolean(phoneError)}
-                                aria-describedby={
-                                    phoneError
-                                        ? 'mobile-money-phone-error'
-                                        : 'mobile-money-phone-help'
+                                id="subscription-transaction-id"
+                                value={draftTransactionId}
+                                onChange={(event) =>
+                                    setDraftTransactionId(event.target.value)
                                 }
+                                placeholder="Ex. MP250914.1234.A12345"
+                                autoComplete="off"
+                                required
+                                minLength={4}
+                                maxLength={64}
                             />
-                            {phoneError ? (
-                                <p
-                                    id="mobile-money-phone-error"
-                                    role="alert"
-                                    className="text-destructive text-[13px]"
-                                >
-                                    {phoneError}
-                                </p>
-                            ) : (
-                                <p
-                                    id="mobile-money-phone-help"
-                                    className="text-muted-foreground text-[13px]"
-                                >
-                                    Incluez l’indicatif pays, suivi du numéro de
-                                    votre compte.
-                                </p>
-                            )}
+                            <p className="text-muted-foreground text-[12px]">
+                                Indiquez le numéro reçu après l’envoi Mobile
+                                Money, puis attendez la validation YouSch.
+                            </p>
                         </div>
                         <DialogFooter>
                             <Button
@@ -870,7 +1038,9 @@ export default function OrganisationSubscriptionPage({
                             >
                                 Annuler
                             </Button>
-                            <Button type="submit">Enregistrer</Button>
+                            <Button type="submit" disabled={saving}>
+                                Soumettre pour validation
+                            </Button>
                         </DialogFooter>
                     </form>
                 </DialogContent>

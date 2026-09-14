@@ -301,6 +301,13 @@ final class IssuedDocumentService
             ?? $this->defaultBodyFor($document->kind);
         $bodyHtml = $this->renderBody($bodySource, $vars);
 
+        $logoHtml = $vars['logoUrl'] !== ''
+            ? '<img src="'.$this->e($vars['logoUrl']).'" alt="" class="logo">'
+            : '';
+        $stampHtml = $vars['stampUrl'] !== ''
+            ? '<img src="'.$this->e($vars['stampUrl']).'" alt="Cachet et signature" class="stamp">'
+            : '';
+
         $html = <<<HTML
 <!DOCTYPE html>
 <html lang="fr">
@@ -311,14 +318,20 @@ final class IssuedDocumentService
 body{font-family:Georgia,serif;color:#111;max-width:210mm;margin:24px auto;padding:24px;line-height:1.6}
 header,h1{text-align:center}
 h1{text-transform:uppercase;font-size:22px;margin:32px 0}
+.logo{display:block;margin:0 auto 8px;height:96px;width:128px;object-fit:contain}
 .meta{color:#555;font-size:13px}
 .number{margin-top:8px;font-size:12px;letter-spacing:.04em}
-.sign{text-align:right;margin-top:48px}
+.sign{margin-top:48px;display:flex;justify-content:flex-end;padding-right:72px}
+.sign-inner{width:max-content;min-width:20rem;max-width:100%;font-size:14px;text-align:center}
+.sign-inner>p:first-child{white-space:nowrap}
+.sign-stack{display:flex;flex-direction:column;align-items:center;text-align:center;margin-top:16px}
+.stamp{height:112px;width:176px;object-fit:contain}
 .body p{margin:0 0 1em;font-size:15px}
 </style>
 </head>
 <body>
 <header>
+{$logoHtml}
 <p><strong>{$this->e($vars['schoolName'])}</strong></p>
 <p class="meta">{$this->e($vars['address'])}</p>
 <p class="meta">{$this->e($vars['city'])} · {$this->e($vars['phone'])}</p>
@@ -326,7 +339,15 @@ h1{text-transform:uppercase;font-size:22px;margin:32px 0}
 </header>
 <h1>{$this->e($title)}</h1>
 <div class="body">{$bodyHtml}</div>
-<p class="sign">Fait à {$this->e($vars['city'])}, le {$this->e($vars['issuedOn'])}<br><br>Le chef d’établissement<br>{$this->e($vars['directorName'])}</p>
+<div class="sign">
+<div class="sign-inner">
+<p>Fait à {$this->e($vars['city'])}, le {$this->e($vars['issuedOn'])}</p>
+<div class="sign-stack">
+{$stampHtml}
+<p>Le chef d’établissement<br><strong>{$this->e($vars['directorName'])}</strong></p>
+</div>
+</div>
+</div>
 </body>
 </html>
 HTML;
@@ -362,6 +383,8 @@ HTML;
             'city' => (string) ($profile['city'] ?? ''),
             'address' => (string) ($profile['address'] ?? ''),
             'phone' => (string) ($profile['phone'] ?? ''),
+            'logoUrl' => is_string($profile['logoUrl'] ?? null) ? (string) $profile['logoUrl'] : '',
+            'stampUrl' => is_string($profile['stampUrl'] ?? null) ? (string) $profile['stampUrl'] : '',
             'issuedOn' => (string) ($payload['issuedOn'] ?? $document->issued_on->format('d/m/Y')),
             'number' => $document->number,
         ];

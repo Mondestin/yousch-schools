@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\SubscriptionPlan;
 use App\Enums\SubscriptionStatus;
 use App\Models\Concerns\BelongsToSchool;
+use App\Support\Billing\SubscriptionBillingAlert;
 use App\Support\Billing\SubscriptionCatalog;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
@@ -112,6 +113,7 @@ class SchoolSubscription extends Model
                     'phone' => $this->payment_phone,
                 ]
                 : null,
+            'billingAlert' => SubscriptionBillingAlert::for($this),
             'receipts' => $this->relationLoaded('receipts')
                 ? array_values($this->receipts->map->toApiArray()->all())
                 : [],

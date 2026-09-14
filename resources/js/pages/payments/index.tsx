@@ -6,6 +6,7 @@ import {
     CircleDot,
     CircleDollarSign,
     EllipsisVertical,
+    Mail,
     Percent,
     Plus,
     Printer,
@@ -24,15 +25,26 @@ import { FormSheet } from '@/components/sms/form-sheet';
 import { KpiCard, KpiGrid } from '@/components/sms/kpi-card';
 import { ListPage } from '@/components/sms/list-page';
 import { PersonCell } from '@/components/sms/person-cell';
+import { PaymentMethodCell } from '@/components/sms/payment-method-cell';
 import { RowMenu } from '@/components/sms/row-menu';
+import { SearchInput } from '@/components/sms/search-input';
 import { SearchSelect } from '@/components/sms/search-select';
 import { useClientTable } from '@/hooks/use-client-table';
 import { useFieldErrors } from '@/hooks/use-field-errors';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import {
     Select,
     SelectContent,
@@ -78,6 +90,8 @@ import { toastApiError, toastRemoved, toastSaved } from '@/lib/school-toast';
 import { ApiError, apiData, apiJson } from '@/lib/api';
 import {
     destroy as destroyPayment,
+    emailReceipt as emailPaymentReceipt,
+    remind as remindPayments,
     store as storePayment,
     update as updatePayment,
 } from '@/routes/api/v1/payments';
@@ -95,13 +109,77 @@ const statusVariant: Record<PaymentStatus, 'success' | 'warning' | 'danger'> = {
     impaye: 'danger',
 };
 
-const METHODS: PaymentMethod[] = ['especes', 'mobile_money', 'virement'];
+const METHODS: PaymentMethod[] = [
+    'especes',
+    'mtn_money',
+    'airtel_money',
+    'virement',
+];
 
 const paymentSchema = z.object({
     studentId: requiredText('L’élève'),
     month: requiredText('Le mois'),
     amount: requiredAmount('Le montant'),
 });
+
+type RemindStudentGroup = {
+    key: string;
+    studentId: string;
+    studentName: string;
+    matricule: string;
+    classroom: string;
+    photoUrl: string | null;
+    rows: FeeLedgerRow[];
+    due: number;
+    guardianEmail: string | null;
+    lastRemindedAt: string | null;
+};
+
+function remindRowKey(row: Pick<FeeLedgerRow, 'studentId' | 'enrollmentId'>): string {
+    return row.studentId || row.enrollmentId;
+}
+
+function guardianEmailForStudent(
+    catalog: SchoolDataset,
+    studentId: string,
+): string | null {
+    if (studentId === '') {
+        return null;
+    }
+
+    const guardianIds = catalog.studentGuardians
+        .filter((link) => link.studentId === studentId)
+        .map((link) => link.guardianId);
+
+    for (const guardianId of guardianIds) {
+        const guardian = catalog.guardians.find((item) => item.id === guardianId);
+        const email = guardian?.email?.trim();
+
+        if (email) {
+            return email;
+        }
+    }
+
+    return null;
+}
+
+function latestRemindedAt(rows: FeeLedgerRow[]): string | null {
+    let latest: string | null = null;
+
+    for (const row of rows) {
+        const value = row.lastRemindedAt ?? null;
+
+        if (value && (!latest || value > latest)) {
+            latest = value;
+        }
+    }
+
+    return latest;
+}
+
+function defaultRemindMessage(schoolName: string): string {
+    return `Nous vous rappelons qu’un solde reste dû pour votre enfant à ${schoolName}. Merci de régulariser auprès de la caisse ou par Mobile Money (voir le lien dans cet e-mail).`;
+}
 
 export default function PaymentsIndex({ catalog }: { catalog: SchoolDataset }) {
     const crudItems = useCrudItems();
@@ -136,6 +214,13 @@ export default function PaymentsIndex({ catalog }: { catalog: SchoolDataset }) {
     });
     const { errors, clearErrors, showErrors, validate } = useFieldErrors();
     const [saving, setSaving] = useState(false);
+    const [reminding, setReminding] = useState(false);
+    const [remindOpen, setRemindOpen] = useState(false);
+    const [remindSearch, setRemindSearch] = useState('');
+    const [remindSelected, setRemindSelected] = useState<string[]>([]);
+    const [remindMessage, setRemindMessage] = useState(() =>
+        defaultRemindMessage(catalog.profile.name),
+    );
     const selectedStudent = students.find(
         (row) => row.studentId === form.studentId,
     );
@@ -201,6 +286,80 @@ export default function PaymentsIndex({ catalog }: { catalog: SchoolDataset }) {
         });
     }, [scoped, search, status]);
     const table = useClientTable(rows);
+    const remindable = useMemo(
+        () =>
+            rows.filter(
+                (row) => row.status === 'impaye' || row.status === 'partiel',
+            ),
+        [rows],
+    );
+    const remindGroups = useMemo((): RemindStudentGroup[] => {
+        const byKey = new Map<string, RemindStudentGroup>();
+
+        for (const row of remindable) {
+            const key = remindRowKey(row);
+            const existing = byKey.get(key);
+
+            if (existing) {
+                existing.rows.push(row);
+                existing.due += Math.max(0, row.expectedAmount - row.amount);
+                continue;
+            }
+
+            byKey.set(key, {
+                key,
+                studentId: row.studentId,
+                studentName: row.studentName,
+                matricule: row.matricule,
+                classroom: row.classroom,
+                photoUrl: row.photoUrl,
+                rows: [row],
+                due: Math.max(0, row.expectedAmount - row.amount),
+                guardianEmail: guardianEmailForStudent(catalog, row.studentId),
+                lastRemindedAt: row.lastRemindedAt ?? null,
+            });
+        }
+
+        return [...byKey.values()]
+            .map((group) => ({
+                ...group,
+                lastRemindedAt: latestRemindedAt(group.rows),
+            }))
+            .sort((left, right) =>
+                left.studentName.localeCompare(right.studentName, 'fr'),
+            );
+    }, [catalog, remindable]);
+    const filteredRemindGroups = useMemo(() => {
+        const needle = remindSearch.trim().toLowerCase();
+
+        if (needle === '') {
+            return remindGroups;
+        }
+
+        return remindGroups.filter((group) =>
+            `${group.studentName} ${group.matricule} ${group.classroom}`
+                .toLowerCase()
+                .includes(needle),
+        );
+    }, [remindGroups, remindSearch]);
+    const selectedRemindRows = useMemo(
+        () =>
+            remindable.filter((row) =>
+                remindSelected.includes(remindRowKey(row)),
+            ),
+        [remindSelected, remindable],
+    );
+    const sendableRemindRows = useMemo(
+        () =>
+            selectedRemindRows.filter((row) =>
+                Boolean(guardianEmailForStudent(catalog, row.studentId)),
+            ),
+        [catalog, selectedRemindRows],
+    );
+    const remindableWithEmail = useMemo(
+        () => remindGroups.filter((group) => Boolean(group.guardianEmail)),
+        [remindGroups],
+    );
 
     function accountFor(studentId: string, monthValue: string) {
         const row = students.find((item) => item.studentId === studentId);
@@ -233,6 +392,157 @@ export default function PaymentsIndex({ catalog }: { catalog: SchoolDataset }) {
         });
         clearErrors();
         setOpen(true);
+    }
+
+    function openRemind(keys?: string[]): void {
+        if (remindable.length === 0) {
+            toastApiError(
+                new Error(
+                    'Aucun impayé ou partiel dans la liste filtrée.',
+                ),
+            );
+
+            return;
+        }
+
+        const withEmail = remindGroups.filter((group) =>
+            Boolean(group.guardianEmail),
+        );
+
+        if (withEmail.length === 0) {
+            toastApiError(
+                new Error(
+                    'Aucun e-mail tuteur sur les élèves à relancer.',
+                ),
+            );
+
+            return;
+        }
+
+        const available = new Set(withEmail.map((group) => group.key));
+        const initial =
+            keys && keys.length > 0
+                ? keys.filter((key) => available.has(key))
+                : withEmail.map((group) => group.key);
+
+        if (keys && keys.length > 0 && initial.length === 0) {
+            toastApiError(
+                new Error('Aucun e-mail tuteur pour cet élève.'),
+            );
+
+            return;
+        }
+
+        setRemindSelected(initial);
+        setRemindSearch('');
+        setRemindMessage(defaultRemindMessage(catalog.profile.name));
+        setRemindOpen(true);
+    }
+
+    function toggleRemindStudent(key: string, checked: boolean): void {
+        const group = remindGroups.find((item) => item.key === key);
+
+        if (checked && !group?.guardianEmail) {
+            return;
+        }
+
+        setRemindSelected((current) => {
+            if (checked) {
+                return current.includes(key) ? current : [...current, key];
+            }
+
+            return current.filter((item) => item !== key);
+        });
+    }
+
+    function toggleRemindAllVisible(checked: boolean): void {
+        const visibleKeys = filteredRemindGroups
+            .filter((group) => Boolean(group.guardianEmail))
+            .map((group) => group.key);
+
+        setRemindSelected((current) => {
+            if (checked) {
+                return [...new Set([...current, ...visibleKeys])];
+            }
+
+            const hide = new Set(visibleKeys);
+
+            return current.filter((key) => !hide.has(key));
+        });
+    }
+
+    async function sendReminders(): Promise<void> {
+        if (sendableRemindRows.length === 0) {
+            toastApiError(
+                new Error(
+                    'Sélectionnez au moins un élève avec e-mail tuteur.',
+                ),
+            );
+
+            return;
+        }
+
+        setReminding(true);
+
+        try {
+            const response = await apiJson<{
+                data: {
+                    sent: number;
+                    skipped: number;
+                    failures: string[];
+                    payments: Payment[];
+                };
+                message: string;
+            }>(remindPayments.url(), {
+                method: 'POST',
+                body: {
+                    message: remindMessage.trim() || null,
+                    items: sendableRemindRows.map((row) => ({
+                        enrollmentId: row.enrollmentId,
+                        month: row.month,
+                    })),
+                },
+            });
+
+            setItems((current) => {
+                const byKey = new Map(
+                    response.data.payments.map((payment) => [
+                        `${payment.enrollmentId}:${payment.month}`,
+                        payment,
+                    ]),
+                );
+                const next = current.map((payment) => {
+                    const updated = byKey.get(
+                        `${payment.enrollmentId}:${payment.month}`,
+                    );
+
+                    return updated ?? payment;
+                });
+
+                for (const payment of response.data.payments) {
+                    const exists = next.some((item) => item.id === payment.id);
+
+                    if (!exists) {
+                        next.push(payment);
+                    }
+                }
+
+                return next;
+            });
+
+            setRemindOpen(false);
+            toastSaved(response.message);
+            if (response.data.failures.length > 0) {
+                toastApiError(
+                    new Error(response.data.failures.slice(0, 3).join(' · ')),
+                );
+            }
+            router.reload({ only: ['catalog'] });
+        } catch (error) {
+            toastApiError(error, 'Impossible d’envoyer les relances');
+        } finally {
+            setReminding(false);
+        }
     }
 
     function openCollect(row: FeeLedgerRow): void {
@@ -537,10 +847,26 @@ export default function PaymentsIndex({ catalog }: { catalog: SchoolDataset }) {
                     </>
                 }
                 actions={
-                    <Button type="button" size="sm" onClick={openCreate}>
-                        <Plus />
-                        Encaisser
-                    </Button>
+                    <div className="flex flex-wrap items-center gap-2">
+                        <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            disabled={reminding || remindable.length === 0}
+                            onClick={() => {
+                                openRemind();
+                            }}
+                        >
+                            <Mail />
+                            {reminding
+                                ? 'Envoi…'
+                                : `Relancer (${remindGroups.length})`}
+                        </Button>
+                        <Button type="button" size="sm" onClick={openCreate}>
+                            <Plus />
+                            Encaisser
+                        </Button>
+                    </div>
                 }
                 empty={{
                     title:
@@ -655,9 +981,7 @@ export default function PaymentsIndex({ catalog }: { catalog: SchoolDataset }) {
                                     )}
                                 </TableCell>
                                 <TableCell>
-                                    {row.method
-                                        ? cashMethodLabel(row.method)
-                                        : '-'}
+                                    <PaymentMethodCell method={row.method} />
                                 </TableCell>
                                 <TableCell>
                                     <span className="flex flex-wrap items-center gap-1.5">
@@ -672,6 +996,14 @@ export default function PaymentsIndex({ catalog }: { catalog: SchoolDataset }) {
                                             </Badge>
                                         ) : null}
                                     </span>
+                                    {row.lastRemindedAt ? (
+                                        <span className="text-muted-foreground mt-1 block text-[11px]">
+                                            Relancé le{' '}
+                                            {formatFrDate(
+                                                row.lastRemindedAt.slice(0, 10),
+                                            )}
+                                        </span>
+                                    ) : null}
                                 </TableCell>
                                 <TableCell className="px-3 py-1.5 text-center">
                                     <RowMenu
@@ -697,6 +1029,22 @@ export default function PaymentsIndex({ catalog }: { catalog: SchoolDataset }) {
                                             },
                                             extras: [
                                                 {
+                                                    label: 'Relancer par e-mail',
+                                                    icon: Mail,
+                                                    disabled:
+                                                        row.status === 'paye' ||
+                                                        reminding ||
+                                                        !guardianEmailForStudent(
+                                                            catalog,
+                                                            row.studentId,
+                                                        ),
+                                                    onSelect: () => {
+                                                        openRemind([
+                                                            remindRowKey(row),
+                                                        ]);
+                                                    },
+                                                },
+                                                {
                                                     label: 'Encaisser',
                                                     icon: Banknote,
                                                     disabled:
@@ -708,6 +1056,44 @@ export default function PaymentsIndex({ catalog }: { catalog: SchoolDataset }) {
                                                         ).remainingYear <= 0,
                                                     onSelect: () =>
                                                         openCollect(row),
+                                                },
+                                                {
+                                                    label: 'Envoyer le reçu par e-mail',
+                                                    icon: Mail,
+                                                    disabled:
+                                                        row.draft ||
+                                                        row.status ===
+                                                            'impaye' ||
+                                                        row.amount <= 0 ||
+                                                        !guardianEmailForStudent(
+                                                            catalog,
+                                                            row.studentId,
+                                                        ),
+                                                    onSelect: () => {
+                                                        void (async () => {
+                                                            try {
+                                                                const response =
+                                                                    await apiJson<{
+                                                                        message: string;
+                                                                    }>(
+                                                                        emailPaymentReceipt.url(
+                                                                            row.id,
+                                                                        ),
+                                                                        {
+                                                                            method: 'POST',
+                                                                        },
+                                                                    );
+                                                                toastSaved(
+                                                                    response.message,
+                                                                );
+                                                            } catch (error) {
+                                                                toastApiError(
+                                                                    error,
+                                                                    'Impossible d’envoyer le reçu',
+                                                                );
+                                                            }
+                                                        })();
+                                                    },
                                                 },
                                                 {
                                                     label: 'Imprimer le reçu',
@@ -737,6 +1123,205 @@ export default function PaymentsIndex({ catalog }: { catalog: SchoolDataset }) {
                     </TableBody>
                 </Table>
             </ListPage>
+
+            <Dialog
+                open={remindOpen}
+                onOpenChange={(next) => {
+                    if (reminding) {
+                        return;
+                    }
+
+                    setRemindOpen(next);
+                }}
+            >
+                <DialogContent className="flex max-h-[calc(100svh-2rem)] flex-col gap-0 overflow-hidden p-0 sm:max-w-4xl">
+                    <DialogHeader className="shrink-0 space-y-1.5 border-b px-6 py-4 text-left">
+                        <DialogTitle>Relancer par e-mail</DialogTitle>
+                        <DialogDescription>
+                            Choisissez les élèves, vérifiez l’e-mail du tuteur,
+                            puis adaptez le message. Un relevé PDF et un lien de
+                            paiement (Mobile Money / caisse) sont joints.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid min-h-0 flex-1 gap-4 px-6 py-4 md:grid-cols-2 md:gap-6">
+                        <div className="flex min-h-0 flex-col gap-1.5">
+                            <Label htmlFor="remindMessage">Message</Label>
+                            <Textarea
+                                id="remindMessage"
+                                value={remindMessage}
+                                className="h-[24rem] min-h-[24rem] resize-none [field-sizing:fixed] text-[13px]"
+                                onChange={(event) => {
+                                    setRemindMessage(event.target.value);
+                                }}
+                            />
+                        </div>
+                        <div className="flex min-h-0 flex-col gap-3">
+                            <div className="flex shrink-0 flex-wrap items-center gap-3">
+                                <SearchInput
+                                    wrapperClassName="max-w-none min-w-0 flex-1"
+                                    placeholder="Rechercher un élève…"
+                                    value={remindSearch}
+                                    onChange={(event) => {
+                                        setRemindSearch(event.target.value);
+                                    }}
+                                />
+                                <label className="flex shrink-0 items-center gap-2 text-[13px]">
+                                    <Checkbox
+                                        checked={
+                                            filteredRemindGroups.filter(
+                                                (group) =>
+                                                    Boolean(
+                                                        group.guardianEmail,
+                                                    ),
+                                            ).length > 0 &&
+                                            filteredRemindGroups
+                                                .filter((group) =>
+                                                    Boolean(
+                                                        group.guardianEmail,
+                                                    ),
+                                                )
+                                                .every((group) =>
+                                                    remindSelected.includes(
+                                                        group.key,
+                                                    ),
+                                                )
+                                        }
+                                        onCheckedChange={(value) => {
+                                            toggleRemindAllVisible(
+                                                value === true,
+                                            );
+                                        }}
+                                    />
+                                    Tout sélectionner
+                                </label>
+                            </div>
+                            <div className="border-border h-[24rem] min-h-[24rem] overflow-y-auto rounded-[8px] border">
+                                {filteredRemindGroups.length === 0 ? (
+                                    <p className="text-muted-foreground p-4 text-[13px]">
+                                        Aucun élève à relancer.
+                                    </p>
+                                ) : (
+                                    <ul className="divide-border divide-y">
+                                        {filteredRemindGroups.map((group) => {
+                                            const canSend = Boolean(
+                                                group.guardianEmail,
+                                            );
+                                            const checked =
+                                                canSend &&
+                                                remindSelected.includes(
+                                                    group.key,
+                                                );
+                                            const monthsLabel =
+                                                group.rows.length > 1
+                                                    ? `${group.rows.length} mois`
+                                                    : formatFrMonth(
+                                                          group.rows[0].month,
+                                                      );
+
+                                            return (
+                                                <li key={group.key}>
+                                                    <label
+                                                        className={`flex items-start gap-3 px-3 py-2.5 ${
+                                                            canSend
+                                                                ? 'hover:bg-muted/40 cursor-pointer'
+                                                                : 'cursor-not-allowed opacity-60'
+                                                        }`}
+                                                    >
+                                                        <Checkbox
+                                                            className="mt-1"
+                                                            checked={checked}
+                                                            disabled={!canSend}
+                                                            onCheckedChange={(
+                                                                value,
+                                                            ) => {
+                                                                toggleRemindStudent(
+                                                                    group.key,
+                                                                    value ===
+                                                                        true,
+                                                                );
+                                                            }}
+                                                        />
+                                                        <div className="min-w-0 flex-1">
+                                                            <PersonCell
+                                                                name={
+                                                                    group.studentName
+                                                                }
+                                                                hint={`${group.matricule} · ${group.classroom}`}
+                                                                photoUrl={
+                                                                    group.photoUrl
+                                                                }
+                                                            />
+                                                            <p
+                                                                className={`mt-1 text-[11px] ${
+                                                                    canSend
+                                                                        ? 'text-muted-foreground'
+                                                                        : 'text-danger'
+                                                                }`}
+                                                            >
+                                                                {canSend
+                                                                    ? group.guardianEmail
+                                                                    : 'Aucun e-mail tuteur'}
+                                                                {group.lastRemindedAt
+                                                                    ? ` · Relancé le ${formatFrDate(group.lastRemindedAt.slice(0, 10))}`
+                                                                    : ''}
+                                                            </p>
+                                                        </div>
+                                                        <div className="ml-auto shrink-0 text-right text-[12px]">
+                                                            <p className="font-medium">
+                                                                {formatFcfa(
+                                                                    group.due,
+                                                                )}
+                                                            </p>
+                                                            <p className="text-muted-foreground">
+                                                                {monthsLabel}
+                                                            </p>
+                                                        </div>
+                                                    </label>
+                                                </li>
+                                            );
+                                        })}
+                                    </ul>
+                                )}
+                            </div>
+                            <p className="text-muted-foreground shrink-0 text-[12px]">
+                                {sendableRemindRows.length} relance
+                                {sendableRemindRows.length > 1 ? 's' : ''} prête
+                                {sendableRemindRows.length > 1 ? 's' : ''}
+                                {remindGroups.length >
+                                remindableWithEmail.length
+                                    ? ` · ${remindGroups.length - remindableWithEmail.length} sans e-mail ignoré${remindGroups.length - remindableWithEmail.length > 1 ? 's' : ''}`
+                                    : ''}
+                            </p>
+                        </div>
+                    </div>
+                    <DialogFooter className="shrink-0 border-t px-6 py-4 sm:justify-between">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            disabled={reminding}
+                            onClick={() => {
+                                setRemindOpen(false);
+                            }}
+                        >
+                            Annuler
+                        </Button>
+                        <Button
+                            type="button"
+                            disabled={
+                                reminding || sendableRemindRows.length === 0
+                            }
+                            onClick={() => {
+                                void sendReminders();
+                            }}
+                        >
+                            <Mail />
+                            {reminding
+                                ? 'Envoi…'
+                                : `Envoyer (${sendableRemindRows.length})`}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
 
             <FormSheet
                 open={open}
@@ -859,7 +1444,23 @@ export default function PaymentsIndex({ catalog }: { catalog: SchoolDataset }) {
                         <SelectContent>
                             {METHODS.map((method) => (
                                 <SelectItem key={method} value={method}>
-                                    {cashMethodLabel(method)}
+                                    {method === 'mtn_money' ||
+                                    method === 'airtel_money' ? (
+                                        <span className="inline-flex items-center gap-2">
+                                            <img
+                                                src={
+                                                    method === 'mtn_money'
+                                                        ? '/images/MTN_lmobile_money.jpg'
+                                                        : '/images/airtel-money.png'
+                                                }
+                                                alt=""
+                                                className="h-4 w-7 rounded-[2px] object-contain"
+                                            />
+                                            {cashMethodLabel(method)}
+                                        </span>
+                                    ) : (
+                                        cashMethodLabel(method)
+                                    )}
                                 </SelectItem>
                             ))}
                         </SelectContent>

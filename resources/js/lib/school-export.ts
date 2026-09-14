@@ -320,7 +320,12 @@ ${bodyHtml}
 export function printDomElement(
     title: string,
     element: HTMLElement,
-    options?: { landscape?: boolean; pageSize?: string },
+    options?: {
+        landscape?: boolean;
+        pageSize?: string;
+        /** CSS @page margin, e.g. `14mm 16mm 18mm`. Default 0 for cards. */
+        pageMargin?: string;
+    },
 ): void {
     const clone = element.cloneNode(true) as HTMLElement;
     clone.querySelectorAll('.no-print').forEach((node) => node.remove());
@@ -339,6 +344,20 @@ export function printDomElement(
     const page =
         options?.pageSize ??
         (options?.landscape ? 'A4 landscape' : 'A4');
+    const pageMargin = options?.pageMargin ?? '0';
+    const isDocument = Boolean(
+        clone.matches('.print-bulletin') ||
+            clone.querySelector('.print-bulletin') ||
+            clone.getAttribute('data-print-root') === 'statement' ||
+            clone.getAttribute('data-print-root') === 'receipt' ||
+            clone.getAttribute('data-print-root') === 'student-document',
+    );
+    const margin = options?.pageMargin
+        ? pageMargin
+        : isDocument
+          ? '14mm 16mm 16mm'
+          : '0';
+
     const html = `<!doctype html>
 <html lang="fr">
 <head>
@@ -346,7 +365,7 @@ export function printDomElement(
 <title>${escapeHtml(title)}</title>
 ${collectedPageStyles()}
 <style>
-  @page { size: ${page}; margin: 0; }
+  @page { size: ${page}; margin: ${margin}; }
   html, body {
     margin: 0 !important;
     padding: 0 !important;
@@ -356,18 +375,30 @@ ${collectedPageStyles()}
   body {
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
+    ${isDocument ? '' : 'display: flex; align-items: center; justify-content: center; min-height: 100vh;'}
   }
   .no-print { display: none !important; }
   [data-print-only] { display: block !important; }
   .print-bulletin {
     max-width: none !important;
+    width: 100% !important;
     margin: 0 !important;
+    padding: 0 !important;
     box-shadow: none !important;
     border: none !important;
+    min-height: calc(297mm - 30mm);
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  .print-closing {
+    margin-top: auto;
+    padding-top: 8mm;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  .print-closing .document-pied,
+  .print-bulletin > .document-pied {
+    margin-top: 10mm;
   }
   [data-print-root="id-card"] {
     box-shadow: none !important;

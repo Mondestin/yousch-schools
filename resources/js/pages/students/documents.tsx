@@ -17,7 +17,8 @@ import {
 import { useMemo, useState, type ReactNode } from 'react';
 import { DocumentAuthenticityQr } from '@/components/sms/document-authenticity-qr';
 import { DocumentPied } from '@/components/sms/document-pied';
-import { DocumentStamp } from '@/components/sms/document-stamp';
+import { DocumentSchoolHeader } from '@/components/sms/document-school-header';
+import { DocumentSignatureBlock } from '@/components/sms/document-signature';
 import { EmptyState } from '@/components/sms/empty-state';
 import { Field } from '@/components/sms/field';
 import { FormSheet } from '@/components/sms/form-sheet';
@@ -42,7 +43,7 @@ import { apiData } from '@/lib/api';
 import { canAccess } from '@/lib/school-access';
 import { printDomElement } from '@/lib/school-export';
 import { dossierFilesOf, isImageDossier } from '@/lib/school-files';
-import { COUNTRY_SHORT, formatFrDate } from '@/lib/school-rows';
+import { formatFrDate } from '@/lib/school-rows';
 import {
     genderLabel,
     studentFiche,
@@ -1030,7 +1031,8 @@ function certificateBody(
     return DEFAULT_BODIES[kind]
         .replaceAll('{{name}}', name)
         .replaceAll('{{classroom}}', classroom)
-        .replaceAll('{{year}}', fiche.yearLabel);
+        .replaceAll('{{year}}', fiche.yearLabel)
+        .replaceAll('{{yearLabel}}', fiche.yearLabel);
 }
 
 function IssuedCertificate({
@@ -1084,19 +1086,10 @@ function IssuedCertificate({
                     {document.revokeReason ? ` : ${document.revokeReason}` : '.'}
                 </p>
             ) : null}
-            <header className="text-center text-[13px]">
-                <p className="text-[16px] font-semibold uppercase tracking-[0.02em]">
-                    {fiche.profile.name}
-                </p>
-                <p className="text-black/70">{fiche.profile.address}</p>
-                <p className="text-black/70">
-                    {fiche.profile.city}, {COUNTRY_SHORT} ·{' '}
-                    {fiche.profile.phone}
-                </p>
-                <p className="mt-2 font-mono text-[12px] tracking-wide text-black/60">
-                    N° {document.number}
-                </p>
-            </header>
+            <DocumentSchoolHeader
+                profile={fiche.profile}
+                number={document.number}
+            />
             <h1 className="mt-10 mb-8 text-center text-[20px] font-bold tracking-[0.04em] uppercase sm:text-[22px]">
                 {document.title}
             </h1>
@@ -1110,18 +1103,12 @@ function IssuedCertificate({
                 La présente pièce est délivrée pour servir et valoir ce que de
                 droit.
             </p>
-            <p className="mt-10 text-right text-[14px]">
-                Fait à {fiche.profile.city}, le {issuedOnLabel}
-            </p>
-            <DocumentStamp
-                url={fiche.profile.stampUrl}
-                className="mt-6 ml-auto"
+            <DocumentSignatureBlock
+                city={fiche.profile.city}
+                issuedOn={issuedOnLabel}
+                stampUrl={fiche.profile.stampUrl}
+                name={fiche.profile.directorName}
             />
-            <p className="mt-8 text-right text-[14px] font-medium">
-                Le chef d’établissement
-                <br />
-                {fiche.profile.directorName}
-            </p>
             {!revoked ? (
                 <DocumentAuthenticityQr
                     claims={{

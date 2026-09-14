@@ -655,7 +655,7 @@ test('fee postings carry a settlement method when money was received', function 
     $paid = $payments->filter(fn (array $payment) => $payment['status'] !== 'impaye' && $payment['amount'] > 0);
 
     expect($payments)->not->toBeEmpty()
-        ->and($paid->every(fn (array $payment) => in_array($payment['method'], ['especes', 'mobile_money', 'virement'], true)))->toBeTrue();
+        ->and($paid->every(fn (array $payment) => in_array($payment['method'], ['especes', 'mtn_money', 'airtel_money', 'mobile_money', 'virement'], true)))->toBeTrue();
 });
 
 test('caisse root and old paiement urls redirect into the cash desk', function () {

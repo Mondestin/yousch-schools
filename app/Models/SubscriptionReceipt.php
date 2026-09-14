@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentStatus;
 use App\Enums\SubscriptionPlan;
+use App\Enums\SubscriptionValidationStatus;
 use App\Models\Concerns\BelongsToSchool;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
@@ -21,6 +22,8 @@ use Illuminate\Support\Carbon;
  * @property SubscriptionPlan $plan
  * @property PaymentMethod $method
  * @property PaymentStatus $status
+ * @property string|null $transaction_id
+ * @property SubscriptionValidationStatus|null $validation_status
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
@@ -34,6 +37,8 @@ use Illuminate\Support\Carbon;
     'plan',
     'method',
     'status',
+    'transaction_id',
+    'validation_status',
     'school_id',
 ])]
 class SubscriptionReceipt extends Model
@@ -55,6 +60,7 @@ class SubscriptionReceipt extends Model
             'plan' => SubscriptionPlan::class,
             'method' => PaymentMethod::class,
             'status' => PaymentStatus::class,
+            'validation_status' => SubscriptionValidationStatus::class,
         ];
     }
 
@@ -75,7 +81,9 @@ class SubscriptionReceipt extends Model
      *     amount: int,
      *     plan: string,
      *     method: string,
-     *     status: string
+     *     status: string,
+     *     transactionId: string|null,
+     *     validationStatus: string|null
      * }
      */
     public function toApiArray(): array
@@ -89,6 +97,8 @@ class SubscriptionReceipt extends Model
             'plan' => $this->plan->value,
             'method' => $this->method->value,
             'status' => $this->status->value,
+            'transactionId' => $this->transaction_id,
+            'validationStatus' => $this->validation_status?->value,
         ];
     }
 }

@@ -19,6 +19,7 @@ use Illuminate\Support\Carbon;
  * @property PaymentStatus $status
  * @property Carbon|null $paid_on
  * @property PaymentMethod|null $method
+ * @property Carbon|null $last_reminded_at
  */
 #[Fillable([
     'id',
@@ -29,6 +30,7 @@ use Illuminate\Support\Carbon;
     'status',
     'paid_on',
     'method',
+    'last_reminded_at',
     'school_id',
 ])]
 class Payment extends Model
@@ -50,6 +52,7 @@ class Payment extends Model
             'status' => PaymentStatus::class,
             'paid_on' => 'date',
             'method' => PaymentMethod::class,
+            'last_reminded_at' => 'datetime',
         ];
     }
 
@@ -70,7 +73,8 @@ class Payment extends Model
      *     expectedAmount: int,
      *     status: string,
      *     paidOn: string|null,
-     *     method: string|null
+     *     method: string|null,
+     *     lastRemindedAt: string|null
      * }
      */
     public function toApiArray(): array
@@ -84,6 +88,7 @@ class Payment extends Model
             'status' => $this->status->value,
             'paidOn' => $this->paid_on?->format('Y-m-d'),
             'method' => $this->method?->value,
+            'lastRemindedAt' => $this->last_reminded_at?->toIso8601String(),
         ];
     }
 }

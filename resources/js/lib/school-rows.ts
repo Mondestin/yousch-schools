@@ -6,6 +6,7 @@ import type {
     EnrollmentStatus,
     PaymentStatus,
     SchoolDataset,
+    SubscriptionValidationStatus,
     Term,
 } from '@/types/school';
 
@@ -134,6 +135,11 @@ export function isLyceeCycle(
     return cycle === 'lycee_general' || cycle === 'lycee_technique';
 }
 
+/** Collège + lycée — pupils get a portal login when enrolled. */
+export function isSecondaryCycle(cycle: Cycle): boolean {
+    return cycle === 'college' || isLyceeCycle(cycle);
+}
+
 export function enrollmentStatusVariant(
     status: EnrollmentStatus,
 ): 'success' | 'warning' | 'danger' {
@@ -170,6 +176,20 @@ export function paymentStatusLabel(status: PaymentStatus): string {
     }
 
     return 'Impayé';
+}
+
+export function subscriptionValidationStatusLabel(
+    status: SubscriptionValidationStatus,
+): string {
+    if (status === 'valide') {
+        return 'Validé';
+    }
+
+    if (status === 'rejete') {
+        return 'Rejeté';
+    }
+
+    return 'En attente de validation';
 }
 
 export function studentRows(

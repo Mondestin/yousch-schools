@@ -9,9 +9,9 @@ export default function AppLogo() {
             <img
                 src="/logo.png"
                 alt={String(name)}
-                className="h-8 w-auto object-contain group-data-[collapsible=icon]:hidden"
+                className="h-11 w-auto object-contain group-data-[collapsible=icon]:hidden"
             />
-            <AppLogoIcon className="hidden size-8 rounded-md group-data-[collapsible=icon]:block" />
+            <AppLogoIcon className="hidden size-9 rounded-md group-data-[collapsible=icon]:block" />
         </>
     );
 }

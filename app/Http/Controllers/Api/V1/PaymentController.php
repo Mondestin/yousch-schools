@@ -3,12 +3,15 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Enums\PaymentMethod;
+use App\Enums\PaymentStatus;
 use App\Http\Controllers\Api\V1\Concerns\EnsuresStaffAbility;
 use App\Http\Controllers\Controller;
 use App\Models\Enrollment;
 use App\Models\Payment;
 use App\Models\User;
 use App\Support\Api\ResourceId;
+use App\Support\Billing\FeeReceiptMailer;
+use App\Support\Billing\FeeReminderNotifier;
 use App\Support\School\PaymentReceiptBuilder;
 use App\Support\School\TuitionFee;
 use Illuminate\Http\JsonResponse;
@@ -91,6 +94,99 @@ class PaymentController extends Controller
         ]);
 
         return response()->json(['data' => $payment->toApiArray()], 201);
+    }
+
+    public function remind(Request $request, FeeReminderNotifier $notifier): JsonResponse
+    {
+        /** @var User $user */
+        $user = $request->user();
+
+        if ($denied = $this->denyUnlessCan($user, 'cash')) {
+            return $denied;
+        }
+
+        $validated = $request->validate([
+            'items' => ['required', 'array', 'min:1', 'max:200'],
+            'items.*.enrollmentId' => ['required', 'string', 'exists:enrollments,id'],
+            'items.*.month' => ['required', 'string', 'regex:/^\d{4}-\d{2}$/'],
+            'message' => ['nullable', 'string', 'max:2000'],
+        ], [
+            'items.required' => 'Sélectionnez au moins une ligne à relancer.',
+            'items.min' => 'Sélectionnez au moins une ligne à relancer.',
+        ]);
+
+        /** @var list<Payment> $payments */
+        $payments = [];
+
+        foreach ($validated['items'] as $item) {
+            $enrollment = Enrollment::query()->findOrFail($item['enrollmentId']);
+            $expected = TuitionFee::monthlyExpectedForEnrollment($enrollment);
+
+            $payment = Payment::query()->firstOrCreate(
+                [
+                    'enrollment_id' => $enrollment->id,
+                    'month' => $item['month'],
+                ],
+                [
+                    'id' => ResourceId::make('py'),
+                    'amount' => 0,
+                    'expected_amount' => $expected,
+                    'status' => PaymentStatus::Impaye->value,
+                    'paid_on' => null,
+                    'method' => null,
+                ],
+            );
+
+            if ($payment->expected_amount <= 0 && $expected > 0) {
+                $payment->forceFill(['expected_amount' => $expected])->save();
+            }
+
+            if ($payment->status === PaymentStatus::Paye) {
+                continue;
+            }
+
+            $payments[] = $payment->fresh();
+        }
+
+        $result = $notifier->send(
+            $payments,
+            is_string($validated['message'] ?? null) ? $validated['message'] : null,
+        );
+
+        return response()->json([
+            'data' => [
+                ...$result,
+                'payments' => collect($payments)->map->toApiArray()->values()->all(),
+            ],
+            'message' => sprintf(
+                '%d relance%s envoyée%s · %d ignorée%s.',
+                $result['sent'],
+                $result['sent'] > 1 ? 's' : '',
+                $result['sent'] > 1 ? 's' : '',
+                $result['skipped'],
+                $result['skipped'] > 1 ? 's' : '',
+            ),
+        ]);
+    }
+
+    public function emailReceipt(Request $request, string $payment, FeeReceiptMailer $mailer): JsonResponse
+    {
+        /** @var User $user */
+        $user = $request->user();
+
+        if ($denied = $this->denyUnlessCan($user, 'cash')) {
+            return $denied;
+        }
+
+        $model = Payment::query()->findOrFail($payment);
+        $result = $mailer->send($model);
+
+        return response()->json([
+            'data' => [
+                'ok' => $result['ok'],
+            ],
+            'message' => $result['message'],
+        ], $result['ok'] ? 200 : 422);
     }
 
     public function update(Request $request, string $payment): JsonResponse

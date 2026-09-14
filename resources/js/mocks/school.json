@@ -31,17 +31,21 @@
                 "amount": 75000,
                 "plan": "titanium",
                 "method": "mobile_money",
-                "status": "impaye"
+                "status": "impaye",
+                "transactionId": "MP250912.AIR.441122",
+                "validationStatus": "en_attente"
             },
             {
                 "id": "sr-2608",
                 "reference": "YS-2026-0841",
                 "periodLabel": "Août 2026",
-                "paidOn": "2026-08-02",
+                "paidOn": null,
                 "amount": 75000,
                 "plan": "titanium",
                 "method": "mobile_money",
-                "status": "partiel"
+                "status": "impaye",
+                "transactionId": "MP250802.MTN.778899",
+                "validationStatus": "rejete"
             },
             {
                 "id": "sr-2607",
@@ -51,7 +55,9 @@
                 "amount": 75000,
                 "plan": "titanium",
                 "method": "virement",
-                "status": "paye"
+                "status": "paye",
+                "transactionId": "MP250701.AIR.112233",
+                "validationStatus": "valide"
             },
             {
                 "id": "sr-2606",
@@ -61,7 +67,8 @@
                 "amount": 25000,
                 "plan": "gold",
                 "method": "mobile_money",
-                "status": "paye"
+                "status": "paye",
+                "validationStatus": null
             },
             {
                 "id": "sr-2605",
@@ -71,7 +78,8 @@
                 "amount": 25000,
                 "plan": "gold",
                 "method": "mobile_money",
-                "status": "paye"
+                "status": "paye",
+                "validationStatus": null
             },
             {
                 "id": "sr-2604",
@@ -81,7 +89,8 @@
                 "amount": 25000,
                 "plan": "gold",
                 "method": "virement",
-                "status": "paye"
+                "status": "paye",
+                "validationStatus": null
             }
         ]
     },

@@ -29,6 +29,7 @@ import { PageShell } from '@/components/sms/page-shell';
 import { PersonCell } from '@/components/sms/person-cell';
 import { RowMenu } from '@/components/sms/row-menu';
 import { SearchInput } from '@/components/sms/search-input';
+import { SearchSelect } from '@/components/sms/search-select';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -123,6 +124,8 @@ export default function IdCardsIndex({ catalog }: { catalog: SchoolDataset }) {
 
     const [audience, setAudience] = useState<Audience>('students');
     const [search, setSearch] = useState('');
+    const [classroomId, setClassroomId] = useState('all');
+    const [batchPrinting, setBatchPrinting] = useState(false);
     const [selectedId, setSelectedId] = useState<string | null>(null);
     const [layout, setLayout] = useState<IdCardLayout>('classic');
     const [accent, setAccent] = useState(
@@ -153,6 +156,7 @@ export default function IdCardsIndex({ catalog }: { catalog: SchoolDataset }) {
                 subjectType: 'student' as const,
                 name: row.name,
                 subtitle: row.classroom,
+                classroomId: row.classroomId,
                 photoUrl: row.photoUrl,
                 hint: row.matricule,
                 searchText: `${row.name} ${row.matricule} ${row.classroom}`,
@@ -209,17 +213,31 @@ export default function IdCardsIndex({ catalog }: { catalog: SchoolDataset }) {
     const roster = audience === 'students' ? students : staff;
     const cardKind = audience === 'students' ? 'student' : 'staff';
     const orientation = orientationForKind(cardKind);
+    const classrooms = catalog.classrooms.filter(
+        (classroom) =>
+            classroom.cycle === filter.cycle &&
+            classroom.academicYearId === filter.academicYearId,
+    );
     const filtered = useMemo(() => {
         const needle = normalize(search.trim());
 
-        if (needle === '') {
-            return roster;
-        }
+        return roster.filter((item) => {
+            if (
+                audience === 'students' &&
+                classroomId !== 'all' &&
+                'classroomId' in item &&
+                item.classroomId !== classroomId
+            ) {
+                return false;
+            }
 
-        return roster.filter((item) =>
-            normalize(item.searchText).includes(needle),
-        );
-    }, [roster, search]);
+            if (needle === '') {
+                return true;
+            }
+
+            return normalize(item.searchText).includes(needle);
+        });
+    }, [audience, classroomId, roster, search]);
 
     const activeId =
         selectedId && roster.some((item) => item.id === selectedId)
@@ -255,6 +273,7 @@ export default function IdCardsIndex({ catalog }: { catalog: SchoolDataset }) {
     function switchAudience(next: Audience): void {
         setAudience(next);
         setSearch('');
+        setClassroomId('all');
         setSelectedId(null);
         setVisibleFields(next === 'students' ? STUDENT_FIELDS : STAFF_FIELDS);
     }
@@ -335,6 +354,77 @@ export default function IdCardsIndex({ catalog }: { catalog: SchoolDataset }) {
             router.reload({ only: ['catalog'] });
         } catch (error) {
             toastApiError(error);
+        }
+    }
+
+    async function handlePrintClass(): Promise<void> {
+        if (audience !== 'students' || classroomId === 'all') {
+            toastApiError(
+                new Error('Choisissez une classe d’élèves à imprimer.'),
+            );
+
+            return;
+        }
+
+        const printable = filtered.filter((item) => {
+            const record = cards.find(
+                (card) =>
+                    card.subjectType === item.subjectType &&
+                    card.subjectId === item.id,
+            );
+
+            return (
+                record?.status !== 'blocked' && record?.status !== 'revoked'
+            );
+        });
+
+        if (printable.length === 0) {
+            toastApiError(new Error('Aucune carte imprimable dans cette classe.'));
+
+            return;
+        }
+
+        const node = document.querySelector<HTMLElement>(
+            '[data-print-root="id-card-batch"]',
+        );
+
+        if (!node) {
+            return;
+        }
+
+        setBatchPrinting(true);
+
+        const pageSize =
+            orientation === 'horizontal'
+                ? `${ID_CARD_WIDTH_MM}mm ${ID_CARD_HEIGHT_MM}mm`
+                : `${ID_CARD_HEIGHT_MM}mm ${ID_CARD_WIDTH_MM}mm`;
+
+        printDomElement(
+            `Cartes · ${classrooms.find((item) => item.id === classroomId)?.name ?? 'classe'}`,
+            node,
+            { pageSize },
+        );
+
+        try {
+            for (const item of printable) {
+                const saved = await apiData<IdentityCardRecord>(printCard.url(), {
+                    method: 'POST',
+                    body: {
+                        subjectType: item.subjectType,
+                        subjectId: item.id,
+                    },
+                });
+                upsertCard(saved);
+            }
+
+            toastSaved(
+                `${printable.length} carte${printable.length > 1 ? 's' : ''} imprimée${printable.length > 1 ? 's' : ''}`,
+            );
+            router.reload({ only: ['catalog'] });
+        } catch (error) {
+            toastApiError(error);
+        } finally {
+            setBatchPrinting(false);
         }
     }
 
@@ -512,6 +602,44 @@ export default function IdCardsIndex({ catalog }: { catalog: SchoolDataset }) {
                     icon={IdCard}
                     actions={
                         <div className="flex flex-wrap items-center gap-2">
+                            {audience === 'students' ? (
+                                <SearchSelect
+                                    value={classroomId}
+                                    onValueChange={setClassroomId}
+                                    className="w-[11rem]"
+                                    aria-label="Filtrer par classe"
+                                    placeholder="Toutes les classes"
+                                    searchPlaceholder="Rechercher une classe..."
+                                    options={[
+                                        {
+                                            value: 'all',
+                                            label: 'Toutes les classes',
+                                        },
+                                        ...classrooms.map((classroom) => ({
+                                            value: classroom.id,
+                                            label: classroom.name,
+                                        })),
+                                    ]}
+                                />
+                            ) : null}
+                            <Button
+                                type="button"
+                                variant="outline"
+                                disabled={
+                                    batchPrinting ||
+                                    audience !== 'students' ||
+                                    classroomId === 'all' ||
+                                    filtered.length === 0
+                                }
+                                onClick={() => {
+                                    void handlePrintClass();
+                                }}
+                            >
+                                <Printer />
+                                {batchPrinting
+                                    ? 'Impression…'
+                                    : 'Imprimer la classe'}
+                            </Button>
                             <Button
                                 type="button"
                                 disabled={
@@ -895,6 +1023,43 @@ export default function IdCardsIndex({ catalog }: { catalog: SchoolDataset }) {
                             )}
                         </div>
                     </aside>
+                </div>
+
+                <div className="pointer-events-none fixed -left-[9999px] top-0 opacity-0" aria-hidden>
+                    <div
+                        data-print-root="id-card-batch"
+                        className="flex flex-col"
+                    >
+                        {audience === 'students' && classroomId !== 'all'
+                            ? filtered.map((item) => (
+                                  <div
+                                      key={item.id}
+                                      className="break-after-page"
+                                      style={{ breakAfter: 'page' }}
+                                  >
+                                      <IdCardPreview
+                                          person={item.person}
+                                          kind="student"
+                                          schoolName={catalog.profile.name}
+                                          schoolMotto={catalog.profile.motto}
+                                          schoolCity={
+                                              catalog.profile.city ||
+                                              'Brazzaville'
+                                          }
+                                          schoolLogoUrl={
+                                              catalog.profile.logoUrl
+                                          }
+                                          yearLabel={academicYearLabel}
+                                          accent={accent}
+                                          layout={layout}
+                                          showQr={showQr}
+                                          visibleFields={visibleFields}
+                                          validUntil={validUntil}
+                                      />
+                                  </div>
+                              ))
+                            : null}
+                    </div>
                 </div>
             </PageShell>
 

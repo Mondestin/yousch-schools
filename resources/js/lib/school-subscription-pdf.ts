@@ -41,7 +41,8 @@ export function buildSubscriptionInvoicePdf({
     const amount = formatAmount(receipt.amount);
     const balance = isPaid
         ? '0 FCFA'
-        : receipt.status === 'partiel'
+        : receipt.status === 'partiel' ||
+            receipt.validationStatus === 'en_attente'
           ? 'À confirmer'
           : amount;
     const date = (value?: string | null): string =>
@@ -204,7 +205,8 @@ export function buildSubscriptionInvoicePdf({
 export function downloadSubscriptionInvoicePdf(
     invoice: SubscriptionInvoice,
 ): void {
-    const prefix = invoice.receipt.status === 'paye' ? 'recu-' : 'facture-';
+    const paid = invoice.receipt.status === 'paye';
+    const prefix = paid ? 'recu-' : 'facture-';
     buildSubscriptionInvoicePdf(invoice).save(
         prefix + invoice.receipt.reference + '.pdf',
     );

@@ -2,6 +2,7 @@
 
 namespace App\Support\Billing;
 
+use App\Enums\StaffRole;
 use App\Models\SchoolSubscription;
 use App\Models\User;
 use App\Support\Tenancy\CurrentSchool;
@@ -20,6 +21,7 @@ final class SubscriptionSeats
         $schoolId = $subscription->school_id ?? CurrentSchool::id();
         $used = User::query()
             ->when($schoolId !== null, fn ($query) => $query->where('school_id', $schoolId))
+            ->whereIn('role', StaffRole::staffValues())
             ->count();
 
         $subscription->forceFill(['used_seats' => $used])->save();

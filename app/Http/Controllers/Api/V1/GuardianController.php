@@ -10,6 +10,7 @@ use App\Models\Guardian;
 use App\Models\Student;
 use App\Models\User;
 use App\Support\Api\ResourceId;
+use App\Support\Auth\PortalAccountProvisioner;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -95,7 +96,12 @@ class GuardianController extends Controller
             'address' => $validated['address'] ?? null,
         ]);
 
-        return response()->json(['data' => $guardian->toApiArray()], 201);
+        $accountCreated = PortalAccountProvisioner::forGuardian($guardian) !== null;
+
+        return response()->json([
+            'data' => $guardian->fresh()->toApiArray(),
+            'meta' => ['parentAccountCreated' => $accountCreated],
+        ], 201);
     }
 
     public function update(Request $request, string $guardian): JsonResponse
@@ -109,6 +115,7 @@ class GuardianController extends Controller
 
         $model = Guardian::query()->findOrFail($guardian);
         $validated = $this->validatedGuardian($request);
+        $hadAccount = $model->user_id !== null;
 
         $model->update([
             'first_name' => $validated['firstName'],
@@ -122,7 +129,15 @@ class GuardianController extends Controller
             'address' => $validated['address'] ?? null,
         ]);
 
-        return response()->json(['data' => $model->fresh()->toApiArray()]);
+        PortalAccountProvisioner::forGuardian($model->fresh());
+        $model = $model->fresh();
+
+        return response()->json([
+            'data' => $model->toApiArray(),
+            'meta' => [
+                'parentAccountCreated' => ! $hadAccount && $model->user_id !== null,
+            ],
+        ]);
     }
 
     public function destroy(Request $request, string $guardian): JsonResponse

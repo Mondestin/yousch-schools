@@ -1,4 +1,5 @@
 import { cycleLabel, isLyceeCycle, personName } from '@/lib/school-rows';
+import { roleLabel } from '@/lib/school-access';
 import { studentAttendanceFortnight } from '@/lib/school-students';
 import type {
     Cycle,
@@ -25,12 +26,12 @@ export function staffRoleLabel(
     role: StaffRole,
     roles: SchoolDataset['roles'],
 ): string {
-    return roles.find((item) => item.value === role)?.label ?? role;
+    return roles.find((item) => item.value === role)?.label ?? roleLabel(role);
 }
 
 export function staffRoleBadgeVariant(
     role: StaffRole,
-): 'purple' | 'blue' | 'amber' | 'teal' {
+): 'purple' | 'blue' | 'amber' | 'teal' | 'rose' | 'success' {
     if (role === 'admin') {
         return 'purple';
     }
@@ -41,6 +42,14 @@ export function staffRoleBadgeVariant(
 
     if (role === 'secretaire') {
         return 'amber';
+    }
+
+    if (role === 'eleve') {
+        return 'rose';
+    }
+
+    if (role === 'parent') {
+        return 'success';
     }
 
     return 'teal';
