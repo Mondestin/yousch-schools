@@ -3,6 +3,7 @@ import {
     Ban,
     Clock,
     EllipsisVertical,
+    GraduationCap,
     Layers,
     Mail,
     Phone,
@@ -59,6 +60,7 @@ import { useCrudItems } from '@/hooks/use-crud-items';
 import { requiredEmail, requiredText } from '@/lib/school-form';
 import { DetailDialog } from '@/components/sms/detail-dialog';
 import { ApiError, apiData, apiJson } from '@/lib/api';
+import { isPortalRole, PORTAL_ROLES, roleLabel, STAFF_ROLES } from '@/lib/school-access';
 import { formatFrDateTime, formatLastSeen } from '@/lib/school-rows';
 import { staffCycleSummary, staffRoleLabel } from '@/lib/school-staff';
 import { toastApiError, toastRemoved, toastSaved } from '@/lib/school-toast';
@@ -72,7 +74,12 @@ import {
 } from '@/routes/api/v1/staff';
 import { index as staff } from '@/routes/staff';
 import type { Auth } from '@/types';
-import type { SchoolDataset, StaffRole, StaffUser } from '@/types/school';
+import type {
+    Cycle,
+    SchoolDataset,
+    StaffRole,
+    StaffUser,
+} from '@/types/school';
 
 const staffSchema = z.object({
     name: requiredText('Le nom'),
@@ -88,6 +95,8 @@ export default function StaffIndex({ catalog }: { catalog: SchoolDataset }) {
     const { auth } = usePage<{ auth: Auth }>().props;
     const currentUserId = auth.user ? String(auth.user.id) : null;
     const [search, setSearch] = useState('');
+    const [roleFilter, setRoleFilter] = useState<'all' | StaffRole>('all');
+    const [cycleFilter, setCycleFilter] = useState<'all' | Cycle>('all');
     const [items, setItems] = useState<StaffUser[]>(
         catalog.staffUsers.map((user) => ({
             ...user,
@@ -109,30 +118,63 @@ export default function StaffIndex({ catalog }: { catalog: SchoolDataset }) {
         cycles: allCycles,
     });
     const { errors, clearErrors, validate, showErrors } = useFieldErrors();
+    const roleOptions = useMemo(
+        () => [
+            ...STAFF_ROLES.map((value) => ({
+                value,
+                label:
+                    catalog.roles.find((role) => role.value === value)?.label ??
+                    roleLabel(value),
+            })),
+            ...PORTAL_ROLES.map((value) => ({
+                value,
+                label: roleLabel(value),
+            })),
+        ],
+        [catalog.roles],
+    );
     const stats = useMemo(() => {
         const blocked = items.filter((user) => user.blocked).length;
-        const admins = items.filter((user) => user.role === 'admin').length;
-        const seen = items.filter((user) => user.lastSeenAt !== null).length;
+        const portal = items.filter((user) => isPortalRole(user.role)).length;
 
         return {
             total: items.length,
             active: items.length - blocked,
             blocked,
-            admins,
-            seen,
+            portal,
         };
     }, [items]);
     const rows = useMemo(() => {
         const needle = search.trim().toLowerCase();
 
-        return items.filter((user) =>
-            needle === ''
-                ? true
-                : `${user.name} ${user.email} ${user.phone} ${staffRoleLabel(user.role, catalog.roles)} ${staffCycleSummary(user.cycles, catalog.cycles)}`
-                      .toLowerCase()
-                      .includes(needle),
-        );
-    }, [catalog.cycles, catalog.roles, items, search]);
+        return items.filter((user) => {
+            if (roleFilter !== 'all' && user.role !== roleFilter) {
+                return false;
+            }
+
+            if (
+                cycleFilter !== 'all' &&
+                !user.cycles.includes(cycleFilter)
+            ) {
+                return false;
+            }
+
+            if (needle === '') {
+                return true;
+            }
+
+            return `${user.name} ${user.email} ${user.phone} ${staffRoleLabel(user.role, catalog.roles)} ${staffCycleSummary(user.cycles, catalog.cycles)}`
+                .toLowerCase()
+                .includes(needle);
+        });
+    }, [
+        catalog.cycles,
+        catalog.roles,
+        cycleFilter,
+        items,
+        roleFilter,
+        search,
+    ]);
     const table = useClientTable(rows);
 
     function patchForm(patch: Partial<typeof form>): void {
@@ -317,13 +359,13 @@ export default function StaffIndex({ catalog }: { catalog: SchoolDataset }) {
                 <PageHeader
                     flush
                     title="Utilisateurs"
-                    description="Comptes du bureau. Le rôle ouvre les menus ; les niveaux limitent le cycle visible."
+                    description="Comptes bureau, élèves et parents. Le rôle ouvre les menus ; les niveaux limitent le cycle visible pour le personnel."
                 />
                 <ListPage
                     embedded
                     title="Utilisateurs"
                     icon={UserCog}
-                    description="Rôle et niveaux d’accès pour chaque compte."
+                    description="Personnel, élèves (collège / lycée) et parents liés à un e-mail."
                     searchPlaceholder="Rechercher nom, e-mail, téléphone, rôle, niveau..."
                     search={search}
                     onSearchChange={setSearch}
@@ -333,7 +375,7 @@ export default function StaffIndex({ catalog }: { catalog: SchoolDataset }) {
                                 icon={Users}
                                 label="Comptes"
                                 value={String(stats.total)}
-                                hint="Utilisateurs du bureau"
+                                hint="Tous les utilisateurs"
                             />
                             <KpiCard
                                 icon={ShieldCheck}
@@ -342,18 +384,74 @@ export default function StaffIndex({ catalog }: { catalog: SchoolDataset }) {
                                 hint="Non bloqués"
                             />
                             <KpiCard
+                                icon={GraduationCap}
+                                label="Élèves / parents"
+                                value={String(stats.portal)}
+                                hint="Comptes portail"
+                            />
+                            <KpiCard
                                 icon={Ban}
                                 label="Bloqués"
                                 value={String(stats.blocked)}
                                 hint="Accès suspendu"
                             />
-                            <KpiCard
-                                icon={Shield}
-                                label="Admins"
-                                value={String(stats.admins)}
-                                hint={`${stats.seen} déjà connecté${stats.seen === 1 ? '' : 's'}`}
-                            />
                         </KpiGrid>
+                    }
+                    filters={
+                        <>
+                            <Select
+                                value={roleFilter}
+                                onValueChange={(value) =>
+                                    setRoleFilter(value as 'all' | StaffRole)
+                                }
+                            >
+                                <SelectTrigger
+                                    className="w-[12rem]"
+                                    aria-label="Filtrer par rôle"
+                                >
+                                    <SelectValue placeholder="Tous les rôles" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">
+                                        Tous les rôles
+                                    </SelectItem>
+                                    {roleOptions.map((role) => (
+                                        <SelectItem
+                                            key={role.value}
+                                            value={role.value}
+                                        >
+                                            {role.label}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <Select
+                                value={cycleFilter}
+                                onValueChange={(value) =>
+                                    setCycleFilter(value as 'all' | Cycle)
+                                }
+                            >
+                                <SelectTrigger
+                                    className="w-[12rem]"
+                                    aria-label="Filtrer par niveau"
+                                >
+                                    <SelectValue placeholder="Tous les niveaux" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">
+                                        Tous les niveaux
+                                    </SelectItem>
+                                    {catalog.cycles.map((cycle) => (
+                                        <SelectItem
+                                            key={cycle.value}
+                                            value={cycle.value}
+                                        >
+                                            {cycle.label}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </>
                     }
                     actions={
                         <Button type="button" size="sm" onClick={openCreate}>
@@ -362,12 +460,18 @@ export default function StaffIndex({ catalog }: { catalog: SchoolDataset }) {
                         </Button>
                     }
                     empty={{
-                        title: search.trim()
-                            ? 'Aucun résultat'
-                            : 'Aucun utilisateur',
-                        description: search.trim()
-                            ? undefined
-                            : 'Aucun compte staff n’est encore défini.',
+                        title:
+                            search.trim() ||
+                            roleFilter !== 'all' ||
+                            cycleFilter !== 'all'
+                                ? 'Aucun résultat'
+                                : 'Aucun utilisateur',
+                        description:
+                            search.trim() ||
+                            roleFilter !== 'all' ||
+                            cycleFilter !== 'all'
+                                ? undefined
+                                : 'Aucun compte n’est encore défini.',
                     }}
                     paging={table}
                 >
@@ -466,9 +570,14 @@ export default function StaffIndex({ catalog }: { catalog: SchoolDataset }) {
                                         <RowMenu
                                             items={crudItems({
                                                 onView: () => setViewing(user),
-                                                onEdit: () => openEdit(user),
-                                                onDuplicate: () =>
-                                                    duplicate(user),
+                                                onEdit: isPortalRole(user.role)
+                                                    ? undefined
+                                                    : () => openEdit(user),
+                                                onDuplicate: isPortalRole(
+                                                    user.role,
+                                                )
+                                                    ? undefined
+                                                    : () => duplicate(user),
                                                 onDelete: () => {
                                                     void remove(user);
                                                 },

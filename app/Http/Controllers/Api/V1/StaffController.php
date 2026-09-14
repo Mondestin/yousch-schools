@@ -30,7 +30,7 @@ class StaffController extends Controller
             return $denied;
         }
 
-        $data = $this->staffQuery()
+        $data = $this->schoolUsersQuery()
             ->orderBy('name')
             ->get()
             ->map(static function (User $staff): array {
@@ -96,7 +96,7 @@ class StaffController extends Controller
             return $denied;
         }
 
-        $model = $this->staffQuery()->findOrFail($staff);
+        $model = $this->schoolUsersQuery()->findOrFail($staff);
         $validated = $this->validatedStaff($request, $model);
 
         $attributes = [
@@ -128,7 +128,7 @@ class StaffController extends Controller
             return $denied;
         }
 
-        $model = $this->staffQuery()->findOrFail($staff);
+        $model = $this->schoolUsersQuery()->findOrFail($staff);
 
         if ((string) $model->id === (string) $user->id) {
             throw ValidationException::withMessages([
@@ -152,7 +152,7 @@ class StaffController extends Controller
             return $denied;
         }
 
-        $model = $this->staffQuery()->findOrFail($staff);
+        $model = $this->schoolUsersQuery()->findOrFail($staff);
 
         if ($model->isBlocked()) {
             throw ValidationException::withMessages([
@@ -184,7 +184,7 @@ class StaffController extends Controller
             return $denied;
         }
 
-        $model = $this->staffQuery()->findOrFail($staff);
+        $model = $this->schoolUsersQuery()->findOrFail($staff);
 
         if ((string) $model->id === (string) $user->id) {
             throw ValidationException::withMessages([
@@ -213,7 +213,7 @@ class StaffController extends Controller
             return $denied;
         }
 
-        $model = $this->staffQuery()->findOrFail($staff);
+        $model = $this->schoolUsersQuery()->findOrFail($staff);
 
         $model->forceFill(['blocked_at' => null])->save();
 
@@ -229,7 +229,7 @@ class StaffController extends Controller
     /**
      * @return Builder<User>
      */
-    private function staffQuery(): Builder
+    private function schoolUsersQuery(): Builder
     {
         return User::query()->where('school_id', CurrentSchool::require()->id);
     }
@@ -246,6 +246,11 @@ class StaffController extends Controller
      */
     private function validatedStaff(Request $request, ?User $existing = null): array
     {
+        $portal = $existing !== null && ! $existing->role->isStaff();
+        $allowedRoles = $portal
+            ? [$existing->role->value]
+            : StaffRole::staffValues();
+
         /** @var array{
          *     name: string,
          *     email: string,
@@ -264,8 +269,8 @@ class StaffController extends Controller
                 Rule::unique('users', 'email')->ignore($existing?->id),
             ],
             'phone' => ['required', 'string', 'max:40'],
-            'role' => ['required', 'string', Rule::enum(StaffRole::class)],
-            'cycles' => ['required', 'array', 'min:1'],
+            'role' => ['required', 'string', Rule::in($allowedRoles)],
+            'cycles' => [$portal ? 'nullable' : 'required', 'array', $portal ? 'min:0' : 'min:1'],
             'cycles.*' => ['required', 'string', Rule::enum(Cycle::class)],
             'password' => [$existing ? 'nullable' : 'sometimes', 'string', 'min:8', 'max:255'],
         ], [
@@ -280,13 +285,15 @@ class StaffController extends Controller
             'password.min' => 'Le mot de passe doit contenir au moins 8 caractères.',
         ]);
 
-        $validated['cycles'] = array_values(array_unique($validated['cycles']));
+        $validated['cycles'] = array_values(array_unique($validated['cycles'] ?? []));
 
-        SubscriptionCatalog::assertCyclesAllowed(
-            SubscriptionCatalog::currentPlan(),
-            $validated['cycles'],
-            'cycles',
-        );
+        if (! $portal) {
+            SubscriptionCatalog::assertCyclesAllowed(
+                SubscriptionCatalog::currentPlan(),
+                $validated['cycles'],
+                'cycles',
+            );
+        }
 
         return $validated;
     }

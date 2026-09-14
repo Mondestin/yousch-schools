@@ -5,7 +5,13 @@ export type Cycle =
     | 'lycee_general'
     | 'lycee_technique';
 
-export type StaffRole = 'admin' | 'directeur' | 'secretaire' | 'enseignant';
+export type StaffRole =
+    | 'admin'
+    | 'directeur'
+    | 'secretaire'
+    | 'enseignant'
+    | 'eleve'
+    | 'parent';
 
 export type Gender = 'femme' | 'homme';
 
@@ -33,6 +39,11 @@ export type DossierFile = {
 };
 
 export type PaymentStatus = 'paye' | 'partiel' | 'impaye';
+
+export type SubscriptionValidationStatus =
+    | 'en_attente'
+    | 'valide'
+    | 'rejete';
 
 export type AssessmentType = 'devoir' | 'composition' | 'examen';
 
@@ -66,11 +77,21 @@ export type SchoolBreak = {
     endsAt: string;
 };
 
+/** Named pause shown on the timetable (récréation, midi, étude…). */
+export type LabeledSchoolBreak = SchoolBreak & {
+    id: string;
+    label: string;
+};
+
 export type SchoolHours = {
     startsAt: string;
     endsAt: string;
+    /** @deprecated Prefer `breaks` — kept for older saved schedules. */
     recess: SchoolBreak | null;
+    /** @deprecated Prefer `breaks` — kept for older saved schedules. */
     lunch: SchoolBreak | null;
+    /** Custom labeled pauses (récréation, pause de midi, etc.). */
+    breaks?: LabeledSchoolBreak[];
 };
 
 export type CycleSchedule = {
@@ -309,7 +330,12 @@ export type Grade = {
     score: number;
 };
 
-export type PaymentMethod = 'especes' | 'mobile_money' | 'virement';
+export type PaymentMethod =
+    | 'especes'
+    | 'mtn_money'
+    | 'airtel_money'
+    | 'virement'
+    | 'mobile_money';
 
 export type Payment = {
     id: string;
@@ -320,13 +346,19 @@ export type Payment = {
     status: PaymentStatus;
     paidOn: string | null;
     method: PaymentMethod | null;
+    lastRemindedAt?: string | null;
 };
 
 export type SubscriptionPlan = 'gold' | 'platinium' | 'titanium';
 
 export type SubscriptionStatus = 'active' | 'past_due' | 'canceled';
 
-export type SubscriptionMethod = 'mobile_money' | 'virement' | 'especes';
+export type SubscriptionMethod =
+    | 'mobile_money'
+    | 'mtn_money'
+    | 'airtel_money'
+    | 'virement'
+    | 'especes';
 
 /** Receipt for a subscription period, settled or not. */
 export type SubscriptionReceipt = {
@@ -338,6 +370,10 @@ export type SubscriptionReceipt = {
     plan: SubscriptionPlan;
     method: SubscriptionMethod;
     status: PaymentStatus;
+    /** MoMo transaction reference submitted by the school. */
+    transactionId?: string | null;
+    /** MoMo validation workflow, independent from payment status. */
+    validationStatus?: SubscriptionValidationStatus | null;
 };
 
 export type Subscription = {
@@ -362,6 +398,11 @@ export type Subscription = {
     payment?: {
         provider: string | null;
         phone: string | null;
+    } | null;
+    billingAlert?: {
+        level: 'warning' | 'danger';
+        code: string;
+        message: string;
     } | null;
     receipts: SubscriptionReceipt[];
 };
@@ -520,7 +561,7 @@ export type CashMovement = {
     label: string;
     description: string;
     amount: number;
-    method: 'especes' | 'mobile_money' | 'virement';
+    method: PaymentMethod;
 };
 
 export type AnnouncementAudience = 'parents' | 'personnel' | 'eleves' | 'tous';

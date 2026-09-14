@@ -14,6 +14,7 @@ import { ListPage } from '@/components/sms/list-page';
 import { RowMenu } from '@/components/sms/row-menu';
 import { TimePicker } from '@/components/sms/time-picker';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
     Table,
     TableBody,
@@ -31,8 +32,8 @@ import { parseFields, requiredText, type FieldErrors } from '@/lib/school-form';
 import { cycleLabel } from '@/lib/school-rows';
 import { toastApiError, toastRemoved, toastSaved } from '@/lib/school-toast';
 import {
-    completeBreak,
     defaultCycleSchedule,
+    normalizeSchoolHours,
     periodFitsHours,
     periodLabel,
     periodsOverlap,
@@ -42,7 +43,7 @@ import { upsert as upsertSchedules } from '@/routes/api/v1/school/schedules';
 import { hours as hoursRoute, index as yearsRoute } from '@/routes/structure';
 import type {
     CycleSchedule,
-    SchoolBreak,
+    LabeledSchoolBreak,
     SchoolDataset,
     SchoolHours,
     TimetablePeriod,
@@ -98,50 +99,40 @@ function addMinutes(time: string, minutes: number): string {
     return `${String(Math.floor(wrapped / 60)).padStart(2, '0')}:${String(wrapped % 60).padStart(2, '0')}`;
 }
 
-function patchBreak(
-    item: SchoolBreak | null,
-    field: 'startsAt' | 'endsAt',
-    value: string,
-): SchoolBreak | null {
-    const next = {
-        startsAt: field === 'startsAt' ? value : (item?.startsAt ?? ''),
-        endsAt: field === 'endsAt' ? value : (item?.endsAt ?? ''),
-    };
-
-    if (!next.startsAt && !next.endsAt) {
-        return null;
-    }
-
-    return next;
+function newBreakId(): string {
+    return `break-${crypto.randomUUID().slice(0, 8)}`;
 }
 
-function breakFieldErrors(
-    item: SchoolBreak | null,
+function labeledBreakErrors(
+    item: LabeledSchoolBreak,
     hours: SchoolHours,
-    label: string,
-    startKey: string,
-    endKey: string,
+    index: number,
 ): FieldErrors {
-    if (!item) {
-        return {};
+    const prefix = `break-${item.id}`;
+    const labelName = item.label.trim() || `Pause ${index + 1}`;
+
+    if (!item.label.trim()) {
+        return { [`${prefix}-label`]: 'Le libellé de la pause est obligatoire.' };
     }
 
     if (!item.startsAt || !item.endsAt) {
-        const message = `${label} : indiquez le début et la fin.`;
+        const message = `${labelName} : indiquez le début et la fin.`;
 
         return {
-            ...(item.startsAt ? {} : { [startKey]: message }),
-            ...(item.endsAt ? {} : { [endKey]: message }),
+            ...(item.startsAt ? {} : { [`${prefix}-startsAt`]: message }),
+            ...(item.endsAt ? {} : { [`${prefix}-endsAt`]: message }),
         };
     }
 
     if (item.startsAt >= item.endsAt) {
-        return { [endKey]: `${label} : la fin doit être après le début.` };
+        return {
+            [`${prefix}-endsAt`]: `${labelName} : la fin doit être après le début.`,
+        };
     }
 
     if (item.startsAt < hours.startsAt || item.endsAt > hours.endsAt) {
         return {
-            [startKey]: `${label} doit s’inscrire dans la journée scolaire.`,
+            [`${prefix}-startsAt`]: `${labelName} doit s’inscrire dans la journée scolaire.`,
         };
     }
 
@@ -164,10 +155,15 @@ export default function StructureHoursPage({
             catalog.schedules.map((item) => [item.cycle, item]),
         );
 
-        return catalog.cycles.map(
-            (option) =>
-                byCycle.get(option.value) ?? defaultCycleSchedule(option.value),
-        );
+        return catalog.cycles.map((option) => {
+            const item =
+                byCycle.get(option.value) ?? defaultCycleSchedule(option.value);
+
+            return {
+                ...item,
+                hours: normalizeSchoolHours(item.hours),
+            };
+        });
     });
     const [search, setSearch] = useState('');
     const [editingId, setEditingId] = useState<string | null>(null);
@@ -217,7 +213,13 @@ export default function StructureHoursPage({
 
             setSchedules((current) => {
                 const byCycle = new Map(
-                    saved.map((item) => [item.cycle, item]),
+                    saved.map((item) => [
+                        item.cycle,
+                        {
+                            ...item,
+                            hours: normalizeSchoolHours(item.hours),
+                        },
+                    ]),
                 );
 
                 return current.map((item) => byCycle.get(item.cycle) ?? item);
@@ -332,32 +334,33 @@ export default function StructureHoursPage({
             opensAt: hours.startsAt,
             closesAt: hours.endsAt,
         });
-        const extra: FieldErrors = {
-            ...breakFieldErrors(
-                hours.recess,
-                hours,
-                'La récréation',
-                'recessStartsAt',
-                'recessEndsAt',
-            ),
-            ...breakFieldErrors(
-                hours.lunch,
-                hours,
-                'La pause de midi',
-                'lunchStartsAt',
-                'lunchEndsAt',
-            ),
-        };
-        const recess = completeBreak(hours.recess);
-        const lunch = completeBreak(hours.lunch);
+        const breaks = hours.breaks ?? [];
+        const extra: FieldErrors = {};
 
-        if (recess && lunch && periodsOverlap(recess, lunch)) {
-            extra.lunchStartsAt =
-                'La récréation et la pause de midi se chevauchent.';
+        breaks.forEach((item, index) => {
+            Object.assign(extra, labeledBreakErrors(item, hours, index));
+        });
+
+        for (let index = 0; index < breaks.length; index += 1) {
+            for (
+                let other = index + 1;
+                other < breaks.length;
+                other += 1
+            ) {
+                if (periodsOverlap(breaks[index], breaks[other])) {
+                    const key = `break-${breaks[other].id}-startsAt`;
+                    extra[key] =
+                        'Cette pause chevauche une autre pause.';
+                }
+            }
         }
 
+        const normalized = normalizeSchoolHours({
+            ...hours,
+            breaks,
+        });
         const outside = periods.find(
-            (period) => !periodFitsHours(period, hours),
+            (period) => !periodFitsHours(period, normalized),
         );
 
         if (outside) {
@@ -379,11 +382,7 @@ export default function StructureHoursPage({
             await persistSchedule(
                 {
                     ...schedule,
-                    hours: {
-                        ...hours,
-                        recess,
-                        lunch,
-                    },
+                    hours: normalized,
                 },
                 { successMessage: `Horaires du ${cycleName} enregistrés` },
             );
@@ -475,8 +474,8 @@ export default function StructureHoursPage({
             <Head title="Horaires" />
             <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
                 <div className="border-border shrink-0 space-y-3 border-b px-6 py-3">
-                    <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-                        <div className="grid flex-1 gap-3 sm:grid-cols-3">
+                    <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                        <div className="flex min-w-0 flex-1 flex-col gap-4">
                             <div>
                                 <p className="mb-2 text-[13px] font-medium">
                                     Journée scolaire
@@ -527,140 +526,248 @@ export default function StructureHoursPage({
                                     </div>
                                 </div>
                             </div>
-                            <div>
-                                <p className="mb-2 text-[13px] font-medium">
-                                    Récréation
-                                </p>
-                                <div className="flex flex-wrap items-end gap-2">
-                                    <div className="w-[7.5rem]">
-                                        <Field
-                                            id="recessStartsAt"
-                                            label="Début"
-                                            error={errors.recessStartsAt}
-                                        >
-                                            <TimePicker
-                                                id="recessStartsAt"
-                                                value={
-                                                    hours.recess?.startsAt ?? ''
-                                                }
-                                                placeholder="Aucune"
-                                                allowEmpty
-                                                onChange={(value) => {
-                                                    clearErrors([
-                                                        'recessStartsAt',
-                                                        'recessEndsAt',
-                                                        'lunchStartsAt',
-                                                    ]);
-                                                    setHours((current) => ({
+                            <div className="min-w-0">
+                                <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                                    <p className="text-[13px] font-medium">
+                                        Pauses / récréations
+                                    </p>
+                                    {canMutate ? (
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            className="h-8"
+                                            onClick={() => {
+                                                clearErrors();
+                                                setHours((current) => {
+                                                    const existing =
+                                                        current.breaks ?? [];
+                                                    const last =
+                                                        existing.at(-1);
+
+                                                    return {
                                                         ...current,
-                                                        recess: patchBreak(
-                                                            current.recess,
-                                                            'startsAt',
-                                                            value,
-                                                        ),
-                                                    }));
-                                                }}
-                                            />
-                                        </Field>
-                                    </div>
-                                    <div className="w-[7.5rem]">
-                                        <Field
-                                            id="recessEndsAt"
-                                            label="Fin"
-                                            error={errors.recessEndsAt}
+                                                        breaks: [
+                                                            ...existing,
+                                                            {
+                                                                id: newBreakId(),
+                                                                label: 'Récréation',
+                                                                startsAt:
+                                                                    last?.endsAt ||
+                                                                    current.startsAt,
+                                                                endsAt: addMinutes(
+                                                                    last?.endsAt ||
+                                                                        current.startsAt,
+                                                                    20,
+                                                                ),
+                                                            },
+                                                        ],
+                                                    };
+                                                });
+                                            }}
                                         >
-                                            <TimePicker
-                                                id="recessEndsAt"
-                                                value={
-                                                    hours.recess?.endsAt ?? ''
-                                                }
-                                                placeholder="Aucune"
-                                                allowEmpty
-                                                onChange={(value) => {
-                                                    clearErrors([
-                                                        'recessStartsAt',
-                                                        'recessEndsAt',
-                                                        'lunchStartsAt',
-                                                    ]);
-                                                    setHours((current) => ({
-                                                        ...current,
-                                                        recess: patchBreak(
-                                                            current.recess,
-                                                            'endsAt',
-                                                            value,
-                                                        ),
-                                                    }));
-                                                }}
-                                            />
-                                        </Field>
-                                    </div>
+                                            <Plus className="size-3.5" />
+                                            Ajouter une pause
+                                        </Button>
+                                    ) : null}
                                 </div>
-                            </div>
-                            <div>
-                                <p className="mb-2 text-[13px] font-medium">
-                                    Pause de midi
-                                </p>
-                                <div className="flex flex-wrap items-end gap-2">
-                                    <div className="w-[7.5rem]">
-                                        <Field
-                                            id="lunchStartsAt"
-                                            label="Début"
-                                            error={errors.lunchStartsAt}
-                                        >
-                                            <TimePicker
-                                                id="lunchStartsAt"
-                                                value={
-                                                    hours.lunch?.startsAt ?? ''
-                                                }
-                                                placeholder="Aucune"
-                                                allowEmpty
-                                                onChange={(value) => {
-                                                    clearErrors([
-                                                        'lunchStartsAt',
-                                                        'lunchEndsAt',
-                                                    ]);
-                                                    setHours((current) => ({
-                                                        ...current,
-                                                        lunch: patchBreak(
-                                                            current.lunch,
-                                                            'startsAt',
-                                                            value,
-                                                        ),
-                                                    }));
-                                                }}
-                                            />
-                                        </Field>
-                                    </div>
-                                    <div className="w-[7.5rem]">
-                                        <Field
-                                            id="lunchEndsAt"
-                                            label="Fin"
-                                            error={errors.lunchEndsAt}
-                                        >
-                                            <TimePicker
-                                                id="lunchEndsAt"
-                                                value={
-                                                    hours.lunch?.endsAt ?? ''
-                                                }
-                                                placeholder="Aucune"
-                                                allowEmpty
-                                                onChange={(value) => {
-                                                    clearErrors([
-                                                        'lunchStartsAt',
-                                                        'lunchEndsAt',
-                                                    ]);
-                                                    setHours((current) => ({
-                                                        ...current,
-                                                        lunch: patchBreak(
-                                                            current.lunch,
-                                                            'endsAt',
-                                                            value,
-                                                        ),
-                                                    }));
-                                                }}
-                                            />
-                                        </Field>
-                                    </div>
+                                <div className="space-y-3">
+                                    {(hours.breaks ?? []).length === 0 ? (
+                                        <p className="text-muted-foreground text-[12px]">
+                                            Aucune pause. Ajoutez une
+                                            récréation, une pause de midi ou
+                                            tout autre créneau libre avec son
+                                            libellé d’emploi du temps.
+                                        </p>
+                                    ) : null}
+                                    {(hours.breaks ?? []).map((item) => {
+                                        const prefix = `break-${item.id}`;
+
+                                        return (
+                                            <div
+                                                key={item.id}
+                                                className="flex flex-wrap items-end gap-2"
+                                            >
+                                                <div className="min-w-[10rem] flex-1">
+                                                    <Field
+                                                        id={`${prefix}-label`}
+                                                        label="Libellé"
+                                                        required
+                                                        error={
+                                                            errors[
+                                                                `${prefix}-label`
+                                                            ]
+                                                        }
+                                                    >
+                                                        <Input
+                                                            id={`${prefix}-label`}
+                                                            value={item.label}
+                                                            placeholder="Ex. Récréation"
+                                                            disabled={!canMutate}
+                                                            onChange={(
+                                                                event,
+                                                            ) => {
+                                                                clearErrors(
+                                                                    `${prefix}-label`,
+                                                                );
+                                                                const value =
+                                                                    event.target
+                                                                        .value;
+                                                                setHours(
+                                                                    (
+                                                                        current,
+                                                                    ) => ({
+                                                                        ...current,
+                                                                        breaks: (
+                                                                            current.breaks ??
+                                                                            []
+                                                                        ).map(
+                                                                            (
+                                                                                row,
+                                                                            ) =>
+                                                                                row.id ===
+                                                                                item.id
+                                                                                    ? {
+                                                                                          ...row,
+                                                                                          label: value,
+                                                                                      }
+                                                                                    : row,
+                                                                        ),
+                                                                    }),
+                                                                );
+                                                            }}
+                                                        />
+                                                    </Field>
+                                                </div>
+                                                <div className="w-[7.5rem]">
+                                                    <Field
+                                                        id={`${prefix}-startsAt`}
+                                                        label="Début"
+                                                        error={
+                                                            errors[
+                                                                `${prefix}-startsAt`
+                                                            ]
+                                                        }
+                                                    >
+                                                        <TimePicker
+                                                            id={`${prefix}-startsAt`}
+                                                            value={
+                                                                item.startsAt
+                                                            }
+                                                            onChange={(
+                                                                value,
+                                                            ) => {
+                                                                clearErrors([
+                                                                    `${prefix}-startsAt`,
+                                                                    `${prefix}-endsAt`,
+                                                                ]);
+                                                                setHours(
+                                                                    (
+                                                                        current,
+                                                                    ) => ({
+                                                                        ...current,
+                                                                        breaks: (
+                                                                            current.breaks ??
+                                                                            []
+                                                                        ).map(
+                                                                            (
+                                                                                row,
+                                                                            ) =>
+                                                                                row.id ===
+                                                                                item.id
+                                                                                    ? {
+                                                                                          ...row,
+                                                                                          startsAt:
+                                                                                              value,
+                                                                                      }
+                                                                                    : row,
+                                                                        ),
+                                                                    }),
+                                                                );
+                                                            }}
+                                                        />
+                                                    </Field>
+                                                </div>
+                                                <div className="w-[7.5rem]">
+                                                    <Field
+                                                        id={`${prefix}-endsAt`}
+                                                        label="Fin"
+                                                        error={
+                                                            errors[
+                                                                `${prefix}-endsAt`
+                                                            ]
+                                                        }
+                                                    >
+                                                        <TimePicker
+                                                            id={`${prefix}-endsAt`}
+                                                            value={item.endsAt}
+                                                            onChange={(
+                                                                value,
+                                                            ) => {
+                                                                clearErrors([
+                                                                    `${prefix}-startsAt`,
+                                                                    `${prefix}-endsAt`,
+                                                                ]);
+                                                                setHours(
+                                                                    (
+                                                                        current,
+                                                                    ) => ({
+                                                                        ...current,
+                                                                        breaks: (
+                                                                            current.breaks ??
+                                                                            []
+                                                                        ).map(
+                                                                            (
+                                                                                row,
+                                                                            ) =>
+                                                                                row.id ===
+                                                                                item.id
+                                                                                    ? {
+                                                                                          ...row,
+                                                                                          endsAt:
+                                                                                              value,
+                                                                                      }
+                                                                                    : row,
+                                                                        ),
+                                                                    }),
+                                                                );
+                                                            }}
+                                                        />
+                                                    </Field>
+                                                </div>
+                                                {canMutate ? (
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="text-muted-foreground mb-0.5 h-9 px-2"
+                                                        onClick={() => {
+                                                            clearErrors([
+                                                                `${prefix}-label`,
+                                                                `${prefix}-startsAt`,
+                                                                `${prefix}-endsAt`,
+                                                            ]);
+                                                            setHours(
+                                                                (current) => ({
+                                                                    ...current,
+                                                                    breaks: (
+                                                                        current.breaks ??
+                                                                        []
+                                                                    ).filter(
+                                                                        (row) =>
+                                                                            row.id !==
+                                                                            item.id,
+                                                                    ),
+                                                                }),
+                                                            );
+                                                        }}
+                                                    >
+                                                        Retirer
+                                                    </Button>
+                                                ) : null}
+                                            </div>
+                                        );
+                                    })}
                                 </div>
                             </div>
                         </div>
@@ -682,7 +789,7 @@ export default function StructureHoursPage({
                     </div>
                     <p className="text-muted-foreground text-[12px]">
                         Créneaux du {cycleName} entre ouverture et fermeture,
-                        hors récréation et pause de midi.
+                        hors pauses (libellés visibles sur l’emploi du temps).
                     </p>
                 </div>
                 <ListPage

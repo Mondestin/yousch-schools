@@ -23,6 +23,7 @@ import { SearchSelect } from '@/components/sms/search-select';
 import { CycleBadge } from '@/components/sms/code-badge';
 import { useClientTable } from '@/hooks/use-client-table';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
     Select,
     SelectContent,
@@ -42,6 +43,7 @@ import { useSchoolContext } from '@/hooks/use-school-context';
 import { apiData } from '@/lib/api';
 import {
     downloadBulletinPdf,
+    printBulletinBatch,
     printBulletinDocument,
     type BulletinApiFiche,
 } from '@/lib/school-bulletin-pdf';
@@ -96,6 +98,7 @@ export default function ReportsIndex({ catalog }: { catalog: SchoolDataset }) {
         });
     }, [catalog, classroomId, filter, search]);
     const table = useClientTable(rows);
+    const [batchPrinting, setBatchPrinting] = useState(false);
 
     function warnIfBulletinsNotReady(): void {
         if (!bulletinsReady(catalog, termId)) {
@@ -162,6 +165,50 @@ export default function ReportsIndex({ catalog }: { catalog: SchoolDataset }) {
         }
     }
 
+    async function printClassBulletins(): Promise<void> {
+        if (classroomId === 'all' || rows.length === 0) {
+            toastApiError(
+                new Error('Choisissez une classe pour imprimer les bulletins.'),
+            );
+
+            return;
+        }
+
+        warnIfBulletinsNotReady();
+        setBatchPrinting(true);
+
+        try {
+            const items = [];
+
+            for (const row of rows) {
+                const fiche = await fetchBulletin(row.studentId);
+                items.push({
+                    fiche,
+                    options: {
+                        authenticity: {
+                            studentId: row.studentId,
+                            termId: currentTerm?.id ?? null,
+                            academicYearId: filter.academicYearId,
+                            issuedOn: new Date().toISOString().slice(0, 10),
+                        },
+                    },
+                });
+            }
+
+            const classroomName =
+                classrooms.find((item) => item.id === classroomId)?.name ??
+                'classe';
+            await printBulletinBatch(`Bulletins · ${classroomName}`, items);
+            toastSaved(
+                `${items.length} bulletin${items.length > 1 ? 's' : ''} prêt${items.length > 1 ? 's' : ''} à imprimer`,
+            );
+        } catch (error) {
+            toastApiError(error, 'Impossible d’imprimer la classe');
+        } finally {
+            setBatchPrinting(false);
+        }
+    }
+
     return (
         <>
             <Head title="Bulletins" />
@@ -211,6 +258,26 @@ export default function ReportsIndex({ catalog }: { catalog: SchoolDataset }) {
                             </SelectContent>
                         </Select>
                     </>
+                }
+                actions={
+                    <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        disabled={
+                            batchPrinting ||
+                            classroomId === 'all' ||
+                            rows.length === 0
+                        }
+                        onClick={() => {
+                            void printClassBulletins();
+                        }}
+                    >
+                        <Printer />
+                        {batchPrinting
+                            ? 'Préparation…'
+                            : 'Imprimer la classe'}
+                    </Button>
                 }
                 empty={{
                     title:

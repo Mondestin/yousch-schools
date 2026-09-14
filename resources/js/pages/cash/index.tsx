@@ -23,6 +23,7 @@ import { Field } from '@/components/sms/field';
 import { FormSheet } from '@/components/sms/form-sheet';
 import { KpiCard, KpiGrid } from '@/components/sms/kpi-card';
 import { ListPage } from '@/components/sms/list-page';
+import { PaymentMethodCell } from '@/components/sms/payment-method-cell';
 import { RowMenu } from '@/components/sms/row-menu';
 import { SearchSelect } from '@/components/sms/search-select';
 import { useClientTable } from '@/hooks/use-client-table';
@@ -49,7 +50,6 @@ import { Textarea } from '@/components/ui/textarea';
 import {
     cashBalance,
     cashKindLabel,
-    cashMethodLabel,
 } from '@/lib/school-office';
 import { useCrudItems } from '@/hooks/use-crud-items';
 import { requiredAmount, requiredText } from '@/lib/school-form';
@@ -418,12 +418,33 @@ export default function CashIndex({ catalog }: { catalog: SchoolDataset }) {
                                         {item.description || '-'}
                                     </span>
                                 </TableCell>
-                                <TableCell className="capitalize">
-                                    {cashMethodLabel(item.method)}
+                                <TableCell>
+                                    <PaymentMethodCell method={item.method} />
                                 </TableCell>
                                 <TableCell>
-                                    {item.kind === 'sortie' ? '− ' : ''}
-                                    {formatFcfa(item.amount)}
+                                    <span
+                                        className={
+                                            item.kind === 'entree'
+                                                ? 'text-success inline-flex items-center gap-1.5 font-medium'
+                                                : 'text-danger inline-flex items-center gap-1.5 font-medium'
+                                        }
+                                    >
+                                        {item.kind === 'entree' ? (
+                                            <ArrowDownLeft
+                                                className="size-3.5 shrink-0"
+                                                aria-hidden
+                                            />
+                                        ) : (
+                                            <ArrowUpRight
+                                                className="size-3.5 shrink-0"
+                                                aria-hidden
+                                            />
+                                        )}
+                                        <span>
+                                            {item.kind === 'sortie' ? '− ' : ''}
+                                            {formatFcfa(item.amount)}
+                                        </span>
+                                    </span>
                                 </TableCell>
                                 <TableCell className="px-3 py-1.5 text-center">
                                     <RowMenu
@@ -468,7 +489,11 @@ export default function CashIndex({ catalog }: { catalog: SchoolDataset }) {
                               },
                               {
                                   label: 'Mode de règlement',
-                                  value: cashMethodLabel(viewing.method),
+                                  value: (
+                                      <PaymentMethodCell
+                                          method={viewing.method}
+                                      />
+                                  ),
                               },
                               {
                                   label: 'Description',
@@ -570,8 +595,25 @@ export default function CashIndex({ catalog }: { catalog: SchoolDataset }) {
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="especes">Espèces</SelectItem>
-                            <SelectItem value="mobile_money">
-                                Mobile money
+                            <SelectItem value="mtn_money">
+                                <span className="inline-flex items-center gap-2">
+                                    <img
+                                        src="/images/MTN_lmobile_money.jpg"
+                                        alt=""
+                                        className="h-4 w-7 rounded-[2px] object-contain"
+                                    />
+                                    MTN Mobile Money
+                                </span>
+                            </SelectItem>
+                            <SelectItem value="airtel_money">
+                                <span className="inline-flex items-center gap-2">
+                                    <img
+                                        src="/images/airtel-money.png"
+                                        alt=""
+                                        className="h-4 w-7 rounded-[2px] object-contain"
+                                    />
+                                    Airtel Money
+                                </span>
                             </SelectItem>
                             <SelectItem value="virement">Virement</SelectItem>
                         </SelectContent>

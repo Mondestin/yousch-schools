@@ -14,6 +14,7 @@ use App\Models\Guardian;
 use App\Models\Student;
 use App\Models\User;
 use App\Support\Api\ResourceId;
+use App\Support\Auth\PortalAccountProvisioner;
 use App\Support\School\MatriculeGenerator;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 use Illuminate\Http\JsonResponse;
@@ -96,7 +97,28 @@ class StudentController extends Controller
 
         $validated = $this->validatedStudent($request);
 
-        $student = DB::transaction(function () use ($request, $validated): Student {
+        $meta = [
+            'studentAccountCreated' => false,
+            'parentAccountCreated' => false,
+        ];
+
+        $student = DB::transaction(function () use ($request, $validated, &$meta): Student {
+            $classroom = null;
+
+            if (! empty($validated['classroomId'])) {
+                $classroom = Classroom::query()->findOrFail($validated['classroomId']);
+                $this->assertLyceeTrack($classroom, $validated['trackId'] ?? null);
+
+                if ($classroom->cycle->needsStudentPortal()) {
+                    $email = is_string($validated['email'] ?? null) ? trim($validated['email']) : '';
+                    if ($email === '') {
+                        throw ValidationException::withMessages([
+                            'email' => 'L’e-mail de l’élève est obligatoire au collège et au lycée (création du compte).',
+                        ]);
+                    }
+                }
+            }
+
             $student = Student::query()->create([
                 'id' => ResourceId::make('st'),
                 'matricule' => $validated['matricule'] ?? MatriculeGenerator::next(),
@@ -120,10 +142,7 @@ class StudentController extends Controller
 
             $this->storeDossierFiles($student, $request->file('files'), 'students/dossiers');
 
-            if (! empty($validated['classroomId'])) {
-                $classroom = Classroom::query()->findOrFail($validated['classroomId']);
-                $this->assertLyceeTrack($classroom, $validated['trackId'] ?? null);
-
+            if ($classroom !== null) {
                 Enrollment::query()->create([
                     'id' => ResourceId::make('en'),
                     'student_id' => $student->id,
@@ -132,6 +151,13 @@ class StudentController extends Controller
                     'track_id' => $validated['trackId'] ?? $classroom->track_id,
                     'status' => EnrollmentStatus::Inscrit->value,
                 ]);
+
+                if ($classroom->cycle->needsStudentPortal()) {
+                    $meta['studentAccountCreated'] = PortalAccountProvisioner::forStudent(
+                        $student,
+                        $classroom->cycle,
+                    ) !== null;
+                }
             }
 
             if (! empty($validated['guardianFirstName']) && ! empty($validated['guardianLastName'])) {
@@ -142,17 +168,26 @@ class StudentController extends Controller
                     'phone' => $validated['guardianPhone'] ?? '',
                     'profession' => $validated['guardianProfession'] ?? 'Non renseigné',
                     'gender' => $validated['guardianGender'] ?? null,
+                    'email' => $this->nullableString($validated['guardianEmail'] ?? null),
+                    'city' => $this->nullableString($validated['guardianCity'] ?? null),
+                    'neighborhood' => $this->nullableString($validated['guardianNeighborhood'] ?? null),
+                    'address' => $this->nullableString($validated['guardianAddress'] ?? null),
                 ]);
 
                 $student->guardians()->attach($guardian->id, [
                     'relation' => $validated['guardianRelation'] ?? GuardianRelation::Tuteur->value,
                 ]);
+
+                $meta['parentAccountCreated'] = PortalAccountProvisioner::forGuardian($guardian) !== null;
             }
 
-            return $student->load(['dossierFiles', 'enrollments', 'guardians']);
+            return $student->fresh()->load(['dossierFiles', 'enrollments', 'guardians']);
         });
 
-        return response()->json(['data' => $this->studentPayload($student)], 201);
+        return response()->json([
+            'data' => $this->studentPayload($student),
+            'meta' => $meta,
+        ], 201);
     }
 
     public function update(Request $request, string $student): JsonResponse
@@ -257,6 +292,10 @@ class StudentController extends Controller
      *     guardianProfession?: string|null,
      *     guardianGender?: string|null,
      *     guardianRelation?: string|null,
+     *     guardianEmail?: string|null,
+     *     guardianCity?: string|null,
+     *     guardianNeighborhood?: string|null,
+     *     guardianAddress?: string|null,
      *     photo?: mixed,
      *     removePhoto?: bool,
      *     files?: list<UploadedFile>|null
@@ -295,6 +334,10 @@ class StudentController extends Controller
             'guardianProfession' => ['nullable', 'string', 'max:120'],
             'guardianGender' => ['nullable', 'string', Rule::enum(Gender::class)],
             'guardianRelation' => ['nullable', 'string', Rule::enum(GuardianRelation::class)],
+            'guardianEmail' => ['nullable', 'email', 'max:180'],
+            'guardianCity' => ['nullable', 'string', 'max:120'],
+            'guardianNeighborhood' => ['nullable', 'string', 'max:120'],
+            'guardianAddress' => ['nullable', 'string', 'max:255'],
             'photo' => ['nullable', 'image', 'max:4096'],
             'removePhoto' => ['sometimes', 'boolean'],
             'files' => ['nullable', 'array'],
@@ -309,6 +352,7 @@ class StudentController extends Controller
             'matricule.unique' => 'Ce matricule est déjà utilisé.',
             'previousSchoolName.required_if' => 'L’établissement précédent est obligatoire pour un transfert.',
             'previousAcademicYear.required_if' => 'L’année scolaire précédente est obligatoire pour un transfert.',
+            'guardianEmail.email' => 'Indiquez une adresse e-mail valide pour le tuteur.',
         ]);
     }
 

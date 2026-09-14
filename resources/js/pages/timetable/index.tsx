@@ -9,7 +9,9 @@ import { EmptyState } from '@/components/sms/empty-state';
 import { Field } from '@/components/sms/field';
 import { FormSheet } from '@/components/sms/form-sheet';
 import { PageShell } from '@/components/sms/page-shell';
+import { TimetableExamDetails } from '@/components/sms/timetable-exam-details';
 import { TimetableHeader } from '@/components/sms/timetable-header';
+import { TimetableLessonDetails } from '@/components/sms/timetable-lesson-details';
 import { TimetableMonth } from '@/components/sms/timetable-month';
 import { TimetableWeek } from '@/components/sms/timetable-week';
 import { SearchSelect } from '@/components/sms/search-select';
@@ -51,7 +53,12 @@ import {
     WEEKDAYS,
 } from '@/lib/school-timetable';
 import { index as timetable } from '@/routes/timetable';
-import type { SchoolDataset, TimetableSlot, Weekday } from '@/types/school';
+import type {
+    Assessment,
+    SchoolDataset,
+    TimetableSlot,
+    Weekday,
+} from '@/types/school';
 
 type SlotForm = {
     classroomId: string;
@@ -115,6 +122,8 @@ export default function TimetableIndex({
     const [cursor, setCursor] = useState(() => new Date());
     const [view, setView] = useState<TimetableView>('week');
     const [open, setOpen] = useState(false);
+    const [detailsSlot, setDetailsSlot] = useState<TimetableSlot | null>(null);
+    const [detailsExam, setDetailsExam] = useState<Assessment | null>(null);
     const [confirmRemove, setConfirmRemove] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [form, setForm] = useState<SlotForm>(() =>
@@ -187,11 +196,22 @@ export default function TimetableIndex({
         setOpen(true);
     }
 
+    function openDetails(slot: TimetableSlot): void {
+        setDetailsExam(null);
+        setDetailsSlot(slot);
+    }
+
+    function openExamDetails(exam: Assessment): void {
+        setDetailsSlot(null);
+        setDetailsExam(exam);
+    }
+
     function openEdit(slot: TimetableSlot): void {
         if (locked) {
             return;
         }
 
+        setDetailsSlot(null);
         setEditingId(slot.id);
         setForm({
             classroomId: slot.classroomId,
@@ -289,20 +309,29 @@ export default function TimetableIndex({
     }
 
     async function remove(): Promise<void> {
-        if (!editingId) {
+        const targetId = editingId ?? detailsSlot?.id;
+
+        if (!targetId) {
             return;
         }
 
         try {
-            await apiJson(destroySlot.url(editingId), { method: 'DELETE' });
+            await apiJson(destroySlot.url(targetId), { method: 'DELETE' });
             setSlots((current) =>
-                current.filter((slot) => slot.id !== editingId),
+                current.filter((slot) => slot.id !== targetId),
             );
             setOpen(false);
+            setDetailsSlot(null);
+            setConfirmRemove(false);
             toastRemoved('Créneau retiré');
         } catch (error) {
             toastApiError(error);
         }
+    }
+
+    function requestRemoveFromDetails(slot: TimetableSlot): void {
+        setEditingId(slot.id);
+        setConfirmRemove(true);
     }
 
     return (
@@ -380,7 +409,8 @@ export default function TimetableIndex({
                                 setView('day');
                             }}
                             onCreate={openCreate}
-                            onEdit={openEdit}
+                            onOpenSlot={openDetails}
+                            onOpenExam={openExamDetails}
                         />
                     ) : (
                         <>
@@ -400,7 +430,8 @@ export default function TimetableIndex({
                                         setView('day');
                                     }}
                                     onCreate={openCreate}
-                                    onEdit={openEdit}
+                                    onOpenSlot={openDetails}
+                                    onOpenExam={openExamDetails}
                                 />
                             </div>
                         </>
@@ -408,6 +439,29 @@ export default function TimetableIndex({
                     </div>
                 </div>
             </PageShell>
+            <TimetableLessonDetails
+                catalog={catalog}
+                slot={detailsSlot}
+                open={detailsSlot !== null}
+                onOpenChange={(next) => {
+                    if (!next) {
+                        setDetailsSlot(null);
+                    }
+                }}
+                canEdit={canMutate}
+                onEdit={openEdit}
+                onDelete={requestRemoveFromDetails}
+            />
+            <TimetableExamDetails
+                catalog={catalog}
+                exam={detailsExam}
+                open={detailsExam !== null}
+                onOpenChange={(next) => {
+                    if (!next) {
+                        setDetailsExam(null);
+                    }
+                }}
+            />
             <FormSheet
                 open={open}
                 onOpenChange={setOpen}

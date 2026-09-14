@@ -1,19 +1,20 @@
 import { Head } from '@inertiajs/react';
-import { Printer, Receipt } from 'lucide-react';
+import { Mail, Printer, Receipt } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import { DocumentAuthenticityQr } from '@/components/sms/document-authenticity-qr';
 import { DocumentPied } from '@/components/sms/document-pied';
-import { DocumentStamp } from '@/components/sms/document-stamp';
+import { DocumentSchoolHeader } from '@/components/sms/document-school-header';
+import { DocumentSignatureBlock } from '@/components/sms/document-signature';
 import { PageHeader } from '@/components/sms/page-header';
 import { PageShell } from '@/components/sms/page-shell';
 import { Button } from '@/components/ui/button';
 import { useSchoolContext } from '@/hooks/use-school-context';
+import { apiJson } from '@/lib/api';
 import { printDomElement } from '@/lib/school-export';
 import { paymentSlip } from '@/lib/school-payments';
-import {
-    COUNTRY_SHORT,
-    formatFcfa,
-    paymentStatusLabel,
-} from '@/lib/school-rows';
+import { formatFcfa, paymentStatusLabel } from '@/lib/school-rows';
+import { toastApiError, toastSaved } from '@/lib/school-toast';
+import { emailReceipt as emailPaymentReceipt } from '@/routes/api/v1/payments';
 import { index as payments } from '@/routes/payments';
 import type { SchoolDataset } from '@/types/school';
 
@@ -27,6 +28,7 @@ export default function PaymentReceiptPage({
     paymentId: string;
 }) {
     const { filter } = useSchoolContext();
+    const [sending, setSending] = useState(false);
     const slip = paymentSlip(
         catalog,
         studentId,
@@ -34,8 +36,52 @@ export default function PaymentReceiptPage({
         filter.academicYearId,
     );
 
+    const guardianEmail = useMemo(() => {
+        const guardianIds = catalog.studentGuardians
+            .filter((link) => link.studentId === studentId)
+            .map((link) => link.guardianId);
+
+        for (const guardianId of guardianIds) {
+            const guardian = catalog.guardians.find(
+                (item) => item.id === guardianId,
+            );
+            const email = guardian?.email?.trim();
+
+            if (email) {
+                return email;
+            }
+        }
+
+        return null;
+    }, [catalog.guardians, catalog.studentGuardians, studentId]);
+
     if (!slip) {
         return null;
+    }
+
+    const canEmail =
+        slip.payment.amount > 0 &&
+        slip.payment.status !== 'impaye' &&
+        Boolean(guardianEmail);
+
+    async function sendReceiptEmail(): Promise<void> {
+        if (!canEmail || sending) {
+            return;
+        }
+
+        setSending(true);
+
+        try {
+            const response = await apiJson<{ message: string }>(
+                emailPaymentReceipt.url(paymentId),
+                { method: 'POST' },
+            );
+            toastSaved(response.message);
+        } catch (error) {
+            toastApiError(error, 'Impossible d’envoyer le reçu');
+        } finally {
+            setSending(false);
+        }
     }
 
     return (
@@ -48,37 +94,51 @@ export default function PaymentReceiptPage({
                     icon={Receipt}
                     description={`${slip.classroomName} · ${slip.payment.monthLabel}.`}
                     actions={
-                        <Button
-                            type="button"
-                            onClick={() => {
-                                const node =
-                                    document.querySelector<HTMLElement>(
-                                        '[data-print-root="receipt"]',
-                                    );
-                                if (node) {
-                                    printDomElement(
-                                        `Reçu : ${slip.name}`,
-                                        node,
-                                    );
-                                }
-                            }}
-                        >
-                            <Printer />
-                            Imprimer
-                        </Button>
+                        <div className="flex flex-wrap items-center gap-2">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                disabled={!canEmail || sending}
+                                onClick={() => {
+                                    void sendReceiptEmail();
+                                }}
+                            >
+                                <Mail />
+                                {sending
+                                    ? 'Envoi…'
+                                    : guardianEmail
+                                      ? 'Envoyer par e-mail'
+                                      : 'Pas d’e-mail tuteur'}
+                            </Button>
+                            <Button
+                                type="button"
+                                onClick={() => {
+                                    const node =
+                                        document.querySelector<HTMLElement>(
+                                            '[data-print-root="receipt"]',
+                                        );
+                                    if (node) {
+                                        printDomElement(
+                                            `Reçu : ${slip.name}`,
+                                            node,
+                                        );
+                                    }
+                                }}
+                            >
+                                <Printer />
+                                Imprimer
+                            </Button>
+                        </div>
                     }
                 />
                 <article
                     data-print-root="receipt"
                     className="print-bulletin mx-auto max-w-[180mm] bg-white p-8 text-black"
                 >
-                    <p className="text-center text-[16px] font-semibold uppercase">
-                        {slip.profile.name}
-                    </p>
-                    <p className="text-muted-foreground text-center text-[13px]">
-                        {slip.profile.address} · {slip.profile.city},{' '}
-                        {COUNTRY_SHORT}
-                    </p>
+                    <DocumentSchoolHeader
+                        profile={slip.profile}
+                        compact
+                    />
                     <h1 className="mt-8 mb-6 text-center text-[20px] font-bold uppercase">
                         Reçu de paiement
                     </h1>
@@ -104,28 +164,27 @@ export default function PaymentReceiptPage({
                             value={slip.payment.paidOn ?? slip.issuedOn}
                         />
                     </dl>
-                    <p className="mt-10 text-right text-[13px]">
-                        Fait à {slip.profile.city}, le {slip.issuedOn}
-                    </p>
-                    <DocumentStamp
-                        url={slip.profile.stampUrl}
-                        className="mt-6 ml-auto"
-                    />
-                    <p className="mt-4 text-right text-[13px]">
-                        La caisse
-                        <br />
-                        <strong>{slip.profile.directorName}</strong>
-                    </p>
-                    <DocumentAuthenticityQr
-                        claims={{
-                            type: 'payment_receipt',
-                            studentId,
-                            refId: paymentId,
-                            academicYearId: filter.academicYearId,
-                            issuedOn: new Date().toISOString().slice(0, 10),
-                        }}
-                    />
-                    <DocumentPied />
+                    <div className="print-closing">
+                        <DocumentSignatureBlock
+                            city={slip.profile.city}
+                            issuedOn={slip.issuedOn}
+                            stampUrl={slip.profile.stampUrl}
+                            role="La caisse"
+                            name={slip.profile.directorName}
+                        />
+                        <DocumentAuthenticityQr
+                            claims={{
+                                type: 'payment_receipt',
+                                studentId,
+                                refId: paymentId,
+                                academicYearId: filter.academicYearId,
+                                issuedOn: new Date()
+                                    .toISOString()
+                                    .slice(0, 10),
+                            }}
+                        />
+                        <DocumentPied />
+                    </div>
                 </article>
             </PageShell>
         </>

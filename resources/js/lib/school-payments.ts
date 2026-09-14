@@ -281,6 +281,7 @@ export function feeLedgerRows(
                 status,
                 paidOn: payment?.paidOn ?? null,
                 method: payment?.method ?? null,
+                lastRemindedAt: payment?.lastRemindedAt ?? null,
                 studentId: row.studentId,
                 studentName: row.name,
                 lastName: row.lastName,

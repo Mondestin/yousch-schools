@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\SchoolDomainLoginController;
 use App\Http\Controllers\Auth\SchoolRegistrationController;
 use App\Http\Controllers\DocumentAuthenticityController;
 use App\Http\Controllers\DocumentVerifyController;
+use App\Http\Controllers\FeePaymentLinkController;
 use App\Http\Controllers\SchoolPagesController;
 use Illuminate\Support\Facades\Route;
 
@@ -13,6 +14,10 @@ Route::get('v/{token}', [DocumentVerifyController::class, 'show'])
     ->where('token', '[A-Za-z0-9\-_\.]+')
     ->middleware('throttle:60,1')
     ->name('documents.verify');
+
+Route::get('payer/{payment}', [FeePaymentLinkController::class, 'show'])
+    ->middleware(['signed', 'throttle:60,1'])
+    ->name('fees.pay');
 
 Route::middleware('guest')->group(function () {
     Route::get('register', [SchoolRegistrationController::class, 'create'])

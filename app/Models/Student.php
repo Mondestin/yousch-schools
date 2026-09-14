@@ -9,6 +9,7 @@ use Database\Factories\StudentFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
@@ -33,6 +34,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $previous_class
  * @property string|null $previous_school_city
  * @property bool $is_transfer
+ * @property int|null $user_id
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  *
@@ -57,6 +59,7 @@ use Illuminate\Support\Carbon;
     'previous_class',
     'previous_school_city',
     'is_transfer',
+    'user_id',
     'school_id',
 ])]
 class Student extends Model implements HasDossierDocuments
@@ -81,6 +84,14 @@ class Student extends Model implements HasDossierDocuments
             'enrolled_on' => 'date',
             'is_transfer' => 'boolean',
         ];
+    }
+
+    /**
+     * @return BelongsTo<User, $this>
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 
     /**
@@ -150,6 +161,7 @@ class Student extends Model implements HasDossierDocuments
             'previousClass' => $this->previous_class,
             'previousSchoolCity' => $this->previous_school_city,
             'isTransfer' => (bool) $this->is_transfer,
+            'hasPortalAccount' => $this->user_id !== null,
         ];
 
         if ($this->relationLoaded('dossierFiles')) {

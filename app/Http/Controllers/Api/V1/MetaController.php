@@ -58,7 +58,13 @@ class MetaController extends Controller
     {
         return response()->json([
             'cycle' => $this->cases(Cycle::class),
-            'staffRole' => $this->cases(StaffRole::class),
+            'staffRole' => array_map(
+                static fn (StaffRole $role): array => [
+                    'value' => $role->value,
+                    'label' => $role->label(),
+                ],
+                StaffRole::staffCases(),
+            ),
             'gender' => $this->cases(Gender::class),
             'enrollmentStatus' => $this->cases(EnrollmentStatus::class),
             'admissionStatus' => $this->cases(AdmissionStatus::class),

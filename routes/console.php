@@ -1,5 +1,6 @@
 <?php
 
+use App\Console\Commands\SendFeeRemindersCommand;
 use App\Console\Commands\SendMarkingWindowRemindersCommand;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
@@ -10,3 +11,4 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command(SendMarkingWindowRemindersCommand::class)->dailyAt('07:00');
+Schedule::command(SendFeeRemindersCommand::class)->weeklyOn(1, '08:00');

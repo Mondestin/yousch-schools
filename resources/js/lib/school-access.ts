@@ -73,6 +73,8 @@ const ROLE_NAV: Record<StaffRole, NavKey[]> = {
         'results',
         'settings',
     ],
+    eleve: [],
+    parent: [],
 };
 
 export const STAFF_ROLES: StaffRole[] = [
@@ -81,6 +83,16 @@ export const STAFF_ROLES: StaffRole[] = [
     'secretaire',
     'enseignant',
 ];
+
+export const PORTAL_ROLES: StaffRole[] = ['eleve', 'parent'];
+
+export function isStaffRole(role: StaffRole): boolean {
+    return STAFF_ROLES.includes(role);
+}
+
+export function isPortalRole(role: StaffRole): boolean {
+    return PORTAL_ROLES.includes(role);
+}
 
 export function roleLabel(role: StaffRole): string {
     if (role === 'admin') {
@@ -93,6 +105,14 @@ export function roleLabel(role: StaffRole): string {
 
     if (role === 'secretaire') {
         return 'Secrétaire';
+    }
+
+    if (role === 'eleve') {
+        return 'Élève';
+    }
+
+    if (role === 'parent') {
+        return 'Parent';
     }
 
     return 'Enseignant';

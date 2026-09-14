@@ -149,7 +149,7 @@ export const studentGuardianSchema = z.object({
     guardianEmail: optionalEmail(),
 });
 
-export function studentCreateSchema(lycee: boolean) {
+export function studentCreateSchema(lycee: boolean, secondary = lycee) {
     return studentIdentitySchema
         .merge(studentSchoolSchema(lycee))
         .merge(studentPreviousAcademicFields)
@@ -157,6 +157,9 @@ export function studentCreateSchema(lycee: boolean) {
             studentContactSchema.omit({ enrolledOn: true }).extend({
                 address: z.string(),
                 phone: z.string(),
+                email: secondary
+                    ? requiredEmail('L’e-mail de l’élève')
+                    : optionalEmail(),
             }),
         )
         .merge(studentGuardianSchema)

@@ -68,6 +68,7 @@ final class StaffAccess
                 'results',
                 'settings',
             ],
+            StaffRole::Eleve, StaffRole::Parent => [],
         };
     }
 

@@ -86,6 +86,8 @@ class SchoolStaffSeeder extends Seeder
                     'plan' => $receipt['plan'],
                     'method' => $receipt['method'],
                     'status' => $receipt['status'],
+                    'transaction_id' => $receipt['transactionId'] ?? null,
+                    'validation_status' => $receipt['validationStatus'] ?? null,
                 ],
             );
         }

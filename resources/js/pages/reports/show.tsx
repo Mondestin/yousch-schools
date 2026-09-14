@@ -7,7 +7,7 @@ import {
     useDocumentVerifyUrl,
 } from '@/components/sms/document-authenticity-qr';
 import { DocumentPied } from '@/components/sms/document-pied';
-import { DocumentStamp } from '@/components/sms/document-stamp';
+import { DocumentSignatureBlock } from '@/components/sms/document-signature';
 import { EmptyState } from '@/components/sms/empty-state';
 import { PageShell } from '@/components/sms/page-shell';
 import { Button } from '@/components/ui/button';
@@ -269,7 +269,7 @@ export default function ReportShowPage({
                                 <strong>{bulletin.appreciation}</strong>
                             </p>
                         </div>
-                        <div className="space-y-1 text-right">
+                        <div className="space-y-1">
                             <p>
                                 Total général :{' '}
                                 <strong>
@@ -288,17 +288,14 @@ export default function ReportShowPage({
                                         : formatNote(bulletin.average)}
                                 </strong>
                             </p>
-                            <p className="pt-4">
-                                Fait à {bulletin.profile.city} le,{' '}
-                                {bulletin.issuedOn}
-                            </p>
-                            <DocumentStamp
-                                url={bulletin.profile.stampUrl}
-                                className="ml-auto"
+                            <DocumentSignatureBlock
+                                className="mt-4"
+                                city={bulletin.profile.city}
+                                issuedOn={bulletin.issuedOn}
+                                stampUrl={bulletin.profile.stampUrl}
+                                role="Le Directeur"
+                                name={bulletin.profile.directorName}
                             />
-                            <p className="pt-2">
-                                <strong>{bulletin.profile.directorName}</strong>
-                            </p>
                             <DocumentPied
                                 profile={bulletin.profile}
                                 className="mt-4 text-left"

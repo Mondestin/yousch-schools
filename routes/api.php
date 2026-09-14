@@ -63,6 +63,8 @@ Route::prefix('v1')->group(function (): void {
             ->name('api.v1.subscription.billing');
         Route::put('/subscription/payment', [SubscriptionController::class, 'updatePayment'])
             ->name('api.v1.subscription.payment');
+        Route::put('/subscription/receipts/{receipt}/transaction', [SubscriptionController::class, 'submitReceiptTransaction'])
+            ->name('api.v1.subscription.receipts.transaction');
         Route::post('/subscription/cancel', [SubscriptionController::class, 'cancel'])
             ->name('api.v1.subscription.cancel');
         Route::get('/catalog', [CatalogController::class, 'show'])
@@ -285,6 +287,10 @@ Route::prefix('v1')->group(function (): void {
             ->name('api.v1.payments.index');
         Route::post('/payments', [PaymentController::class, 'store'])
             ->name('api.v1.payments.store');
+        Route::post('/payments/remind', [PaymentController::class, 'remind'])
+            ->name('api.v1.payments.remind');
+        Route::post('/payments/{payment}/email-receipt', [PaymentController::class, 'emailReceipt'])
+            ->name('api.v1.payments.email-receipt');
         Route::get('/payments/{payment}', [PaymentController::class, 'show'])
             ->name('api.v1.payments.show');
         Route::put('/payments/{payment}', [PaymentController::class, 'update'])

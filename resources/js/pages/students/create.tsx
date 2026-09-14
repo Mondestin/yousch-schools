@@ -38,8 +38,10 @@ import {
     studentGuardianSchema,
     studentIdentitySchema,
     studentSchoolStepSchema,
+    optionalEmail,
+    requiredEmail,
 } from '@/lib/school-form';
-import { cycleLabel, isLyceeCycle, todayIso } from '@/lib/school-rows';
+import { cycleLabel, isLyceeCycle, isSecondaryCycle, todayIso } from '@/lib/school-rows';
 import { z } from 'zod';
 import {
     genderLabel,
@@ -47,7 +49,7 @@ import {
     nextMatricule,
 } from '@/lib/school-students';
 import { toastApiError, toastSaved } from '@/lib/school-toast';
-import { ApiError, apiData } from '@/lib/api';
+import { ApiError, apiJson } from '@/lib/api';
 import { store as storeStudent } from '@/routes/api/v1/students';
 import { create, index as students } from '@/routes/students';
 import type {
@@ -84,6 +86,7 @@ export default function StudentsCreate({
 
     const { filter, query, academicYearLabel, annee } = useSchoolContext();
     const lycee = isLyceeCycle(filter.cycle);
+    const secondary = isSecondaryCycle(filter.cycle);
     const matricule = nextMatricule(catalog, annee);
     const classrooms = catalog.classrooms.filter(
         (classroom) =>
@@ -148,11 +151,15 @@ export default function StudentsCreate({
     const stepSchema = [
         studentIdentitySchema,
         studentSchoolStepSchema(lycee),
-        studentContactSchema.omit({ enrolledOn: true }),
+        studentContactSchema.omit({ enrolledOn: true }).extend({
+            email: secondary
+                ? requiredEmail('L’e-mail de l’élève')
+                : optionalEmail(),
+        }),
         studentGuardianSchema,
         z.object({}),
     ][step];
-    const ready = studentCreateSchema(lycee).safeParse(form).success;
+    const ready = studentCreateSchema(lycee, secondary).safeParse(form).success;
 
     const previewDetails = useMemo(
         () => [
@@ -217,7 +224,7 @@ export default function StudentsCreate({
             return;
         }
 
-        if (!validate(studentCreateSchema(lycee), form)) {
+        if (!validate(studentCreateSchema(lycee, secondary), form)) {
             return;
         }
 
@@ -254,6 +261,7 @@ export default function StudentsCreate({
         body.append('guardianProfession', form.guardianProfession.trim());
         body.append('guardianGender', form.guardianGender);
         body.append('guardianRelation', form.relation);
+        body.append('guardianEmail', form.guardianEmail.trim());
 
         if (photoFile) {
             body.append('photo', photoFile);
@@ -262,13 +270,30 @@ export default function StudentsCreate({
         setSaving(true);
 
         try {
-            const saved = await apiData<Student>(storeStudent.url(), {
+            const response = await apiJson<{
+                data: Student;
+                meta?: {
+                    studentAccountCreated?: boolean;
+                    parentAccountCreated?: boolean;
+                };
+            }>(storeStudent.url(), {
                 method: 'POST',
                 formData: body,
             });
-            toastSaved(
+            const saved = response.data;
+            const parts = [
                 `${saved.lastName} ${saved.firstName} : inscription enregistrée`,
-            );
+            ];
+
+            if (response.meta?.studentAccountCreated) {
+                parts.push('compte élève créé');
+            }
+
+            if (response.meta?.parentAccountCreated) {
+                parts.push('compte parent créé');
+            }
+
+            toastSaved(parts.join(' · '));
             router.visit(students({ query }));
         } catch (error) {
             if (error instanceof ApiError) {
@@ -719,6 +744,12 @@ export default function StudentsCreate({
                                         <Field
                                             id="email"
                                             label="E-mail"
+                                            required={secondary}
+                                            hint={
+                                                secondary
+                                                    ? 'Obligatoire au collège / lycée : un compte élève est créé et les identifiants sont envoyés par e-mail.'
+                                                    : undefined
+                                            }
                                             error={errors.email}
                                         >
                                             <Input
@@ -862,6 +893,7 @@ export default function StudentsCreate({
                                         <Field
                                             id="guardianEmail"
                                             label="E-mail"
+                                            hint="Si renseigné, un compte parent est créé et les identifiants sont envoyés par e-mail."
                                             error={errors.guardianEmail}
                                         >
                                             <Input

@@ -336,10 +336,18 @@ export function guardianChildren(
 }
 
 export function cashMethodLabel(
-    method: 'especes' | 'mobile_money' | 'virement',
+    method: 'especes' | 'mtn_money' | 'airtel_money' | 'virement' | 'mobile_money',
 ): string {
     if (method === 'especes') {
         return 'Espèces';
+    }
+
+    if (method === 'mtn_money') {
+        return 'MTN Mobile Money';
+    }
+
+    if (method === 'airtel_money') {
+        return 'Airtel Money';
     }
 
     if (method === 'mobile_money') {

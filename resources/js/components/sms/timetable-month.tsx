@@ -15,7 +15,7 @@ import {
     weekdayFromDate,
 } from '@/lib/school-timetable';
 import { cn } from '@/lib/utils';
-import type { SchoolDataset, TimetableSlot, Weekday } from '@/types/school';
+import type { Assessment, SchoolDataset, TimetableSlot, Weekday } from '@/types/school';
 
 const MONTH_SLOTS = 3;
 
@@ -34,7 +34,8 @@ export function TimetableMonth({
     cursor,
     onSelectDay,
     onCreate,
-    onEdit,
+    onOpenSlot,
+    onOpenExam,
 }: {
     catalog: SchoolDataset;
     classroomId: string;
@@ -42,7 +43,8 @@ export function TimetableMonth({
     cursor: Date;
     onSelectDay: (day: Date) => void;
     onCreate: (weekday: Weekday, periodId: string) => void;
-    onEdit: (slot: TimetableSlot) => void;
+    onOpenSlot: (slot: TimetableSlot) => void;
+    onOpenExam?: (exam: Assessment) => void;
 }) {
     const weeks = schoolMonthWeeks(cursor);
     const today = new Date();
@@ -64,7 +66,7 @@ export function TimetableMonth({
                           ' – ',
                       )[0]!,
                       tone: subjectTone(catalog, slot.subjectId),
-                      onClick: () => onEdit(slot),
+                      onClick: () => onOpenSlot(slot),
                   }))
             : [];
         const exams = assessmentsOnDate(
@@ -76,6 +78,7 @@ export function TimetableMonth({
             title: `${assessmentTypeLabel(exam.type)} · ${exam.name}`,
             time: assessmentTimeRange(exam),
             tone: 'exam',
+            onClick: onOpenExam ? () => onOpenExam(exam) : undefined,
         }));
 
         return [...lessons, ...exams];

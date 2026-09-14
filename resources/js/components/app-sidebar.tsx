@@ -209,7 +209,11 @@ export function AppSidebar() {
             <SidebarHeader>
                 <SidebarMenu>
                     <SidebarMenuItem>
-                        <SidebarMenuButton size="lg" asChild>
+                        <SidebarMenuButton
+                            size="default"
+                            asChild
+                            className="h-14 data-[size=lg]:h-14"
+                        >
                             <Link href={dashboard({ query })} prefetch>
                                 <AppLogo />
                             </Link>

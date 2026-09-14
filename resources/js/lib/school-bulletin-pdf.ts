@@ -467,12 +467,16 @@ export function bulletinPrintHtml(
     <p>Rang : <strong>${escapeHtml(rankLabel(fiche.rank, fiche.classSize))}</strong></p>
     <p>Appréciation : <strong>${escapeHtml(fiche.appreciation || '')}</strong></p>
   </div>
-  <div>
+  <div class="sign-col">
     <p>Total général : <strong>${escapeHtml(totalGeneralLabel(fiche))}</strong></p>
     <p>Moyenne : <strong>${escapeHtml(averageLabel(fiche))}</strong></p>
-    <p>Fait à ${escapeHtml(fiche.profile.city)} le, ${escapeHtml(fiche.issuedOn)}</p>
-    ${stampUrl ? `<img src="${escapeHtml(stampUrl)}" alt="Cachet et signature" class="stamp" />` : ''}
-    <p class="director">Le Directeur<br /><strong>${escapeHtml(fiche.profile.directorName)}</strong></p>
+    <div class="sign-block">
+      <p>Fait à ${escapeHtml(fiche.profile.city)}, le ${escapeHtml(fiche.issuedOn)}</p>
+      <div class="sign-stack">
+        ${stampUrl ? `<img src="${escapeHtml(stampUrl)}" alt="Cachet et signature" class="stamp" />` : ''}
+        <p class="director">Le Directeur<br /><strong>${escapeHtml(fiche.profile.directorName)}</strong></p>
+      </div>
+    </div>
   </div>
 </section>
 ${verifyUrl ? documentAuthenticityQrHtml(verifyUrl) : ''}`;
@@ -525,30 +529,106 @@ export async function printBulletinDocument(
     options?: BulletinPrintOptions,
 ): Promise<void> {
     const verifyUrl = await resolveBulletinVerifyUrl(options);
+    openBulletinPrintWindow(
+        title,
+        `<div class="sheet">${bulletinPrintHtml(fiche, verifyUrl)}</div>
+<footer class="pied">${documentPiedSvgHtml()}</footer>`,
+    );
+}
+
+export async function printBulletinBatch(
+    title: string,
+    items: Array<{
+        fiche: BulletinApiFiche;
+        options?: BulletinPrintOptions;
+    }>,
+): Promise<void> {
+    const sheets: string[] = [];
+
+    for (const item of items) {
+        const verifyUrl = await resolveBulletinVerifyUrl(item.options);
+        sheets.push(`<div class="sheet page">
+${bulletinPrintHtml(item.fiche, verifyUrl)}
+</div>
+<footer class="pied">${documentPiedSvgHtml()}</footer>`);
+    }
+
+    openBulletinPrintWindow(title, sheets.join('\n'));
+}
+
+function openBulletinPrintWindow(title: string, bodyInner: string): void {
     const html = `<!doctype html>
 <html lang="fr">
 <head>
 <meta charset="utf-8" />
 <title>${escapeHtml(title)}</title>
 <style>
+${bulletinPrintCss()}
+</style>
+</head>
+<body>
+${bodyInner}
+</body>
+</html>`;
+
+    const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const popup = window.open(url, '_blank');
+
+    if (!popup) {
+        URL.revokeObjectURL(url);
+
+        return;
+    }
+
+    let printed = false;
+
+    const triggerPrint = (): void => {
+        if (printed) {
+            return;
+        }
+
+        printed = true;
+        popup.focus();
+        popup.print();
+        window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    };
+
+    popup.addEventListener('load', triggerPrint);
+
+    window.setTimeout(() => {
+        try {
+            if (popup.document?.readyState === 'complete') {
+                triggerPrint();
+            }
+        } catch {
+            // ignore
+        }
+    }, 250);
+}
+
+function bulletinPrintCss(): string {
+    return `
   @page { size: A4; margin: 0; }
   * { box-sizing: border-box; }
   html, body {
     margin: 0;
     padding: 0;
     width: 210mm;
-    min-height: 297mm;
     background: #fff;
   }
   body {
     font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
     color: #000;
-    position: relative;
-    padding: 12mm 12mm 28mm;
   }
   .sheet {
+    position: relative;
+    width: 210mm;
     min-height: calc(297mm - 40mm);
+    padding: 12mm 12mm 28mm;
   }
+  .page { page-break-after: always; }
+  .page:last-of-type { page-break-after: auto; }
   .top {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -632,14 +712,36 @@ export async function printBulletinDocument(
     font-size: 14px;
   }
   .summary p { margin: 0 0 12px; }
+  .sign-col { text-align: left; }
+  .sign-block {
+    margin-top: 16px;
+    margin-left: auto;
+    margin-right: 48px;
+    width: max-content;
+    min-width: 20rem;
+    max-width: 100%;
+    text-align: center;
+  }
+  .sign-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    margin-top: 16px;
+  }
+  .sign-block > p:first-child {
+    white-space: nowrap;
+  }
   .stamp {
     display: block;
-    margin-top: 16px;
-    height: 96px;
-    width: 160px;
+    height: 112px;
+    width: 176px;
     object-fit: contain;
   }
-  .director { margin-top: 24px !important; padding-top: 8px; }
+  .director {
+    margin: 8px 0 0 !important;
+    font-weight: 500;
+  }
   .authenticity {
     position: absolute;
     left: 12mm;
@@ -654,12 +756,11 @@ export async function printBulletinDocument(
     white-space: nowrap;
   }
   .pied {
-    position: absolute;
+    position: relative;
     left: 0;
     right: 0;
-    bottom: 0;
     width: 210mm;
-    margin: 0;
+    margin: -4px 0 0;
     padding: 0;
     line-height: 0;
   }
@@ -669,50 +770,5 @@ export async function printBulletinDocument(
     width: 100%;
     height: 4px;
   }
-</style>
-</head>
-<body>
-<div class="sheet">
-${bulletinPrintHtml(fiche, verifyUrl)}
-</div>
-<footer class="pied">
-  ${documentPiedSvgHtml()}
-</footer>
-</body>
-</html>`;
-
-    const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const popup = window.open(url, '_blank');
-
-    if (!popup) {
-        URL.revokeObjectURL(url);
-
-        return;
-    }
-
-    let printed = false;
-
-    const triggerPrint = (): void => {
-        if (printed) {
-            return;
-        }
-
-        printed = true;
-        popup.focus();
-        popup.print();
-        window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
-    };
-
-    popup.addEventListener('load', triggerPrint);
-
-    window.setTimeout(() => {
-        try {
-            if (popup.document?.readyState === 'complete') {
-                triggerPrint();
-            }
-        } catch {
-            // ignore
-        }
-    }, 250);
+`;
 }
