@@ -30,18 +30,11 @@ test('api login validation messages are in french', function () {
 });
 
 test('bearer token abilities mirror staff role', function () {
-    $school = defaultSchool();
     $user = User::factory()->secretaire()->create([
         'password' => 'password',
     ]);
 
-    $token = $this->postJson('/api/v1/login', [
-        'domain' => $school->domain,
-        'email' => $user->email,
-        'password' => 'password',
-        'deviceName' => 'test-phone',
-    ])->assertOk()
-        ->json('token');
+    $token = apiLoginAs($user, deviceName: 'test-phone');
 
     $this->withToken($token)
         ->getJson('/api/v1/me')

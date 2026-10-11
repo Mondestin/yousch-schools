@@ -49,7 +49,7 @@ class MetaController extends Controller
             'clients' => ['web', 'mobile'],
             'auth' => [
                 'mode' => 'session (same-origin + CSRF) or Bearer personal access token',
-                'note' => 'Sanctum-compatible tokens (local HasApiTokens). Web: cookie session. Mobile: POST /login → Bearer. Types: resources/js/types/school.ts',
+                'note' => 'Sanctum-compatible tokens (local HasApiTokens). Web: cookie session. Mobile: POST /login → e-mail 4-digit code → POST /login/verify → Bearer. Staff: /students. Portal élève/parent: /portal/*. Types: resources/js/types/school.ts',
             ],
         ]);
     }

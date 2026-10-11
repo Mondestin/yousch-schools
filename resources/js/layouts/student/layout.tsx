@@ -6,6 +6,7 @@ import {
     History,
     LayoutDashboard,
     ShieldAlert,
+    UserRound,
     Users,
     Wallet,
 } from 'lucide-react';
@@ -26,6 +27,7 @@ import {
     dossier as studentDossier,
     grades as studentGrades,
     guardians as studentGuardians,
+    identity as studentIdentity,
     payments as studentPayments,
     previous as studentPrevious,
     show,
@@ -52,6 +54,11 @@ export default function StudentLayout({ children }: PropsWithChildren) {
             title: 'Synthèse',
             href: show(studentId, options),
             icon: LayoutDashboard,
+        },
+        {
+            title: 'Identité',
+            href: studentIdentity(studentId, options),
+            icon: UserRound,
         },
         {
             title: 'Parcours',

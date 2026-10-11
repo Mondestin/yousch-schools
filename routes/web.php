@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Auth\LoginCodeController;
 use App\Http\Controllers\Auth\SchoolDomainLoginController;
 use App\Http\Controllers\Auth\SchoolRegistrationController;
 use App\Http\Controllers\DocumentAuthenticityController;
@@ -29,6 +30,15 @@ Route::middleware('guest')->group(function () {
         ->name('login.domain.resolve');
     Route::get('login/domain/{domain}', [SchoolDomainLoginController::class, 'show'])
         ->name('login.domain');
+
+    Route::get('login/code', [LoginCodeController::class, 'create'])
+        ->name('login.code');
+    Route::post('login/code', [LoginCodeController::class, 'store'])
+        ->middleware('throttle:login-code')
+        ->name('login.code.store');
+    Route::post('login/code/resend', [LoginCodeController::class, 'resend'])
+        ->middleware('throttle:login-code-resend')
+        ->name('login.code.resend');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {

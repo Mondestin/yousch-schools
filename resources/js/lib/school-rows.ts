@@ -219,6 +219,7 @@ export function studentRows(
                 name: student ? personName(student) : '-',
                 firstName: student?.firstName ?? '',
                 lastName: student?.lastName ?? '',
+                email: student?.email ?? null,
                 classroomId: classroom?.id ?? '',
                 classroom: classroom?.name ?? '-',
                 cycle: classroom?.cycle ?? 'primaire',

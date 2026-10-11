@@ -3,7 +3,9 @@
 use App\Models\School;
 use App\Models\SchoolProfile;
 use App\Models\User;
+use App\Notifications\LoginCodeNotification;
 use Database\Seeders\SchoolTaxonomySeeder;
+use Illuminate\Support\Facades\Notification;
 use Laravel\Fortify\Features;
 
 test('login screen can be rendered', function () {
@@ -60,21 +62,14 @@ test('unknown domain returns 404', function () {
 });
 
 test('users can authenticate using the domain login screen', function () {
-    $school = defaultSchool();
     $user = schoolUser();
 
-    $this->get(route('login.domain', ['domain' => $school->domain]))->assertOk();
-
-    $response = $this->post(route('login.store'), [
-        'email' => $user->email,
-        'password' => 'password',
-    ]);
-
-    $this->assertAuthenticated();
-    $response->assertRedirect(route('dashboard', absolute: false));
+    webLoginAs($user);
 });
 
 test('users cannot authenticate against another school domain', function () {
+    Notification::fake();
+
     schoolUser(['email' => 'a@example.com']);
 
     $schoolB = School::factory()->domain('autre-ecole')->create(['name' => 'Autre École']);
@@ -87,15 +82,42 @@ test('users cannot authenticate against another school domain', function () {
     ]);
 
     $this->assertGuest();
+    Notification::assertNothingSent();
 });
 
-test('users with two factor enabled are redirected to two factor challenge', function () {
+test('password login redirects to email code challenge', function () {
+    Notification::fake();
+
+    $school = defaultSchool();
+    $user = schoolUser();
+
+    $this->get(route('login.domain', ['domain' => $school->domain]))->assertOk();
+
+    $this->post(route('login.store'), [
+        'email' => $user->email,
+        'password' => 'password',
+    ])->assertRedirect(route('login.code'));
+
+    $this->assertGuest();
+
+    Notification::assertSentTo($user, LoginCodeNotification::class);
+
+    $this->get(route('login.code'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('auth/login-code')
+            ->where('school.domain', $school->domain));
+});
+
+test('users with two factor enabled are redirected to two factor after email code', function () {
     $this->skipUnlessFortifyHas(Features::twoFactorAuthentication());
 
     Features::twoFactorAuthentication([
         'confirm' => true,
         'confirmPassword' => true,
     ]);
+
+    Notification::fake();
 
     $school = defaultSchool();
     $user = User::factory()->withTwoFactor()->create([
@@ -104,9 +126,24 @@ test('users with two factor enabled are redirected to two factor challenge', fun
 
     $this->get(route('login.domain', ['domain' => $school->domain]))->assertOk();
 
-    $response = $this->post(route('login'), [
+    $this->post(route('login'), [
         'email' => $user->email,
         'password' => 'password',
+    ])->assertRedirect(route('login.code'));
+
+    $code = null;
+    Notification::assertSentTo(
+        $user,
+        LoginCodeNotification::class,
+        function (LoginCodeNotification $notification) use (&$code): bool {
+            $code = $notification->code;
+
+            return true;
+        },
+    );
+
+    $response = $this->post(route('login.code.store'), [
+        'code' => $code,
     ]);
 
     $response->assertRedirect(route('two-factor.login'));
@@ -115,6 +152,8 @@ test('users with two factor enabled are redirected to two factor challenge', fun
 });
 
 test('users can not authenticate with invalid password', function () {
+    Notification::fake();
+
     $school = defaultSchool();
     $user = schoolUser();
 
@@ -126,6 +165,7 @@ test('users can not authenticate with invalid password', function () {
     ]);
 
     $this->assertGuest();
+    Notification::assertNothingSent();
 });
 
 test('users can logout', function () {

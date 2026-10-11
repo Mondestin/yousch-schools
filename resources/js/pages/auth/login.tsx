@@ -79,6 +79,11 @@ export default function Login({
                             <span className="bg-primary/10 flex size-6 items-center justify-center rounded-full">2</span>
                             Connexion
                         </li>
+                        <li aria-hidden="true" className="bg-border h-px flex-1" />
+                        <li className="text-muted-foreground flex items-center gap-2">
+                            <span className="bg-muted flex size-6 items-center justify-center rounded-full">3</span>
+                            Code
+                        </li>
                     </ol>
                 <section className="bg-background border-border/80 rounded-2xl border p-6 shadow-[0_8px_32px_rgba(15,23,42,0.04)] sm:p-8 [&_input]:h-11 [&_input]:rounded-lg [&_input]:text-[14px]" aria-labelledby="school-login-title">
                     <div className="flex flex-col items-start">

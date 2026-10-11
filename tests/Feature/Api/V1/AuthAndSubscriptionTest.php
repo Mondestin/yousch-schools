@@ -4,21 +4,47 @@ use App\Enums\StaffRole;
 use App\Models\PersonalAccessToken;
 use App\Models\SchoolSubscription;
 use App\Models\User;
+use App\Notifications\LoginCodeNotification;
 use App\Support\Auth\StaffAccess;
 use Database\Seeders\SchoolStaffSeeder;
+use Illuminate\Support\Facades\Notification;
 
-test('api login returns bearer token and staff payload', function () {
+test('api login sends email code then returns bearer token', function () {
+    Notification::fake();
+
     $school = defaultSchool();
     $user = User::factory()->admin()->create([
         'email' => 'admin@example.test',
         'password' => 'password',
     ]);
 
-    $response = $this->postJson('/api/v1/login', [
+    $challenge = $this->postJson('/api/v1/login', [
         'domain' => $school->domain,
         'email' => 'admin@example.test',
         'password' => 'password',
         'deviceName' => 'iphone-test',
+    ])->assertOk()
+        ->assertJsonPath('requiresVerification', true);
+
+    $challengeToken = $challenge->json('challengeToken');
+    expect($challengeToken)->toBeString()->not->toBeEmpty()
+        ->and($challenge->json('token'))->toBeNull()
+        ->and(PersonalAccessToken::query()->count())->toBe(0);
+
+    $code = null;
+    Notification::assertSentTo(
+        $user,
+        LoginCodeNotification::class,
+        function (LoginCodeNotification $notification) use (&$code): bool {
+            $code = $notification->code;
+
+            return strlen($notification->code) === 4;
+        },
+    );
+
+    $response = $this->postJson('/api/v1/login/verify', [
+        'challengeToken' => $challengeToken,
+        'code' => $code,
     ])->assertOk()
         ->assertJsonPath('tokenType', 'Bearer')
         ->assertJsonPath('user.email', 'admin@example.test')
@@ -37,7 +63,9 @@ test('api login returns bearer token and staff payload', function () {
         ->assertJsonPath('data.role', 'admin');
 });
 
-test('api login rejects bad credentials', function () {
+test('api login rejects bad credentials before sending a code', function () {
+    Notification::fake();
+
     $school = defaultSchool();
     User::factory()->create([
         'email' => 'admin@example.test',
@@ -50,20 +78,82 @@ test('api login rejects bad credentials', function () {
         'password' => 'wrong',
     ])->assertUnprocessable()
         ->assertJsonValidationErrors(['email']);
+
+    Notification::assertNothingSent();
 });
 
-test('api logout deletes the current access token', function () {
+test('api login verify rejects an incorrect code', function () {
+    Notification::fake();
+
     $school = defaultSchool();
     $user = User::factory()->admin()->create([
         'email' => 'admin@example.test',
         'password' => 'password',
     ]);
 
-    $token = $this->postJson('/api/v1/login', [
+    $challengeToken = $this->postJson('/api/v1/login', [
         'domain' => $school->domain,
-        'email' => $user->email,
+        'email' => 'admin@example.test',
         'password' => 'password',
-    ])->json('token');
+    ])->assertOk()
+        ->json('challengeToken');
+
+    $code = null;
+    Notification::assertSentTo(
+        $user,
+        LoginCodeNotification::class,
+        function (LoginCodeNotification $notification) use (&$code): bool {
+            $code = $notification->code;
+
+            return true;
+        },
+    );
+
+    $wrongCode = $code === '0000' ? '1111' : '0000';
+
+    $this->postJson('/api/v1/login/verify', [
+        'challengeToken' => $challengeToken,
+        'code' => $wrongCode,
+    ])->assertUnprocessable()
+        ->assertJsonValidationErrors(['code']);
+
+    expect(PersonalAccessToken::query()->count())->toBe(0);
+});
+
+test('api login resend issues a new code', function () {
+    Notification::fake();
+
+    $school = defaultSchool();
+    $user = User::factory()->admin()->create([
+        'email' => 'admin@example.test',
+        'password' => 'password',
+    ]);
+
+    $firstToken = $this->postJson('/api/v1/login', [
+        'domain' => $school->domain,
+        'email' => 'admin@example.test',
+        'password' => 'password',
+    ])->assertOk()
+        ->json('challengeToken');
+
+    $secondToken = $this->postJson('/api/v1/login/resend', [
+        'challengeToken' => $firstToken,
+    ])->assertOk()
+        ->assertJsonPath('requiresVerification', true)
+        ->json('challengeToken');
+
+    expect($secondToken)->toBeString()->not->toBe($firstToken);
+
+    Notification::assertSentToTimes($user, LoginCodeNotification::class, 2);
+});
+
+test('api logout deletes the current access token', function () {
+    $user = User::factory()->admin()->create([
+        'email' => 'admin@example.test',
+        'password' => 'password',
+    ]);
+
+    $token = apiLoginAs($user);
 
     $this->withToken($token)
         ->postJson('/api/v1/logout')

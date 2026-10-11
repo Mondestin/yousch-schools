@@ -59,14 +59,9 @@ class SchoolPagesController extends Controller
         return $this->studentPage($student, 'students/overview');
     }
 
-    public function showStudent(Request $request, string $student): RedirectResponse
+    public function showStudent(string $student): Response
     {
-        $this->ensureStudent($student);
-
-        return redirect()->route('students.show', [
-            'student' => $student,
-            ...$request->query(),
-        ]);
+        return $this->studentPage($student, 'students/identity');
     }
 
     public function studentPrevious(string $student): Response
