@@ -78,6 +78,22 @@ class UserFactory extends Factory
         ]);
     }
 
+    public function eleve(): static
+    {
+        return $this->state(fn (): array => [
+            'role' => 'eleve',
+            'cycles' => [],
+        ]);
+    }
+
+    public function parent(): static
+    {
+        return $this->state(fn (): array => [
+            'role' => 'parent',
+            'cycles' => [],
+        ]);
+    }
+
     /**
      * Indicate that the model's email address should be unverified.
      */

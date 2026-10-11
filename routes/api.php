@@ -23,6 +23,7 @@ use App\Http\Controllers\Api\V1\IssuedDocumentController;
 use App\Http\Controllers\Api\V1\MarkingWindowController;
 use App\Http\Controllers\Api\V1\MetaController;
 use App\Http\Controllers\Api\V1\PaymentController;
+use App\Http\Controllers\Api\V1\PortalController;
 use App\Http\Controllers\Api\V1\ReenrollmentController;
 use App\Http\Controllers\Api\V1\ResultsController;
 use App\Http\Controllers\Api\V1\SanctionController;
@@ -49,12 +50,54 @@ Route::prefix('v1')->group(function (): void {
     Route::post('/login', [AuthController::class, 'login'])
         ->middleware('throttle:api-login')
         ->name('api.v1.login');
+    Route::post('/login/verify', [AuthController::class, 'verifyLogin'])
+        ->middleware('throttle:api-login-verify')
+        ->name('api.v1.login.verify');
+    Route::post('/login/resend', [AuthController::class, 'resendLoginCode'])
+        ->middleware('throttle:api-login-resend')
+        ->name('api.v1.login.resend');
 
     Route::middleware('auth.staff')->group(function (): void {
         Route::post('/logout', [AuthController::class, 'logout'])
             ->name('api.v1.logout');
         Route::get('/me', [AuthController::class, 'me'])
             ->name('api.v1.me');
+
+        Route::prefix('portal')->group(function (): void {
+            Route::get('/me', [PortalController::class, 'me'])
+                ->name('api.v1.portal.me');
+            Route::get('/students', [PortalController::class, 'students'])
+                ->name('api.v1.portal.students.index');
+            Route::get('/students/{student}', [PortalController::class, 'profile'])
+                ->name('api.v1.portal.students.show');
+            Route::get('/students/{student}/profile', [PortalController::class, 'profile'])
+                ->name('api.v1.portal.students.profile');
+            Route::get('/students/{student}/bulletin', [PortalController::class, 'bulletin'])
+                ->name('api.v1.portal.students.bulletin');
+            Route::get('/students/{student}/notes', [PortalController::class, 'notes'])
+                ->name('api.v1.portal.students.notes');
+            Route::get('/students/{student}/grades', [PortalController::class, 'grades'])
+                ->name('api.v1.portal.students.grades');
+            Route::get('/students/{student}/payments', [PortalController::class, 'payments'])
+                ->name('api.v1.portal.students.payments');
+            Route::get('/students/{student}/receipt', [PortalController::class, 'receipt'])
+                ->name('api.v1.portal.students.receipt');
+            Route::get('/students/{student}/presences', [PortalController::class, 'presences'])
+                ->name('api.v1.portal.students.presences');
+            Route::get('/students/{student}/attendance', [PortalController::class, 'attendance'])
+                ->name('api.v1.portal.students.attendance');
+            Route::get('/students/{student}/files', [PortalController::class, 'files'])
+                ->name('api.v1.portal.students.files');
+            Route::get('/students/{student}/sanctions', [PortalController::class, 'sanctions'])
+                ->name('api.v1.portal.students.sanctions');
+            Route::get('/students/{student}/planning', [PortalController::class, 'planning'])
+                ->name('api.v1.portal.students.planning');
+            Route::get('/students/{student}/timetable', [PortalController::class, 'timetable'])
+                ->name('api.v1.portal.students.timetable');
+            Route::get('/announcements', [PortalController::class, 'announcements'])
+                ->name('api.v1.portal.announcements');
+        });
+
         Route::get('/subscription', [SubscriptionController::class, 'show'])
             ->name('api.v1.subscription');
         Route::put('/subscription/plan', [SubscriptionController::class, 'updatePlan'])

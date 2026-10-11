@@ -6,12 +6,12 @@ use App\Http\Middleware\EnsureUserNotBlocked;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\SetCurrentSchool;
+use App\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Http\Request;
 use Illuminate\Session\Middleware\StartSession;
@@ -36,11 +36,12 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         // Same-origin web clients call /api/v1 with session + CSRF cookies.
+        // Mobile clients use Bearer tokens and skip CSRF (see VerifyCsrfToken).
         $middleware->api(prepend: [
             EncryptCookies::class,
             AddQueuedCookiesToResponse::class,
             StartSession::class,
-            ValidateCsrfToken::class,
+            VerifyCsrfToken::class,
         ]);
 
         $middleware->web(append: [

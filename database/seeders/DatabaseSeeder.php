@@ -56,5 +56,7 @@ class DatabaseSeeder extends Seeder
         $this->call(SchoolOfficeSeeder::class);
         $this->call(SchoolStaffSeeder::class);
         $this->call(DocumentTemplatesSeeder::class);
+        $this->call(PortalDemoSeeder::class);
+        $this->call(SchoolBulletinsSeeder::class);
     }
 }

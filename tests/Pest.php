@@ -3,9 +3,11 @@
 use App\Models\School;
 use App\Models\SchoolSubscription;
 use App\Models\User;
+use App\Notifications\LoginCodeNotification;
 use App\Support\Billing\SubscriptionCatalog;
 use App\Support\Tenancy\CurrentSchool;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
@@ -78,4 +80,81 @@ function schoolUser(array $attributes = []): User
         'school_id' => $school->id,
         ...$attributes,
     ]);
+}
+
+/**
+ * Complete the web 2-step login (password → e-mail code) and assert authentication.
+ */
+function webLoginAs(User $user, string $password = 'password'): void
+{
+    Notification::fake();
+
+    $school = $user->school ?? defaultSchool();
+
+    test()->get(route('login.domain', ['domain' => $school->domain]))->assertOk();
+
+    test()->post(route('login.store'), [
+        'email' => $user->email,
+        'password' => $password,
+    ])->assertRedirect(route('login.code'));
+
+    $code = null;
+
+    Notification::assertSentTo(
+        $user,
+        LoginCodeNotification::class,
+        function (LoginCodeNotification $notification) use (&$code): bool {
+            $code = $notification->code;
+
+            return true;
+        },
+    );
+
+    expect($code)->toBeString()->toHaveLength(4);
+
+    test()->post(route('login.code.store'), [
+        'code' => $code,
+    ])->assertRedirect(route('dashboard', absolute: false));
+
+    test()->assertAuthenticatedAs($user);
+}
+
+/**
+ * Complete the mobile 2-step login (password → e-mail code) and return the Bearer token.
+ */
+function apiLoginAs(User $user, string $password = 'password', ?string $deviceName = 'test'): string
+{
+    Notification::fake();
+
+    $school = $user->school ?? defaultSchool();
+
+    $challengeToken = test()->postJson('/api/v1/login', [
+        'domain' => $school->domain,
+        'email' => $user->email,
+        'password' => $password,
+        'deviceName' => $deviceName,
+    ])->assertOk()
+        ->assertJsonPath('requiresVerification', true)
+        ->json('challengeToken');
+
+    $code = null;
+
+    Notification::assertSentTo(
+        $user,
+        LoginCodeNotification::class,
+        function (LoginCodeNotification $notification) use (&$code): bool {
+            $code = $notification->code;
+
+            return true;
+        },
+    );
+
+    expect($code)->toBeString()->toHaveLength(4);
+
+    return test()->postJson('/api/v1/login/verify', [
+        'challengeToken' => $challengeToken,
+        'code' => $code,
+    ])->assertOk()
+        ->assertJsonPath('tokenType', 'Bearer')
+        ->json('token');
 }

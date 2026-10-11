@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Actions\Fortify\CreateNewUser;
+use App\Actions\Fortify\RedirectIfEmailLoginCodeRequired;
 use App\Actions\Fortify\ResetUserPassword;
 use App\Models\Scopes\SchoolScope;
 use App\Models\User;
@@ -15,6 +16,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
+use Laravel\Fortify\Actions\EnsureLoginIsNotThrottled;
 use Laravel\Fortify\Features;
 use Laravel\Fortify\Fortify;
 
@@ -84,6 +86,13 @@ class FortifyServiceProvider extends ServiceProvider
 
     private function configureAuth(): void
     {
+        Fortify::authenticateThrough(function () {
+            return array_filter([
+                config('fortify.limiters.login') ? null : EnsureLoginIsNotThrottled::class,
+                RedirectIfEmailLoginCodeRequired::class,
+            ]);
+        });
+
         Fortify::authenticateUsing(function (Request $request) {
             $schoolId = $request->session()->get('login.school_id');
 

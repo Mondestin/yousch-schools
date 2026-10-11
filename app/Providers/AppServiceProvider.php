@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
@@ -33,6 +34,21 @@ class AppServiceProvider extends ServiceProvider
         $this->configureDefaults();
         $this->configureRateLimiting();
         $this->configureMailNotifications();
+        $this->configureApiDocsAccess();
+    }
+
+    /**
+     * OpenAPI UI/JSON (`/docs/api`, `/docs/api.json`) — local or when SCRAMBLE_DOCS_ENABLED=true.
+     */
+    protected function configureApiDocsAccess(): void
+    {
+        Gate::define('viewApiDocs', function (?object $user = null): bool {
+            if (app()->environment(['local', 'testing'])) {
+                return true;
+            }
+
+            return (bool) config('scramble.docs_enabled', false);
+        });
     }
 
     /**
@@ -63,6 +79,30 @@ class AppServiceProvider extends ServiceProvider
             $email = Str::lower((string) $request->input('email', ''));
 
             return Limit::perMinute(5)->by($email.'|'.$request->ip());
+        });
+
+        RateLimiter::for('api-login-verify', function (Request $request) {
+            $token = (string) $request->input('challengeToken', '');
+
+            return Limit::perMinute(10)->by(hash('sha256', $token).'|'.$request->ip());
+        });
+
+        RateLimiter::for('api-login-resend', function (Request $request) {
+            $token = (string) $request->input('challengeToken', '');
+
+            return Limit::perMinute(3)->by('resend:'.hash('sha256', $token).'|'.$request->ip());
+        });
+
+        RateLimiter::for('login-code', function (Request $request) {
+            $token = (string) $request->session()->get('login.challenge_token', '');
+
+            return Limit::perMinute(10)->by('web-code:'.hash('sha256', $token).'|'.$request->ip());
+        });
+
+        RateLimiter::for('login-code-resend', function (Request $request) {
+            $token = (string) $request->session()->get('login.challenge_token', '');
+
+            return Limit::perMinute(3)->by('web-resend:'.hash('sha256', $token).'|'.$request->ip());
         });
     }
 

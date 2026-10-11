@@ -82,6 +82,7 @@ test('authenticated staff can visit school stub pages', function (string $uri, s
     ['/eleves/admissions', 'students/admissions'],
     ['/eleves/reinscriptions', 'students/reenrollments'],
     ['/eleves/st-8/synthese', 'students/overview'],
+    ['/eleves/st-8/identite', 'students/identity'],
     ['/eleves/st-8/parcours', 'students/previous'],
     ['/eleves/st-8/dossier', 'students/dossier'],
     ['/eleves/st-8/tuteurs', 'students/guardians'],
@@ -336,7 +337,11 @@ test('student fiche receives the catalog student id', function () {
     $this->seed(SchoolPeopleSeeder::class);
     $this->actingAs(User::factory()->create());
 
-    $this->get('/eleves/st-8/identite')->assertRedirect('/eleves/st-8/synthese');
+    $this->get('/eleves/st-8/identite')
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('students/identity')
+            ->where('studentId', 'st-8'));
 
     $this->get('/eleves/st-8/synthese')
         ->assertOk()

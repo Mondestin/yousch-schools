@@ -6,6 +6,7 @@ import {
     GraduationCap,
     Hash,
     Layers,
+    Mail,
     Plus,
     School,
     User,
@@ -50,11 +51,17 @@ import {
     enrollmentStatusLabel,
     enrollmentStatusVariant,
     isLyceeCycle,
+    isSecondaryCycle,
     studentRows,
 } from '@/lib/school-rows';
 import { toastApiError, toastRemoved } from '@/lib/school-toast';
 import { destroy as destroyEnrollment } from '@/routes/api/v1/enrollments';
-import { create, index as students, show } from '@/routes/students';
+import {
+    create,
+    identity,
+    index as students,
+    show,
+} from '@/routes/students';
 import type { SchoolDataset } from '@/types/school';
 
 export default function StudentsIndex({ catalog }: { catalog: SchoolDataset }) {
@@ -68,6 +75,7 @@ export default function StudentsIndex({ catalog }: { catalog: SchoolDataset }) {
     >('all');
     const [removed, setRemoved] = useState<string[]>([]);
     const lycee = isLyceeCycle(filter.cycle);
+    const secondary = isSecondaryCycle(filter.cycle);
     const classrooms = catalog.classrooms.filter(
         (classroom) =>
             classroom.cycle === filter.cycle &&
@@ -136,6 +144,7 @@ export default function StudentsIndex({ catalog }: { catalog: SchoolDataset }) {
                 row.matricule,
                 row.lastName,
                 row.firstName,
+                row.email ?? '',
                 row.classroom,
                 row.track ?? '',
             ]
@@ -169,7 +178,7 @@ export default function StudentsIndex({ catalog }: { catalog: SchoolDataset }) {
                 title="Élèves"
                 icon={GraduationCap}
                 description={`Inscriptions ${cycleLabel(filter.cycle)} · ${academicYearLabel}.`}
-                searchPlaceholder="Rechercher nom, matricule, classe..."
+                searchPlaceholder="Rechercher nom, e-mail, matricule, classe..."
                 search={search}
                 onSearchChange={setSearch}
                 stats={
@@ -282,11 +291,13 @@ export default function StudentsIndex({ catalog }: { catalog: SchoolDataset }) {
                                     Nom
                                 </DataTableColumnHeader>
                             </TableHead>
-                            <TableHead>
-                                <DataTableColumnHeader icon={User}>
-                                    Prénom
-                                </DataTableColumnHeader>
-                            </TableHead>
+                            {secondary ? (
+                                <TableHead>
+                                    <DataTableColumnHeader icon={Mail}>
+                                        E-mail
+                                    </DataTableColumnHeader>
+                                </TableHead>
+                            ) : null}
                             <TableHead>
                                 <DataTableColumnHeader icon={School}>
                                     Classe
@@ -330,11 +341,15 @@ export default function StudentsIndex({ catalog }: { catalog: SchoolDataset }) {
                                 <TableCell className="font-medium">
                                     <PersonCell
                                         name={row.name}
-                                        label={row.lastName}
+                                        label={`${row.lastName} ${row.firstName}`.trim()}
                                         photoUrl={row.photoUrl}
                                     />
                                 </TableCell>
-                                <TableCell>{row.firstName}</TableCell>
+                                {secondary ? (
+                                    <TableCell className="text-muted-foreground max-w-[14rem] truncate">
+                                        {row.email || '—'}
+                                    </TableCell>
+                                ) : null}
                                 <TableCell>{row.classroom}</TableCell>
                                 {lycee ? (
                                     <TableCell>
@@ -387,7 +402,7 @@ export default function StudentsIndex({ catalog }: { catalog: SchoolDataset }) {
                                             },
                                             onEdit: () => {
                                                 router.visit(
-                                                    show(row.studentId, {
+                                                    identity(row.studentId, {
                                                         query,
                                                     }),
                                                 );

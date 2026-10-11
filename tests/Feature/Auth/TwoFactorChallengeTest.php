@@ -1,6 +1,8 @@
 <?php
 
 use App\Models\User;
+use App\Notifications\LoginCodeNotification;
+use Illuminate\Support\Facades\Notification;
 use Inertia\Testing\AssertableInertia as Assert;
 use Laravel\Fortify\Features;
 
@@ -20,6 +22,8 @@ test('two factor challenge can be rendered', function () {
         'confirmPassword' => true,
     ]);
 
+    Notification::fake();
+
     $school = defaultSchool();
     $user = User::factory()->withTwoFactor()->create([
         'school_id' => $school->id,
@@ -30,6 +34,21 @@ test('two factor challenge can be rendered', function () {
     $this->post(route('login'), [
         'email' => $user->email,
         'password' => 'password',
+    ])->assertRedirect(route('login.code'));
+
+    $code = null;
+    Notification::assertSentTo(
+        $user,
+        LoginCodeNotification::class,
+        function (LoginCodeNotification $notification) use (&$code): bool {
+            $code = $notification->code;
+
+            return true;
+        },
+    );
+
+    $this->post(route('login.code.store'), [
+        'code' => $code,
     ])->assertRedirect(route('two-factor.login'));
 
     $this->get(route('two-factor.login'))

@@ -58,18 +58,18 @@ test('resolving a domain stores the school in session', function () {
 
 test('api login requires a school domain', function () {
     $school = defaultSchool();
-    $user = schoolUser(['email' => 'api@example.com']);
+    $user = schoolUser(['email' => 'api@example.com', 'password' => 'password']);
 
     $this->postJson('/api/v1/login', [
         'email' => $user->email,
         'password' => 'password',
     ])->assertUnprocessable();
 
-    $this->postJson('/api/v1/login', [
-        'domain' => $school->domain,
-        'email' => $user->email,
-        'password' => 'password',
-    ])->assertOk()
+    $token = apiLoginAs($user);
+
+    $this->withToken($token)
+        ->getJson('/api/v1/me')
+        ->assertOk()
         ->assertJsonPath('school.domain', $school->domain);
 });
 
@@ -77,14 +77,7 @@ test('session login can open dashboard after clearing pending school id', functi
     $school = defaultSchool();
     $user = schoolUser();
 
-    $this->get(route('login.domain', ['domain' => $school->domain]))->assertOk();
-
-    $this->post(route('login.store'), [
-        'email' => $user->email,
-        'password' => 'password',
-    ])->assertRedirect(route('dashboard', absolute: false));
-
-    $this->assertAuthenticated();
+    webLoginAs($user);
 
     session()->forget(['login.school_id', 'login.school_domain']);
 
