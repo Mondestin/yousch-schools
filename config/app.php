@@ -123,4 +123,15 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Landing page maintenance
+    |--------------------------------------------------------------------------
+    |
+    | When true, only the public marketing home (`/`) shows a maintenance page.
+    | Login, dashboard, API and the rest of the app keep working.
+    |
+    */
+    'landing_maintenance' => (bool) env('LANDING_MAINTENANCE', true),
+
 ];
