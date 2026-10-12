@@ -11,6 +11,12 @@ Réinitialiser mon mot de passe
 
 Ce lien expire dans {{ $count }} minutes.
 
+**Application mobile :** utilisez le jeton suivant dans l’écran « Nouveau mot de passe » :
+
+@component('mail::panel')
+{{ $token }}
+@endcomponent
+
 Si vous n’avez pas demandé de réinitialisation, aucune action n’est nécessaire.
 
 Cordialement,  

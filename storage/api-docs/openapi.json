@@ -3,7 +3,7 @@
     "info": {
         "title": "YouSch API",
         "version": "1.0.0",
-        "description": "API YouSch pour le web et les applications mobiles.\n\n**Authentification mobile**\n1. `POST /login` avec `domain`, `email`, `password` (et optionnellement `deviceName`)\n2. Un code \u00e0 **4 chiffres** est envoy\u00e9 par e-mail\n3. `POST /login/verify` avec `challengeToken` + `code` \u2192 re\u00e7oit le Bearer token\n4. Utiliser `Authorization: Bearer {token}` sur les routes prot\u00e9g\u00e9es\n5. Optionnel : `POST /login/resend` pour renvoyer un code\n\nLes routes prot\u00e9g\u00e9es utilisent le middleware `auth.staff` (session web ou Bearer).\n\n**Portail \u00e9l\u00e8ve / parent** (comptes `eleve` / `parent`)\n- `GET /portal/me` \u2014 profil + \u00e9l\u00e8ves li\u00e9s + th\u00e8me cartes (`theme.accent` / `theme.body`)\n- `GET /portal/students/{id}/profile` \u2014 fiche compl\u00e8te + **carte d\u2019identit\u00e9** (`card`) + couleurs\n- `GET /portal/students/{id}/planning` \u2014 emploi du temps\n- `GET /portal/students/{id}/notes` \u2014 notes\n- `GET /portal/students/{id}/presences` \u2014 pr\u00e9sences\n- Aussi : `bulletin`, `payments`, `receipt`, `files`, `sanctions`, `announcements`\n- Alias EN : `grades`\u2194`notes`, `attendance`\u2194`presences`, `timetable`\u2194`planning`\n\nLe staff continue d\u2019utiliser `GET/POST/PUT/DELETE /students` pour la gestion.\n\n**Comptes d\u00e9mo (apr\u00e8s `php artisan db:seed --class=PortalDemoSeeder`)**\n- Domaine : `palmiers`\n- \u00c9l\u00e8ve : `eleve@palmiers.cg` / `password`\n- Parent : `parent@palmiers.cg` / `password`\n- Student id : `st-demo-portal`"
+        "description": "API YouSch pour le web et les applications mobiles.\n\n**Authentification mobile**\n1. `POST /login` avec `domain`, `email`, `password` (et optionnellement `deviceName`)\n2. Un code \u00e0 **4 chiffres** est envoy\u00e9 par e-mail\n3. `POST /login/verify` avec `challengeToken` + `code` \u2192 re\u00e7oit le Bearer token\n4. Utiliser `Authorization: Bearer {token}` sur les routes prot\u00e9g\u00e9es\n5. Optionnel : `POST /login/resend` pour renvoyer un code\n6. Mot de passe oubli\u00e9 : `POST /password/forgot` (`domain`, `email`) \u2192 e-mail avec lien + jeton\n7. Nouveau mot de passe : `POST /password/reset` (`domain`, `email`, `token`, `password`, `passwordConfirmation`)\n\nLes routes prot\u00e9g\u00e9es utilisent le middleware `auth.staff` (session web ou Bearer).\n\n**Portail \u00e9l\u00e8ve / parent** (comptes `eleve` / `parent`)\n- `GET /portal/me` \u2014 profil + \u00e9l\u00e8ves li\u00e9s + th\u00e8me cartes (`theme.accent` / `theme.body`)\n- `GET /portal/students/{id}/profile` \u2014 fiche compl\u00e8te + **carte d\u2019identit\u00e9** (`card`) + couleurs\n- `GET /portal/students/{id}/planning` \u2014 emploi du temps\n- `GET /portal/students/{id}/notes` \u2014 notes\n- `GET /portal/students/{id}/presences` \u2014 pr\u00e9sences\n- Aussi : `bulletin`, `payments`, `receipt`, `files`, `sanctions`, `announcements`\n- Alias EN : `grades`\u2194`notes`, `attendance`\u2194`presences`, `timetable`\u2194`planning`\n\nLe staff continue d\u2019utiliser `GET/POST/PUT/DELETE /students` pour la gestion.\n\n**Comptes d\u00e9mo (apr\u00e8s `php artisan db:seed --class=PortalDemoSeeder`)**\n- Domaine : `palmiers`\n- \u00c9l\u00e8ve : `eleve@palmiers.cg` / `password`\n- Parent : `parent@palmiers.cg` / `password`\n- Student id : `st-demo-portal`\n- Bulletin : `GET /portal/students/st-demo-portal/bulletin?termId=term-2026-1` (fen\u00eatres cl\u00f4tur\u00e9es + notes devoir/composition; seed `SchoolBulletinsSeeder` pour toutes les classes)\n- Photos stables Dicebear (seed fixe dans l\u2019URL)"
     },
     "servers": [
         {
@@ -1508,6 +1508,137 @@
                                         "requiresVerification",
                                         "challengeToken",
                                         "expiresIn",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                },
+                "security": []
+            }
+        },
+        "/password/forgot": {
+            "post": {
+                "operationId": "v1.password.forgot",
+                "summary": "Request a password reset e-mail (web link + token for the mobile app)",
+                "tags": [
+                    "Auth"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "domain": {
+                                        "type": "string",
+                                        "maxLength": 64
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email"
+                                    }
+                                },
+                                "required": [
+                                    "domain",
+                                    "email"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Si un compte existe pour cet e-mail, un lien de r\u00e9initialisation a \u00e9t\u00e9 envoy\u00e9."
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                },
+                "security": []
+            }
+        },
+        "/password/reset": {
+            "post": {
+                "operationId": "v1.password.reset",
+                "summary": "Reset password with the token from the e-mail (web or mobile)",
+                "tags": [
+                    "Auth"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "domain": {
+                                        "type": "string",
+                                        "maxLength": 64
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email"
+                                    },
+                                    "token": {
+                                        "type": "string"
+                                    },
+                                    "password": {
+                                        "type": "string"
+                                    },
+                                    "password_confirmation": {
+                                        "type": "string"
+                                    },
+                                    "passwordConfirmation": {
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [
+                                    "domain",
+                                    "email",
+                                    "token",
+                                    "password",
+                                    "password_confirmation"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Mot de passe mis \u00e0 jour. Vous pouvez vous connecter."
+                                        }
+                                    },
+                                    "required": [
                                         "message"
                                     ]
                                 }
@@ -5155,6 +5286,72 @@
                                                     "properties": {
                                                         "name": {
                                                             "type": "string",
+                                                            "const": "auth.password.forgot"
+                                                        },
+                                                        "methods": {
+                                                            "type": "array",
+                                                            "prefixItems": [
+                                                                {
+                                                                    "type": "string",
+                                                                    "const": "POST"
+                                                                }
+                                                            ],
+                                                            "minItems": 1,
+                                                            "maxItems": 1
+                                                        },
+                                                        "path": {
+                                                            "type": "string",
+                                                            "const": "/password/forgot"
+                                                        },
+                                                        "auth": {
+                                                            "type": "boolean"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "name",
+                                                        "methods",
+                                                        "path",
+                                                        "auth"
+                                                    ]
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "name": {
+                                                            "type": "string",
+                                                            "const": "auth.password.reset"
+                                                        },
+                                                        "methods": {
+                                                            "type": "array",
+                                                            "prefixItems": [
+                                                                {
+                                                                    "type": "string",
+                                                                    "const": "POST"
+                                                                }
+                                                            ],
+                                                            "minItems": 1,
+                                                            "maxItems": 1
+                                                        },
+                                                        "path": {
+                                                            "type": "string",
+                                                            "const": "/password/reset"
+                                                        },
+                                                        "auth": {
+                                                            "type": "boolean"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "name",
+                                                        "methods",
+                                                        "path",
+                                                        "auth"
+                                                    ]
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "name": {
+                                                            "type": "string",
                                                             "const": "auth.logout"
                                                         },
                                                         "methods": {
@@ -7699,8 +7896,8 @@
                                                     ]
                                                 }
                                             ],
-                                            "minItems": 73,
-                                            "maxItems": 73
+                                            "minItems": 75,
+                                            "maxItems": 75
                                         },
                                         "conventions": {
                                             "type": "object",
