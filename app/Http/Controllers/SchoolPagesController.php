@@ -16,6 +16,12 @@ class SchoolPagesController extends Controller
 {
     public function welcome(): Response
     {
+        if (config('app.landing_maintenance')) {
+            return Inertia::render('welcome-maintenance', [
+                'name' => config('app.name', 'Yousch'),
+            ]);
+        }
+
         return Inertia::render('welcome', SchoolCatalog::page());
     }
 
