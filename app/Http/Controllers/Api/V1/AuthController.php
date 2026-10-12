@@ -9,10 +9,14 @@ use App\Models\User;
 use App\Support\Auth\LoginChallengeService;
 use App\Support\Auth\StaffAccess;
 use App\Support\Tenancy\CurrentSchool;
+use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Str;
+use Illuminate\Validation\Rules\Password as PasswordRule;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
@@ -122,6 +126,120 @@ class AuthController extends Controller
         ]);
     }
 
+    /**
+     * Request a password reset e-mail (web link + token for the mobile app).
+     */
+    public function forgotPassword(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'domain' => ['required', 'string', 'max:64'],
+            'email' => ['required', 'email'],
+        ], [
+            'domain.required' => 'Le domaine de l’établissement est obligatoire.',
+            'email.required' => 'L’adresse e-mail est obligatoire.',
+            'email.email' => 'L’adresse e-mail n’est pas valide.',
+        ]);
+
+        $school = $this->resolveActiveSchool($validated['domain']);
+
+        /** @var User|null $user */
+        $user = User::query()
+            ->withoutGlobalScope(SchoolScope::class)
+            ->where('school_id', $school->id)
+            ->where('email', $validated['email'])
+            ->first();
+
+        if ($user !== null && ! $user->isBlocked()) {
+            $status = Password::broker()->sendResetLink([
+                'email' => $user->email,
+            ]);
+
+            if ($status === Password::RESET_THROTTLED) {
+                throw ValidationException::withMessages([
+                    'email' => ['Veuillez patienter avant de demander un nouveau lien.'],
+                ]);
+            }
+        }
+
+        return response()->json([
+            'message' => 'Si un compte existe pour cet e-mail, un lien de réinitialisation a été envoyé.',
+        ]);
+    }
+
+    /**
+     * Reset password with the token from the e-mail (web or mobile).
+     */
+    public function resetPassword(Request $request): JsonResponse
+    {
+        if ($request->filled('passwordConfirmation') && ! $request->filled('password_confirmation')) {
+            $request->merge([
+                'password_confirmation' => $request->input('passwordConfirmation'),
+            ]);
+        }
+
+        $validated = $request->validate([
+            'domain' => ['required', 'string', 'max:64'],
+            'email' => ['required', 'email'],
+            'token' => ['required', 'string'],
+            'password' => ['required', 'string', PasswordRule::default(), 'confirmed'],
+        ], [
+            'domain.required' => 'Le domaine de l’établissement est obligatoire.',
+            'email.required' => 'L’adresse e-mail est obligatoire.',
+            'email.email' => 'L’adresse e-mail n’est pas valide.',
+            'token.required' => 'Le jeton de réinitialisation est obligatoire.',
+            'password.required' => 'Le mot de passe est obligatoire.',
+            'password.confirmed' => 'La confirmation du mot de passe ne correspond pas.',
+        ]);
+
+        $school = $this->resolveActiveSchool($validated['domain']);
+
+        /** @var User|null $user */
+        $user = User::query()
+            ->withoutGlobalScope(SchoolScope::class)
+            ->where('school_id', $school->id)
+            ->where('email', $validated['email'])
+            ->first();
+
+        if ($user === null || $user->isBlocked()) {
+            throw ValidationException::withMessages([
+                'email' => ['Ce lien de réinitialisation est invalide.'],
+            ]);
+        }
+
+        $status = Password::broker()->reset(
+            [
+                'email' => $user->email,
+                'password' => $validated['password'],
+                'password_confirmation' => $validated['password'],
+                'token' => $validated['token'],
+            ],
+            function (User $resetUser, string $password): void {
+                $resetUser->forceFill([
+                    'password' => $password,
+                    'remember_token' => Str::random(60),
+                ])->save();
+
+                $resetUser->tokens()->delete();
+
+                event(new PasswordReset($resetUser));
+            },
+        );
+
+        if ($status !== Password::PASSWORD_RESET) {
+            throw ValidationException::withMessages([
+                'token' => [match ($status) {
+                    Password::INVALID_TOKEN => 'Ce jeton de réinitialisation est invalide ou a expiré.',
+                    Password::INVALID_USER => 'Ce lien de réinitialisation est invalide.',
+                    default => 'Impossible de réinitialiser le mot de passe.',
+                }],
+            ]);
+        }
+
+        return response()->json([
+            'message' => 'Mot de passe mis à jour. Vous pouvez vous connecter.',
+        ]);
+    }
+
     public function logout(Request $request): JsonResponse
     {
         /** @var User $user */
@@ -159,19 +277,7 @@ class AuthController extends Controller
      */
     private function authenticateCredentials(string $domain, string $email, string $password): array
     {
-        $domain = strtolower(trim($domain));
-        $domain = preg_replace('/[^a-z0-9\-]/', '', $domain) ?? '';
-
-        $school = School::query()
-            ->where('domain', $domain)
-            ->where('status', 'active')
-            ->first();
-
-        if ($school === null) {
-            throw ValidationException::withMessages([
-                'domain' => ['Aucun établissement actif pour ce domaine.'],
-            ]);
-        }
+        $school = $this->resolveActiveSchool($domain);
 
         /** @var User|null $user */
         $user = User::query()
@@ -193,5 +299,24 @@ class AuthController extends Controller
         }
 
         return [$school, $user];
+    }
+
+    private function resolveActiveSchool(string $domain): School
+    {
+        $domain = strtolower(trim($domain));
+        $domain = preg_replace('/[^a-z0-9\-]/', '', $domain) ?? '';
+
+        $school = School::query()
+            ->where('domain', $domain)
+            ->where('status', 'active')
+            ->first();
+
+        if ($school === null) {
+            throw ValidationException::withMessages([
+                'domain' => ['Aucun établissement actif pour ce domaine.'],
+            ]);
+        }
+
+        return $school;
     }
 }

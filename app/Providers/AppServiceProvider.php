@@ -104,6 +104,18 @@ class AppServiceProvider extends ServiceProvider
 
             return Limit::perMinute(3)->by('web-resend:'.hash('sha256', $token).'|'.$request->ip());
         });
+
+        RateLimiter::for('api-password-forgot', function (Request $request) {
+            $email = Str::lower((string) $request->input('email', ''));
+
+            return Limit::perMinute(5)->by('pw-forgot:'.$email.'|'.$request->ip());
+        });
+
+        RateLimiter::for('api-password-reset', function (Request $request) {
+            $email = Str::lower((string) $request->input('email', ''));
+
+            return Limit::perMinute(10)->by('pw-reset:'.$email.'|'.$request->ip());
+        });
     }
 
     protected function configureMailNotifications(): void
@@ -119,6 +131,8 @@ class AppServiceProvider extends ServiceProvider
                 ->subject('Réinitialisation de votre mot de passe YouSch')
                 ->markdown('mail.reset-password', [
                     'url' => $url,
+                    'token' => $token,
+                    'email' => $email,
                     'count' => config('auth.passwords.'.config('auth.defaults.passwords').'.expire', 60),
                 ]);
         });

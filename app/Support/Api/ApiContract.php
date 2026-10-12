@@ -70,6 +70,8 @@ final class ApiContract
             ['name' => 'auth.login', 'methods' => ['POST'], 'path' => '/login', 'auth' => false],
             ['name' => 'auth.login.verify', 'methods' => ['POST'], 'path' => '/login/verify', 'auth' => false],
             ['name' => 'auth.login.resend', 'methods' => ['POST'], 'path' => '/login/resend', 'auth' => false],
+            ['name' => 'auth.password.forgot', 'methods' => ['POST'], 'path' => '/password/forgot', 'auth' => false],
+            ['name' => 'auth.password.reset', 'methods' => ['POST'], 'path' => '/password/reset', 'auth' => false],
             ['name' => 'auth.logout', 'methods' => ['POST'], 'path' => '/logout', 'auth' => true],
             ['name' => 'auth.me', 'methods' => ['GET'], 'path' => '/me', 'auth' => true],
             ['name' => 'portal.me', 'methods' => ['GET'], 'path' => '/portal/me', 'auth' => true],

@@ -7,6 +7,8 @@ use App\Models\User;
 use App\Notifications\LoginCodeNotification;
 use App\Support\Auth\StaffAccess;
 use Database\Seeders\SchoolStaffSeeder;
+use Illuminate\Auth\Notifications\ResetPassword;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 
 test('api login sends email code then returns bearer token', function () {
@@ -164,6 +166,77 @@ test('api logout deletes the current access token', function () {
     $this->withToken($token)
         ->getJson('/api/v1/me')
         ->assertUnauthorized();
+});
+
+test('api password forgot sends reset mail and reset updates password', function () {
+    Notification::fake();
+
+    $school = defaultSchool();
+    $user = User::factory()->eleve()->create([
+        'email' => 'eleve-reset@example.test',
+        'password' => 'password',
+        'school_id' => $school->id,
+    ]);
+
+    $this->postJson('/api/v1/password/forgot', [
+        'domain' => $school->domain,
+        'email' => 'eleve-reset@example.test',
+    ])->assertOk()
+        ->assertJsonPath(
+            'message',
+            'Si un compte existe pour cet e-mail, un lien de réinitialisation a été envoyé.',
+        );
+
+    $resetToken = null;
+    Notification::assertSentTo(
+        $user,
+        ResetPassword::class,
+        function (ResetPassword $notification) use (&$resetToken): bool {
+            $resetToken = $notification->token;
+
+            return is_string($notification->token) && $notification->token !== '';
+        },
+    );
+
+    $bearer = apiLoginAs($user);
+    expect(PersonalAccessToken::query()->count())->toBe(1);
+
+    $this->postJson('/api/v1/password/reset', [
+        'domain' => $school->domain,
+        'email' => 'eleve-reset@example.test',
+        'token' => $resetToken,
+        'password' => 'NouveauMotDePasse1!',
+        'passwordConfirmation' => 'NouveauMotDePasse1!',
+    ])->assertOk()
+        ->assertJsonPath('message', 'Mot de passe mis à jour. Vous pouvez vous connecter.');
+
+    $user->refresh();
+    expect(Hash::check('NouveauMotDePasse1!', $user->password))->toBeTrue()
+        ->and(PersonalAccessToken::query()->count())->toBe(0);
+
+    $this->withToken($bearer)
+        ->getJson('/api/v1/me')
+        ->assertUnauthorized();
+
+    $newToken = apiLoginAs($user, 'NouveauMotDePasse1!');
+    expect($newToken)->toBeString()->not->toBeEmpty();
+});
+
+test('api password forgot does not reveal unknown emails', function () {
+    Notification::fake();
+
+    $school = defaultSchool();
+
+    $this->postJson('/api/v1/password/forgot', [
+        'domain' => $school->domain,
+        'email' => 'nobody@example.test',
+    ])->assertOk()
+        ->assertJsonPath(
+            'message',
+            'Si un compte existe pour cet e-mail, un lien de réinitialisation a été envoyé.',
+        );
+
+    Notification::assertNothingSent();
 });
 
 test('directeur can read subscription but secretaire cannot', function () {

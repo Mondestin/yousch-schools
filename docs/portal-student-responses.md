@@ -49,6 +49,63 @@ No CSRF header needed when using Bearer.
 
 ---
 
+### Forgot password — `POST /api/v1/password/forgot`
+
+**Request**
+
+```json
+{
+  "domain": "palmiers",
+  "email": "eleve@palmiers.cg"
+}
+```
+
+**Response `200`** (always the same, whether the account exists or not)
+
+```json
+{
+  "message": "Si un compte existe pour cet e-mail, un lien de réinitialisation a été envoyé."
+}
+```
+
+The e-mail contains a **web link** and a **token** to paste in the mobile app. Token expires in **60 minutes**. Rate limit: 5 / minute / email+IP.
+
+---
+
+### Reset password — `POST /api/v1/password/reset`
+
+**Request**
+
+```json
+{
+  "domain": "palmiers",
+  "email": "eleve@palmiers.cg",
+  "token": "…jeton reçu par e-mail…",
+  "password": "NouveauMotDePasse1!",
+  "passwordConfirmation": "NouveauMotDePasse1!"
+}
+```
+
+| Field | Required | Notes |
+|---|---|---|
+| `domain` | yes | School slug |
+| `email` | yes | Same e-mail as the forgot request |
+| `token` | yes | From the e-mail (panel « Application mobile ») |
+| `password` | yes | Must satisfy password rules |
+| `passwordConfirmation` | yes | Must match `password` |
+
+**Response `200`**
+
+```json
+{
+  "message": "Mot de passe mis à jour. Vous pouvez vous connecter."
+}
+```
+
+All existing Bearer tokens for that user are revoked. Then use the normal login flow.
+
+---
+
 ### Step 1 — `POST /api/v1/login`
 
 **Request**

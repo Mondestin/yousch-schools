@@ -23,6 +23,8 @@ test('openapi document includes login and bearer security', function () {
         ->and($document['paths']['/login'])->toHaveKey('post')
         ->and($document['paths'] ?? [])->toHaveKey('/login/verify')
         ->and($document['paths'] ?? [])->toHaveKey('/login/resend')
+        ->and($document['paths'] ?? [])->toHaveKey('/password/forgot')
+        ->and($document['paths'] ?? [])->toHaveKey('/password/reset')
         ->and($document['paths'] ?? [])->toHaveKey('/portal/me')
         ->and($document['paths'] ?? [])->toHaveKey('/portal/students/{student}/profile')
         ->and($document['paths'] ?? [])->toHaveKey('/portal/students/{student}/planning')

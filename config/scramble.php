@@ -64,6 +64,8 @@ API YouSch pour le web et les applications mobiles.
 3. `POST /login/verify` avec `challengeToken` + `code` → reçoit le Bearer token
 4. Utiliser `Authorization: Bearer {token}` sur les routes protégées
 5. Optionnel : `POST /login/resend` pour renvoyer un code
+6. Mot de passe oublié : `POST /password/forgot` (`domain`, `email`) → e-mail avec lien + jeton
+7. Nouveau mot de passe : `POST /password/reset` (`domain`, `email`, `token`, `password`, `passwordConfirmation`)
 
 Les routes protégées utilisent le middleware `auth.staff` (session web ou Bearer).
 
@@ -213,11 +215,14 @@ MD,
      * ],
      */
     // 'security_strategy' => \Dedoc\Scramble\SecurityDocumentation\MiddlewareAuthSecurityStrategy::class,
-    'security_strategy' => [
-        \Dedoc\Scramble\SecurityDocumentation\MiddlewareAuthSecurityStrategy::class,
-        [
-            'middleware' => ['auth.staff'],
-            'scheme' => \Dedoc\Scramble\Support\Generator\SecurityScheme::http('bearer'),
-        ],
-    ],
+    // Guarded so `artisan` (migrate, etc.) still boots when vendor/scramble is missing on deploy.
+    'security_strategy' => class_exists(\Dedoc\Scramble\Support\Generator\SecurityScheme::class)
+        ? [
+            \Dedoc\Scramble\SecurityDocumentation\MiddlewareAuthSecurityStrategy::class,
+            [
+                'middleware' => ['auth.staff'],
+                'scheme' => \Dedoc\Scramble\Support\Generator\SecurityScheme::http('bearer'),
+            ],
+        ]
+        : null,
 ];

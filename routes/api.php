@@ -56,6 +56,12 @@ Route::prefix('v1')->group(function (): void {
     Route::post('/login/resend', [AuthController::class, 'resendLoginCode'])
         ->middleware('throttle:api-login-resend')
         ->name('api.v1.login.resend');
+    Route::post('/password/forgot', [AuthController::class, 'forgotPassword'])
+        ->middleware('throttle:api-password-forgot')
+        ->name('api.v1.password.forgot');
+    Route::post('/password/reset', [AuthController::class, 'resetPassword'])
+        ->middleware('throttle:api-password-reset')
+        ->name('api.v1.password.reset');
 
     Route::middleware('auth.staff')->group(function (): void {
         Route::post('/logout', [AuthController::class, 'logout'])
