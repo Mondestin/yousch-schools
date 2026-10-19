@@ -1,11 +1,14 @@
 <?php
 
+use App\Enums\EnrollmentStatus;
 use App\Enums\StaffRole;
 use App\Models\Classroom;
+use App\Models\Enrollment;
 use App\Models\Guardian;
 use App\Models\Student;
 use App\Models\User;
 use App\Notifications\StaffAccountCreated;
+use App\Support\Api\ResourceId;
 use Database\Seeders\SchoolTaxonomySeeder;
 use Illuminate\Support\Facades\Notification;
 
@@ -78,6 +81,89 @@ test('college student create requires pupil email', function () {
         ])
         ->assertStatus(422)
         ->assertJsonValidationErrors(['email']);
+});
+
+test('college student update provisions portal account when email is added', function () {
+    Notification::fake();
+    $this->seed(SchoolTaxonomySeeder::class);
+
+    $admin = User::factory()->admin()->create();
+    $classroom = Classroom::query()->where('cycle', 'college')->firstOrFail();
+    $student = Student::factory()->create(['email' => null, 'user_id' => null]);
+
+    Enrollment::query()->create([
+        'id' => ResourceId::make('en'),
+        'student_id' => $student->id,
+        'classroom_id' => $classroom->id,
+        'academic_year_id' => $classroom->academic_year_id,
+        'track_id' => $classroom->track_id,
+        'status' => EnrollmentStatus::Inscrit->value,
+    ]);
+
+    $this->actingAs($admin)
+        ->putJson("/api/v1/students/{$student->id}", [
+            'firstName' => $student->first_name,
+            'lastName' => $student->last_name,
+            'gender' => $student->gender->value,
+            'bornOn' => $student->born_on->toDateString(),
+            'city' => $student->city,
+            'neighborhood' => $student->neighborhood,
+            'email' => 'rokia.late@example.test',
+        ])
+        ->assertOk()
+        ->assertJsonPath('meta.studentAccountCreated', true);
+
+    $student->refresh();
+
+    expect($student->user_id)->not->toBeNull()
+        ->and($student->email)->toBe('rokia.late@example.test');
+
+    $pupil = User::query()->findOrFail($student->user_id);
+
+    expect($pupil->role)->toBe(StaffRole::Eleve)
+        ->and($pupil->email)->toBe('rokia.late@example.test');
+
+    Notification::assertSentTo($pupil, StaffAccountCreated::class);
+});
+
+test('college student update does not re-provision when account already exists', function () {
+    Notification::fake();
+    $this->seed(SchoolTaxonomySeeder::class);
+
+    $admin = User::factory()->admin()->create();
+    $classroom = Classroom::query()->where('cycle', 'college')->firstOrFail();
+    $pupil = User::factory()->create([
+        'role' => StaffRole::Eleve,
+        'email' => 'existing.eleve@example.test',
+    ]);
+    $student = Student::factory()->create([
+        'email' => 'existing.eleve@example.test',
+        'user_id' => $pupil->id,
+    ]);
+
+    Enrollment::query()->create([
+        'id' => ResourceId::make('en'),
+        'student_id' => $student->id,
+        'classroom_id' => $classroom->id,
+        'academic_year_id' => $classroom->academic_year_id,
+        'track_id' => $classroom->track_id,
+        'status' => EnrollmentStatus::Inscrit->value,
+    ]);
+
+    $this->actingAs($admin)
+        ->putJson("/api/v1/students/{$student->id}", [
+            'firstName' => $student->first_name,
+            'lastName' => $student->last_name,
+            'gender' => $student->gender->value,
+            'bornOn' => $student->born_on->toDateString(),
+            'city' => $student->city,
+            'neighborhood' => $student->neighborhood,
+            'email' => 'existing.eleve@example.test',
+        ])
+        ->assertOk()
+        ->assertJsonPath('meta.studentAccountCreated', false);
+
+    Notification::assertNothingSent();
 });
 
 test('primaire student create provisions parent account only when email given', function () {

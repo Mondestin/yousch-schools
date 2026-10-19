@@ -13,7 +13,7 @@ import { Input } from '@/components/ui/input';
 import { useFieldErrors } from '@/hooks/use-field-errors';
 import { useYearLock } from '@/hooks/use-year-lock';
 import { useSchoolContext } from '@/hooks/use-school-context';
-import { ApiError, apiData } from '@/lib/api';
+import { ApiError, apiJson } from '@/lib/api';
 import {
     optionalEmail,
     requiredEmail,
@@ -188,19 +188,27 @@ export default function StudentIdentityPage({
         setSaving(true);
 
         try {
-            const saved = await apiData<Student>(updateStudent.url(studentId), {
+            const response = await apiJson<{
+                data: Student;
+                meta?: { studentAccountCreated?: boolean };
+            }>(updateStudent.url(studentId), {
                 method: 'PUT',
                 formData: studentIdentityFormData(form, current, {
                     photo: photoFile,
                     removePhoto,
                 }),
             });
+            const saved = response.data;
             setStudent(saved);
             setPhotoPreview(saved.photoUrl);
             setPhotoFile(null);
             setRemovePhoto(false);
             setOpen(false);
-            toastSaved();
+            toastSaved(
+                response.meta?.studentAccountCreated
+                    ? 'Identité enregistrée · compte élève créé'
+                    : undefined,
+            );
             router.reload({ only: ['catalog'] });
         } catch (error) {
             if (error instanceof ApiError) {

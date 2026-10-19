@@ -107,6 +107,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('structure/series', [SchoolPagesController::class, 'tracks'])->name('structure.tracks');
     Route::get('structure/salles', [SchoolPagesController::class, 'venues'])->name('structure.venues');
     Route::get('structure/horaires', [SchoolPagesController::class, 'hours'])->name('structure.hours');
+    Route::get('structure/creneaux', [SchoolPagesController::class, 'periods'])->name('structure.periods');
     Route::redirect('etablissement', '/etablissement/identite');
     Route::get('etablissement/identite', [SchoolPagesController::class, 'school'])->name('etablissement.index');
     Route::get('etablissement/frais', [SchoolPagesController::class, 'fees'])->name('etablissement.fees');
