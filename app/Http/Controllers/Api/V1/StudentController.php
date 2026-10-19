@@ -201,6 +201,7 @@ class StudentController extends Controller
 
         $model = Student::query()->findOrFail($student);
         $validated = $this->validatedStudent($request, $model);
+        $hadAccount = $model->user_id !== null;
 
         $model->fill([
             'matricule' => $validated['matricule'] ?? $model->matricule,
@@ -224,8 +225,26 @@ class StudentController extends Controller
 
         $this->storeDossierFiles($model, $request->file('files'), 'students/dossiers');
 
+        $model = $model->fresh();
+        $cycle = PortalAccountProvisioner::cycleForStudent($model);
+
+        if (
+            ! $hadAccount
+            && $cycle !== null
+            && $cycle->needsStudentPortal()
+            && filled($model->email)
+        ) {
+            PortalAccountProvisioner::forStudent($model, $cycle);
+            $model = $model->fresh();
+        }
+
         return response()->json([
-            'data' => $this->studentPayload($model->fresh()->load(['dossierFiles', 'enrollments', 'guardians'])),
+            'data' => $this->studentPayload(
+                $model->load(['dossierFiles', 'enrollments', 'guardians']),
+            ),
+            'meta' => [
+                'studentAccountCreated' => ! $hadAccount && $model->user_id !== null,
+            ],
         ]);
     }
 

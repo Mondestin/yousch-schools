@@ -1,68 +1,27 @@
 import { Head } from '@inertiajs/react';
-import { Clock, EllipsisVertical, Hash, Plus } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
-import { toast } from 'sonner';
+import { Plus, Trash2 } from 'lucide-react';
+import { useState } from 'react';
 import { z } from 'zod';
-import {
-    DATA_TABLE_CONTAINER,
-    DataTableColumnHeader,
-} from '@/components/sms/data-table';
-import { DetailDialog } from '@/components/sms/detail-dialog';
 import { Field } from '@/components/sms/field';
-import { FormSheet } from '@/components/sms/form-sheet';
-import { ListPage } from '@/components/sms/list-page';
-import { RowMenu } from '@/components/sms/row-menu';
 import { TimePicker } from '@/components/sms/time-picker';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
-import { useClientTable } from '@/hooks/use-client-table';
-import { useCrudItems } from '@/hooks/use-crud-items';
+import { useCycleSchedules } from '@/hooks/use-cycle-schedules';
 import { useFieldErrors } from '@/hooks/use-field-errors';
 import { useSchoolContext } from '@/hooks/use-school-context';
 import { useYearLock } from '@/hooks/use-year-lock';
-import { parseFields, requiredText, type FieldErrors } from '@/lib/school-form';
+import { requiredText, type FieldErrors } from '@/lib/school-form';
 import { cycleLabel } from '@/lib/school-rows';
-import { toastApiError, toastRemoved, toastSaved } from '@/lib/school-toast';
+import { normalizeSchoolHours } from '@/lib/school-timetable';
 import {
-    defaultCycleSchedule,
-    normalizeSchoolHours,
-    periodFitsHours,
-    periodLabel,
-    periodsOverlap,
-} from '@/lib/school-timetable';
-import { ApiError, apiData } from '@/lib/api';
-import { upsert as upsertSchedules } from '@/routes/api/v1/school/schedules';
-import { hours as hoursRoute, index as yearsRoute } from '@/routes/structure';
+    hours as hoursRoute,
+    index as yearsRoute,
+} from '@/routes/structure';
 import type {
-    CycleSchedule,
     LabeledSchoolBreak,
     SchoolDataset,
     SchoolHours,
-    TimetablePeriod,
 } from '@/types/school';
-
-type PeriodForm = {
-    startsAt: string;
-    endsAt: string;
-};
-
-const periodSchema = z
-    .object({
-        startsAt: requiredText('L’heure de début'),
-        endsAt: requiredText('L’heure de fin'),
-    })
-    .refine((data) => data.startsAt < data.endsAt, {
-        message: 'L’heure de fin doit être après l’heure de début.',
-        path: ['endsAt'],
-    });
 
 const dayHoursSchema = z
     .object({
@@ -73,23 +32,6 @@ const dayHoursSchema = z
         message: 'La fermeture doit être après l’ouverture.',
         path: ['closesAt'],
     });
-
-function nextPeriodId(periods: TimetablePeriod[]): string {
-    const used = new Set(
-        periods.map((item) => {
-            const match = /^p(\d+)$/.exec(item.id);
-
-            return match ? Number(match[1]) : 0;
-        }),
-    );
-    let index = 1;
-
-    while (used.has(index)) {
-        index += 1;
-    }
-
-    return `p${index}`;
-}
 
 function addMinutes(time: string, minutes: number): string {
     const [hour, minute] = time.split(':').map(Number);
@@ -144,125 +86,18 @@ export default function StructureHoursPage({
 }: {
     catalog: SchoolDataset;
 }) {
-    const crudItems = useCrudItems();
-    const { locked, canMutate } = useYearLock();
-
+    const { canMutate } = useYearLock();
     const { filter } = useSchoolContext();
     const cycle = filter.cycle;
     const cycleName = cycleLabel(cycle);
-    const [schedules, setSchedules] = useState<CycleSchedule[]>(() => {
-        const byCycle = new Map(
-            catalog.schedules.map((item) => [item.cycle, item]),
-        );
-
-        return catalog.cycles.map((option) => {
-            const item =
-                byCycle.get(option.value) ?? defaultCycleSchedule(option.value);
-
-            return {
-                ...item,
-                hours: normalizeSchoolHours(item.hours),
-            };
-        });
-    });
-    const [search, setSearch] = useState('');
-    const [editingId, setEditingId] = useState<string | null>(null);
-    const [open, setOpen] = useState(false);
-    const [viewing, setViewing] = useState<TimetablePeriod | null>(null);
-    const { errors, clearErrors, showErrors, validate } = useFieldErrors();
-
-    useEffect(() => {
-        setOpen(false);
-        setViewing(null);
-        setSearch('');
-        clearErrors();
-    }, [cycle]);
-
-    const schedule =
-        schedules.find((item) => item.cycle === cycle) ??
-        defaultCycleSchedule(cycle);
+    const { schedule, patchCurrent, persistSchedule } = useCycleSchedules(
+        catalog,
+        cycle,
+    );
     const hours = schedule.hours;
-    const periods = schedule.periods;
-    const [form, setForm] = useState<PeriodForm>({
-        startsAt: hours.startsAt,
-        endsAt: addMinutes(hours.startsAt, 30),
-    });
+    const breaks = hours.breaks ?? [];
+    const { errors, clearErrors, showErrors, validate } = useFieldErrors();
     const [savingHours, setSavingHours] = useState(false);
-    const [savingPeriod, setSavingPeriod] = useState(false);
-
-    async function persistSchedule(
-        next: CycleSchedule,
-        options?: { successMessage?: string; silent?: boolean },
-    ): Promise<boolean> {
-        try {
-            const saved = await apiData<CycleSchedule[]>(
-                upsertSchedules.url(),
-                {
-                    method: 'PUT',
-                    body: {
-                        schedules: [
-                            {
-                                cycle: next.cycle,
-                                hours: next.hours,
-                                periods: next.periods,
-                            },
-                        ],
-                    },
-                },
-            );
-
-            setSchedules((current) => {
-                const byCycle = new Map(
-                    saved.map((item) => [
-                        item.cycle,
-                        {
-                            ...item,
-                            hours: normalizeSchoolHours(item.hours),
-                        },
-                    ]),
-                );
-
-                return current.map((item) => byCycle.get(item.cycle) ?? item);
-            });
-
-            if (!options?.silent) {
-                toastSaved(options?.successMessage);
-            }
-
-            return true;
-        } catch (error) {
-            if (error instanceof ApiError) {
-                const fields = error.fieldErrors();
-
-                if (Object.keys(fields).length > 0) {
-                    showErrors(fields);
-                }
-            }
-
-            toastApiError(error);
-
-            return false;
-        }
-    }
-
-    function patchCurrent(
-        write: (schedule: CycleSchedule) => CycleSchedule,
-    ): void {
-        setSchedules((current) => {
-            const previous =
-                current.find((item) => item.cycle === cycle) ??
-                defaultCycleSchedule(cycle);
-            const updated = write(previous);
-
-            if (!current.some((item) => item.cycle === cycle)) {
-                return [...current, updated];
-            }
-
-            return current.map((item) =>
-                item.cycle === cycle ? updated : item,
-            );
-        });
-    }
 
     function setHours(
         next: SchoolHours | ((current: SchoolHours) => SchoolHours),
@@ -273,68 +108,60 @@ export default function StructureHoursPage({
         }));
     }
 
-    const inUse = useMemo(() => {
-        const classroomIds = new Set(
-            catalog.classrooms
-                .filter((classroom) => classroom.cycle === cycle)
-                .map((classroom) => classroom.id),
-        );
-
-        return new Set(
-            catalog.timetableSlots
-                .filter((slot) => classroomIds.has(slot.classroomId))
-                .map((slot) => slot.periodId),
-        );
-    }, [catalog.classrooms, catalog.timetableSlots, cycle]);
-    const rows = useMemo(() => {
-        const needle = search.trim().toLowerCase();
-        const source = [...periods].sort((left, right) =>
-            left.startsAt.localeCompare(right.startsAt),
-        );
-
-        if (needle === '') {
-            return source;
-        }
-
-        return source.filter((period) =>
-            `${period.id} ${period.startsAt} ${period.endsAt} ${periodLabel(period.id, periods)}`
-                .toLowerCase()
-                .includes(needle),
-        );
-    }, [periods, search]);
-    const table = useClientTable(rows);
-
-    function openCreate(): void {
-        const last = rows.at(-1);
-        const startsAt = last?.endsAt ?? hours.startsAt;
-        setEditingId(null);
-        setForm({
-            startsAt,
-            endsAt: addMinutes(startsAt, 30),
-        });
-        clearErrors();
-        setOpen(true);
+    function updateBreak(
+        id: string,
+        patch: Partial<LabeledSchoolBreak>,
+    ): void {
+        setHours((current) => ({
+            ...current,
+            breaks: (current.breaks ?? []).map((row) =>
+                row.id === id ? { ...row, ...patch } : row,
+            ),
+        }));
     }
 
-    function openEdit(period: TimetablePeriod): void {
-        setEditingId(period.id);
-        setForm({
-            startsAt: period.startsAt,
-            endsAt: period.endsAt,
-        });
+    function addBreak(): void {
         clearErrors();
-        setOpen(true);
+        setHours((current) => {
+            const existing = current.breaks ?? [];
+            const last = existing.at(-1);
+
+            return {
+                ...current,
+                breaks: [
+                    ...existing,
+                    {
+                        id: newBreakId(),
+                        label: 'Récréation',
+                        startsAt: last?.endsAt || current.startsAt,
+                        endsAt: addMinutes(
+                            last?.endsAt || current.startsAt,
+                            20,
+                        ),
+                    },
+                ],
+            };
+        });
+    }
+
+    function removeBreak(id: string): void {
+        clearErrors([
+            `break-${id}-label`,
+            `break-${id}-startsAt`,
+            `break-${id}-endsAt`,
+        ]);
+        setHours((current) => ({
+            ...current,
+            breaks: (current.breaks ?? []).filter((row) => row.id !== id),
+        }));
     }
 
     async function saveHours(): Promise<void> {
-        if (locked) {
-            return;
-        }
-        const day = parseFields(dayHoursSchema, {
+        clearErrors();
+        const dayOk = validate(dayHoursSchema, {
             opensAt: hours.startsAt,
             closesAt: hours.endsAt,
         });
-        const breaks = hours.breaks ?? [];
         const extra: FieldErrors = {};
 
         breaks.forEach((item, index) => {
@@ -342,440 +169,76 @@ export default function StructureHoursPage({
         });
 
         for (let index = 0; index < breaks.length; index += 1) {
-            for (
-                let other = index + 1;
-                other < breaks.length;
-                other += 1
-            ) {
-                if (periodsOverlap(breaks[index], breaks[other])) {
-                    const key = `break-${breaks[other].id}-startsAt`;
-                    extra[key] =
+            for (let other = index + 1; other < breaks.length; other += 1) {
+                if (
+                    breaks[index].startsAt < breaks[other].endsAt &&
+                    breaks[other].startsAt < breaks[index].endsAt
+                ) {
+                    extra[`break-${breaks[other].id}-startsAt`] =
                         'Cette pause chevauche une autre pause.';
                 }
             }
         }
 
-        const normalized = normalizeSchoolHours({
-            ...hours,
-            breaks,
-        });
-        const outside = periods.find(
-            (period) => !periodFitsHours(period, normalized),
+        const outside = schedule.periods.find(
+            (period) =>
+                period.startsAt < hours.startsAt ||
+                period.endsAt > hours.endsAt ||
+                breaks.some(
+                    (item) =>
+                        period.startsAt < item.endsAt &&
+                        item.startsAt < period.endsAt,
+                ),
         );
 
         if (outside) {
-            extra.closesAt = `Le créneau ${periodLabel(outside.id, periods)} chevauche une pause ou sort de la journée.`;
+            extra.closesAt = `Le créneau ${outside.id.toUpperCase()} chevauche une pause ou sort de la journée.`;
         }
 
-        if (!day.ok || Object.keys(extra).length > 0) {
-            showErrors({
-                ...(day.ok ? {} : day.errors),
-                ...extra,
-            });
+        if (!dayOk || Object.keys(extra).length > 0) {
+            showErrors(extra);
 
             return;
         }
+
+        const normalized = normalizeSchoolHours({
+            ...hours,
+            recess: null,
+            lunch: null,
+        });
 
         setSavingHours(true);
 
         try {
             await persistSchedule(
-                {
-                    ...schedule,
-                    hours: normalized,
-                },
-                { successMessage: `Horaires du ${cycleName} enregistrés` },
+                { ...schedule, hours: normalized },
+                { successMessage: 'Journée scolaire enregistrée' },
+                showErrors,
             );
         } finally {
             setSavingHours(false);
         }
     }
 
-    async function savePeriod(): Promise<void> {
-        if (!validate(periodSchema, form)) {
-            return;
-        }
-
-        const draft: Pick<TimetablePeriod, 'startsAt' | 'endsAt'> = {
-            startsAt: form.startsAt,
-            endsAt: form.endsAt,
-        };
-
-        if (!periodFitsHours(draft, hours)) {
-            showErrors({
-                endsAt: 'Le créneau doit s’inscrire dans la journée, sans chevaucher la récréation ni la pause de midi.',
-            });
-
-            return;
-        }
-
-        const clash = periods.find(
-            (period) =>
-                period.id !== editingId && periodsOverlap(period, draft),
-        );
-
-        if (clash) {
-            showErrors({
-                startsAt: `Ce créneau chevauche ${periodLabel(clash.id, periods)}.`,
-            });
-
-            return;
-        }
-
-        const payload: TimetablePeriod = {
-            id: editingId ?? nextPeriodId(periods),
-            startsAt: draft.startsAt,
-            endsAt: draft.endsAt,
-        };
-
-        const nextPeriods = editingId
-            ? periods.map((item) => (item.id === editingId ? payload : item))
-            : [...periods, payload];
-
-        setSavingPeriod(true);
-
-        try {
-            const ok = await persistSchedule({
-                ...schedule,
-                periods: nextPeriods,
-            });
-
-            if (ok) {
-                setOpen(false);
-            }
-        } finally {
-            setSavingPeriod(false);
-        }
-    }
-
-    async function removePeriod(period: TimetablePeriod): Promise<void> {
-        if (inUse.has(period.id)) {
-            toast.error(
-                'Ce créneau est utilisé dans l’emploi du temps. Retirez d’abord les cours.',
-            );
-
-            return;
-        }
-
-        const nextPeriods = periods.filter((item) => item.id !== period.id);
-        const label = periodLabel(period.id, periods);
-        const ok = await persistSchedule(
-            { ...schedule, periods: nextPeriods },
-            { silent: true },
-        );
-
-        if (ok) {
-            toastRemoved(`Créneau ${label} supprimé`);
-        }
-    }
-
     return (
         <>
             <Head title="Horaires" />
-            <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-                <div className="border-border shrink-0 space-y-3 border-b px-6 py-3">
-                    <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-                        <div className="flex min-w-0 flex-1 flex-col gap-4">
-                            <div>
-                                <p className="mb-2 text-[13px] font-medium">
-                                    Journée scolaire
-                                </p>
-                                <div className="flex flex-wrap items-end gap-2">
-                                    <div className="w-[7.5rem]">
-                                        <Field
-                                            id="opensAt"
-                                            label="Ouverture"
-                                            required
-                                            error={errors.opensAt}
-                                        >
-                                            <TimePicker
-                                                id="opensAt"
-                                                value={hours.startsAt}
-                                                onChange={(value) => {
-                                                    clearErrors([
-                                                        'opensAt',
-                                                        'closesAt',
-                                                    ]);
-                                                    setHours((current) => ({
-                                                        ...current,
-                                                        startsAt: value,
-                                                    }));
-                                                }}
-                                            />
-                                        </Field>
-                                    </div>
-                                    <div className="w-[7.5rem]">
-                                        <Field
-                                            id="closesAt"
-                                            label="Fermeture"
-                                            required
-                                            error={errors.closesAt}
-                                        >
-                                            <TimePicker
-                                                id="closesAt"
-                                                value={hours.endsAt}
-                                                onChange={(value) => {
-                                                    clearErrors('closesAt');
-                                                    setHours((current) => ({
-                                                        ...current,
-                                                        endsAt: value,
-                                                    }));
-                                                }}
-                                            />
-                                        </Field>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="min-w-0">
-                                <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                                    <p className="text-[13px] font-medium">
-                                        Pauses / récréations
-                                    </p>
-                                    {canMutate ? (
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            size="sm"
-                                            className="h-8"
-                                            onClick={() => {
-                                                clearErrors();
-                                                setHours((current) => {
-                                                    const existing =
-                                                        current.breaks ?? [];
-                                                    const last =
-                                                        existing.at(-1);
-
-                                                    return {
-                                                        ...current,
-                                                        breaks: [
-                                                            ...existing,
-                                                            {
-                                                                id: newBreakId(),
-                                                                label: 'Récréation',
-                                                                startsAt:
-                                                                    last?.endsAt ||
-                                                                    current.startsAt,
-                                                                endsAt: addMinutes(
-                                                                    last?.endsAt ||
-                                                                        current.startsAt,
-                                                                    20,
-                                                                ),
-                                                            },
-                                                        ],
-                                                    };
-                                                });
-                                            }}
-                                        >
-                                            <Plus className="size-3.5" />
-                                            Ajouter une pause
-                                        </Button>
-                                    ) : null}
-                                </div>
-                                <div className="space-y-3">
-                                    {(hours.breaks ?? []).length === 0 ? (
-                                        <p className="text-muted-foreground text-[12px]">
-                                            Aucune pause. Ajoutez une
-                                            récréation, une pause de midi ou
-                                            tout autre créneau libre avec son
-                                            libellé d’emploi du temps.
-                                        </p>
-                                    ) : null}
-                                    {(hours.breaks ?? []).map((item) => {
-                                        const prefix = `break-${item.id}`;
-
-                                        return (
-                                            <div
-                                                key={item.id}
-                                                className="flex flex-wrap items-end gap-2"
-                                            >
-                                                <div className="min-w-[10rem] flex-1">
-                                                    <Field
-                                                        id={`${prefix}-label`}
-                                                        label="Libellé"
-                                                        required
-                                                        error={
-                                                            errors[
-                                                                `${prefix}-label`
-                                                            ]
-                                                        }
-                                                    >
-                                                        <Input
-                                                            id={`${prefix}-label`}
-                                                            value={item.label}
-                                                            placeholder="Ex. Récréation"
-                                                            disabled={!canMutate}
-                                                            onChange={(
-                                                                event,
-                                                            ) => {
-                                                                clearErrors(
-                                                                    `${prefix}-label`,
-                                                                );
-                                                                const value =
-                                                                    event.target
-                                                                        .value;
-                                                                setHours(
-                                                                    (
-                                                                        current,
-                                                                    ) => ({
-                                                                        ...current,
-                                                                        breaks: (
-                                                                            current.breaks ??
-                                                                            []
-                                                                        ).map(
-                                                                            (
-                                                                                row,
-                                                                            ) =>
-                                                                                row.id ===
-                                                                                item.id
-                                                                                    ? {
-                                                                                          ...row,
-                                                                                          label: value,
-                                                                                      }
-                                                                                    : row,
-                                                                        ),
-                                                                    }),
-                                                                );
-                                                            }}
-                                                        />
-                                                    </Field>
-                                                </div>
-                                                <div className="w-[7.5rem]">
-                                                    <Field
-                                                        id={`${prefix}-startsAt`}
-                                                        label="Début"
-                                                        error={
-                                                            errors[
-                                                                `${prefix}-startsAt`
-                                                            ]
-                                                        }
-                                                    >
-                                                        <TimePicker
-                                                            id={`${prefix}-startsAt`}
-                                                            value={
-                                                                item.startsAt
-                                                            }
-                                                            onChange={(
-                                                                value,
-                                                            ) => {
-                                                                clearErrors([
-                                                                    `${prefix}-startsAt`,
-                                                                    `${prefix}-endsAt`,
-                                                                ]);
-                                                                setHours(
-                                                                    (
-                                                                        current,
-                                                                    ) => ({
-                                                                        ...current,
-                                                                        breaks: (
-                                                                            current.breaks ??
-                                                                            []
-                                                                        ).map(
-                                                                            (
-                                                                                row,
-                                                                            ) =>
-                                                                                row.id ===
-                                                                                item.id
-                                                                                    ? {
-                                                                                          ...row,
-                                                                                          startsAt:
-                                                                                              value,
-                                                                                      }
-                                                                                    : row,
-                                                                        ),
-                                                                    }),
-                                                                );
-                                                            }}
-                                                        />
-                                                    </Field>
-                                                </div>
-                                                <div className="w-[7.5rem]">
-                                                    <Field
-                                                        id={`${prefix}-endsAt`}
-                                                        label="Fin"
-                                                        error={
-                                                            errors[
-                                                                `${prefix}-endsAt`
-                                                            ]
-                                                        }
-                                                    >
-                                                        <TimePicker
-                                                            id={`${prefix}-endsAt`}
-                                                            value={item.endsAt}
-                                                            onChange={(
-                                                                value,
-                                                            ) => {
-                                                                clearErrors([
-                                                                    `${prefix}-startsAt`,
-                                                                    `${prefix}-endsAt`,
-                                                                ]);
-                                                                setHours(
-                                                                    (
-                                                                        current,
-                                                                    ) => ({
-                                                                        ...current,
-                                                                        breaks: (
-                                                                            current.breaks ??
-                                                                            []
-                                                                        ).map(
-                                                                            (
-                                                                                row,
-                                                                            ) =>
-                                                                                row.id ===
-                                                                                item.id
-                                                                                    ? {
-                                                                                          ...row,
-                                                                                          endsAt:
-                                                                                              value,
-                                                                                      }
-                                                                                    : row,
-                                                                        ),
-                                                                    }),
-                                                                );
-                                                            }}
-                                                        />
-                                                    </Field>
-                                                </div>
-                                                {canMutate ? (
-                                                    <Button
-                                                        type="button"
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        className="text-muted-foreground mb-0.5 h-9 px-2"
-                                                        onClick={() => {
-                                                            clearErrors([
-                                                                `${prefix}-label`,
-                                                                `${prefix}-startsAt`,
-                                                                `${prefix}-endsAt`,
-                                                            ]);
-                                                            setHours(
-                                                                (current) => ({
-                                                                    ...current,
-                                                                    breaks: (
-                                                                        current.breaks ??
-                                                                        []
-                                                                    ).filter(
-                                                                        (row) =>
-                                                                            row.id !==
-                                                                            item.id,
-                                                                    ),
-                                                                }),
-                                                            );
-                                                        }}
-                                                    >
-                                                        Retirer
-                                                    </Button>
-                                                ) : null}
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            </div>
+            <div className="min-h-0 flex-1 overflow-y-auto">
+                <div className="mx-auto w-full max-w-3xl px-6 py-6">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                            <h2 className="text-[1.05rem] font-semibold tracking-tight">
+                                Journée scolaire
+                            </h2>
+                            <p className="text-muted-foreground mt-1 text-[13px]">
+                                Définissez l’amplitude et les pauses du{' '}
+                                {cycleName}.
+                            </p>
                         </div>
                         {canMutate ? (
                             <Button
                                 type="button"
                                 size="sm"
-                                className="shrink-0 self-start lg:self-end"
                                 disabled={savingHours}
                                 onClick={() => {
                                     void saveHours();
@@ -787,185 +250,211 @@ export default function StructureHoursPage({
                             </Button>
                         ) : null}
                     </div>
-                    <p className="text-muted-foreground text-[12px]">
-                        Créneaux du {cycleName} entre ouverture et fermeture,
-                        hors pauses (libellés visibles sur l’emploi du temps).
-                    </p>
-                </div>
-                <ListPage
-                    embedded
-                    title="Créneaux"
-                    icon={Clock}
-                    description={`Heures de cours du ${cycleName} utilisées dans l’emploi du temps et les présences.`}
-                    searchPlaceholder="Rechercher un créneau..."
-                    search={search}
-                    onSearchChange={setSearch}
-                    actions={
-                        <Button type="button" size="sm" onClick={openCreate}>
-                            <Plus />
-                            Ajouter
-                        </Button>
-                    }
-                    empty={{
-                        title: search.trim()
-                            ? 'Aucun résultat'
-                            : 'Aucun créneau',
-                        description: search.trim()
-                            ? undefined
-                            : 'Ajoutez les heures de cours de la journée.',
-                        icon: Clock,
-                    }}
-                    paging={table}
-                    onExport={false}
-                >
-                    <Table containerClassName={DATA_TABLE_CONTAINER}>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>
-                                    <DataTableColumnHeader icon={Hash}>
-                                        Code
-                                    </DataTableColumnHeader>
-                                </TableHead>
-                                <TableHead>
-                                    <DataTableColumnHeader icon={Clock}>
-                                        Début
-                                    </DataTableColumnHeader>
-                                </TableHead>
-                                <TableHead>
-                                    <DataTableColumnHeader icon={Clock}>
-                                        Fin
-                                    </DataTableColumnHeader>
-                                </TableHead>
-                                <TableHead>
-                                    <DataTableColumnHeader icon={Clock}>
-                                        Durée
-                                    </DataTableColumnHeader>
-                                </TableHead>
-                                <TableHead className="w-14 text-center">
-                                    <DataTableColumnHeader
-                                        icon={EllipsisVertical}
+
+                    <div className="mt-8 space-y-8">
+                        <section>
+                            <p className="text-muted-foreground mb-3 text-[11px] font-medium tracking-[0.08em] uppercase">
+                                Amplitude
+                            </p>
+                            <div className="grid gap-4 sm:grid-cols-2">
+                                <Field
+                                    id="opensAt"
+                                    label="Ouverture"
+                                    required
+                                    error={errors.opensAt}
+                                >
+                                    <TimePicker
+                                        id="opensAt"
+                                        value={hours.startsAt}
+                                        onChange={(value) => {
+                                            clearErrors([
+                                                'opensAt',
+                                                'closesAt',
+                                            ]);
+                                            setHours((current) => ({
+                                                ...current,
+                                                startsAt: value,
+                                            }));
+                                        }}
+                                    />
+                                </Field>
+                                <Field
+                                    id="closesAt"
+                                    label="Fermeture"
+                                    required
+                                    error={errors.closesAt}
+                                >
+                                    <TimePicker
+                                        id="closesAt"
+                                        value={hours.endsAt}
+                                        onChange={(value) => {
+                                            clearErrors('closesAt');
+                                            setHours((current) => ({
+                                                ...current,
+                                                endsAt: value,
+                                            }));
+                                        }}
+                                    />
+                                </Field>
+                            </div>
+                        </section>
+
+                        <section>
+                            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                                <div>
+                                    <p className="text-muted-foreground text-[11px] font-medium tracking-[0.08em] uppercase">
+                                        Pauses
+                                    </p>
+                                    <p className="text-muted-foreground mt-0.5 text-[12px]">
+                                        Récréations et pauses visibles sur
+                                        l’emploi du temps.
+                                    </p>
+                                </div>
+                                {canMutate ? (
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        className="h-8"
+                                        onClick={addBreak}
                                     >
-                                        Actions
-                                    </DataTableColumnHeader>
-                                </TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {table.pageRows.map((period) => {
-                                const [startH, startM] = period.startsAt
-                                    .split(':')
-                                    .map(Number);
-                                const [endH, endM] = period.endsAt
-                                    .split(':')
-                                    .map(Number);
-                                const minutes =
-                                    (endH ?? 0) * 60 +
-                                    (endM ?? 0) -
-                                    ((startH ?? 0) * 60 + (startM ?? 0));
+                                        <Plus className="size-3.5" />
+                                        Ajouter
+                                    </Button>
+                                ) : null}
+                            </div>
 
-                                return (
-                                    <TableRow key={period.id}>
-                                        <TableCell className="font-medium">
-                                            {period.id.toUpperCase()}
-                                        </TableCell>
-                                        <TableCell>{period.startsAt}</TableCell>
-                                        <TableCell>{period.endsAt}</TableCell>
-                                        <TableCell>{minutes} min</TableCell>
-                                        <TableCell className="px-3 py-1.5 text-center">
-                                            <RowMenu
-                                                items={crudItems({
-                                                    onView: () =>
-                                                        setViewing(period),
-                                                    onEdit: () =>
-                                                        openEdit(period),
-                                                    onDelete: () =>
-                                                        removePeriod(period),
-                                                    deleteDisabled: inUse.has(
-                                                        period.id,
-                                                    ),
-                                                    confirm: {
-                                                        title: 'Supprimer le créneau ?',
-                                                        description: `${periodLabel(period.id, periods)} ne sera plus proposé dans l’emploi du temps.`,
-                                                    },
-                                                })}
-                                            />
-                                        </TableCell>
-                                    </TableRow>
-                                );
-                            })}
-                        </TableBody>
-                    </Table>
-                </ListPage>
+                            {breaks.length === 0 ? (
+                                <p className="text-muted-foreground py-8 text-center text-[13px]">
+                                    Aucune pause pour ce cycle.
+                                </p>
+                            ) : (
+                                <div className="border-border divide-border divide-y border-y">
+                                    <div className="text-muted-foreground grid grid-cols-[minmax(0,1.4fr)_6.5rem_6.5rem_2.25rem] gap-3 px-0 py-2 text-[11px] font-medium tracking-wide uppercase">
+                                        <span>Libellé</span>
+                                        <span>Début</span>
+                                        <span>Fin</span>
+                                        <span className="sr-only">Actions</span>
+                                    </div>
+                                    {breaks.map((item) => {
+                                        const prefix = `break-${item.id}`;
+
+                                        return (
+                                            <div
+                                                key={item.id}
+                                                className="grid grid-cols-[minmax(0,1.4fr)_6.5rem_6.5rem_2.25rem] items-start gap-3 py-3"
+                                            >
+                                                <Field
+                                                    id={`${prefix}-label`}
+                                                    label="Libellé"
+                                                    required
+                                                    hideLabel
+                                                    error={
+                                                        errors[
+                                                            `${prefix}-label`
+                                                        ]
+                                                    }
+                                                >
+                                                    <Input
+                                                        id={`${prefix}-label`}
+                                                        value={item.label}
+                                                        placeholder="Ex. Récréation"
+                                                        disabled={!canMutate}
+                                                        onChange={(event) => {
+                                                            clearErrors(
+                                                                `${prefix}-label`,
+                                                            );
+                                                            updateBreak(
+                                                                item.id,
+                                                                {
+                                                                    label: event
+                                                                        .target
+                                                                        .value,
+                                                                },
+                                                            );
+                                                        }}
+                                                    />
+                                                </Field>
+                                                <Field
+                                                    id={`${prefix}-startsAt`}
+                                                    label="Début"
+                                                    hideLabel
+                                                    error={
+                                                        errors[
+                                                            `${prefix}-startsAt`
+                                                        ]
+                                                    }
+                                                >
+                                                    <TimePicker
+                                                        id={`${prefix}-startsAt`}
+                                                        value={item.startsAt}
+                                                        onChange={(value) => {
+                                                            clearErrors([
+                                                                `${prefix}-startsAt`,
+                                                                `${prefix}-endsAt`,
+                                                            ]);
+                                                            updateBreak(
+                                                                item.id,
+                                                                {
+                                                                    startsAt:
+                                                                        value,
+                                                                },
+                                                            );
+                                                        }}
+                                                    />
+                                                </Field>
+                                                <Field
+                                                    id={`${prefix}-endsAt`}
+                                                    label="Fin"
+                                                    hideLabel
+                                                    error={
+                                                        errors[
+                                                            `${prefix}-endsAt`
+                                                        ]
+                                                    }
+                                                >
+                                                    <TimePicker
+                                                        id={`${prefix}-endsAt`}
+                                                        value={item.endsAt}
+                                                        onChange={(value) => {
+                                                            clearErrors([
+                                                                `${prefix}-startsAt`,
+                                                                `${prefix}-endsAt`,
+                                                            ]);
+                                                            updateBreak(
+                                                                item.id,
+                                                                {
+                                                                    endsAt: value,
+                                                                },
+                                                            );
+                                                        }}
+                                                    />
+                                                </Field>
+                                                {canMutate ? (
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="text-muted-foreground hover:text-destructive mt-0.5 size-9"
+                                                        aria-label={`Retirer ${item.label || 'la pause'}`}
+                                                        onClick={() =>
+                                                            removeBreak(item.id)
+                                                        }
+                                                    >
+                                                        <Trash2 className="size-4" />
+                                                    </Button>
+                                                ) : (
+                                                    <span />
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </section>
+                    </div>
+                </div>
             </div>
-
-            <DetailDialog
-                open={viewing !== null}
-                onOpenChange={(next) => {
-                    if (!next) {
-                        setViewing(null);
-                    }
-                }}
-                icon={Clock}
-                title={viewing ? viewing.id.toUpperCase() : 'Créneau'}
-                description={
-                    viewing
-                        ? `${cycleName} · ${periodLabel(viewing.id, periods)}`
-                        : undefined
-                }
-                fields={
-                    viewing
-                        ? [
-                              { label: 'Cycle', value: cycleName },
-                              { label: 'Début', value: viewing.startsAt },
-                              { label: 'Fin', value: viewing.endsAt },
-                          ]
-                        : []
-                }
-            />
-
-            <FormSheet
-                open={open}
-                onOpenChange={setOpen}
-                title={editingId ? 'Modifier le créneau' : 'Nouveau créneau'}
-                description={`Heure de cours du ${cycleName} proposée dans l’emploi du temps.`}
-                submitLabel={editingId ? 'Enregistrer' : 'Créer'}
-                submitting={savingPeriod}
-                onSubmit={() => {
-                    void savePeriod();
-                }}
-            >
-                <Field
-                    id="startsAt"
-                    label="Début"
-                    required
-                    error={errors.startsAt}
-                >
-                    <TimePicker
-                        id="startsAt"
-                        value={form.startsAt}
-                        onChange={(value) => {
-                            clearErrors(['startsAt', 'endsAt']);
-                            setForm((current) => ({
-                                ...current,
-                                startsAt: value,
-                            }));
-                        }}
-                    />
-                </Field>
-                <Field id="endsAt" label="Fin" required error={errors.endsAt}>
-                    <TimePicker
-                        id="endsAt"
-                        value={form.endsAt}
-                        onChange={(value) => {
-                            clearErrors('endsAt');
-                            setForm((current) => ({
-                                ...current,
-                                endsAt: value,
-                            }));
-                        }}
-                    />
-                </Field>
-            </FormSheet>
         </>
     );
 }

@@ -1,4 +1,11 @@
-import { CalendarRange, Clock, DoorOpen, Layers, School } from 'lucide-react';
+import {
+    CalendarRange,
+    Clock,
+    DoorOpen,
+    Layers,
+    School,
+    Timer,
+} from 'lucide-react';
 import type { PropsWithChildren } from 'react';
 import { PageHeader } from '@/components/sms/page-header';
 import { PageShell } from '@/components/sms/page-shell';
@@ -9,6 +16,7 @@ import {
     classes,
     hours,
     index as years,
+    periods,
     tracks,
     venues,
 } from '@/routes/structure';
@@ -44,6 +52,11 @@ export default function StructureLayout({ children }: PropsWithChildren) {
             title: 'Horaires',
             href: hours({ query }),
             icon: Clock,
+        },
+        {
+            title: 'Créneaux',
+            href: periods({ query }),
+            icon: Timer,
         },
     ];
 

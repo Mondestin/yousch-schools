@@ -419,6 +419,11 @@ class SchoolPagesController extends Controller
         return Inertia::render('structure/hours', SchoolCatalog::page());
     }
 
+    public function periods(): Response
+    {
+        return Inertia::render('structure/periods', SchoolCatalog::page());
+    }
+
     public function school(): Response
     {
         return Inertia::render('etablissement/profile', SchoolCatalog::page());
