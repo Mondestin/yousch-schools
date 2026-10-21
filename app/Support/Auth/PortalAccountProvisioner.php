@@ -3,7 +3,9 @@
 namespace App\Support\Auth;
 
 use App\Enums\Cycle;
+use App\Enums\EnrollmentStatus;
 use App\Enums\StaffRole;
+use App\Models\AcademicYear;
 use App\Models\Classroom;
 use App\Models\Enrollment;
 use App\Models\Guardian;
@@ -11,7 +13,9 @@ use App\Models\Student;
 use App\Models\User;
 use App\Support\Tenancy\CurrentSchool;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
+use Throwable;
 
 /**
  * Creates login accounts for pupils (collège / lycée) and parents with an e-mail.
@@ -97,14 +101,15 @@ final class PortalAccountProvisioner
         return $user;
     }
 
-    public static function cycleForStudent(Student $student): ?Cycle
-    {
-        $enrollment = $student->relationLoaded('enrollments')
-            ? $student->enrollments->sortByDesc('created_at')->first()
-            : Enrollment::query()
-                ->where('student_id', $student->id)
-                ->orderByDesc('created_at')
-                ->first();
+    public static function cycleForStudent(
+        Student $student,
+        ?string $academicYearId = null,
+    ): ?Cycle {
+        $academicYearId ??= AcademicYear::query()
+            ->where('is_current', true)
+            ->value('id');
+
+        $enrollment = self::resolveEnrollment($student, $academicYearId);
 
         if ($enrollment === null) {
             return null;
@@ -113,6 +118,42 @@ final class PortalAccountProvisioner
         $classroom = Classroom::query()->find($enrollment->classroom_id);
 
         return $classroom?->cycle;
+    }
+
+    private static function resolveEnrollment(
+        Student $student,
+        ?string $academicYearId,
+    ): ?Enrollment {
+        $base = static function () use ($student) {
+            return Enrollment::query()->where('student_id', $student->id);
+        };
+
+        if ($academicYearId !== null) {
+            $currentYear = $base()
+                ->where('academic_year_id', $academicYearId)
+                ->where('status', EnrollmentStatus::Inscrit)
+                ->orderByDesc('created_at')
+                ->first();
+
+            if ($currentYear !== null) {
+                return $currentYear;
+            }
+
+            $currentYearAnyStatus = $base()
+                ->where('academic_year_id', $academicYearId)
+                ->orderByDesc('created_at')
+                ->first();
+
+            if ($currentYearAnyStatus !== null) {
+                return $currentYearAnyStatus;
+            }
+        }
+
+        return $base()
+            ->where('status', EnrollmentStatus::Inscrit)
+            ->orderByDesc('created_at')
+            ->first()
+            ?? $base()->orderByDesc('created_at')->first();
     }
 
     /**
@@ -161,7 +202,16 @@ final class PortalAccountProvisioner
     private static function queueCredentialsEmail(User $user): void
     {
         $send = static function () use ($user): void {
-            StaffCredentialsMailer::send($user->fresh() ?? $user, resend: false);
+            try {
+                StaffCredentialsMailer::send($user->fresh() ?? $user, resend: false);
+            } catch (Throwable $exception) {
+                // Account must still be usable if SMTP/mail is misconfigured in prod.
+                Log::error('Portal credentials email failed', [
+                    'user_id' => $user->id,
+                    'email' => $user->email,
+                    'message' => $exception->getMessage(),
+                ]);
+            }
         };
 
         if (DB::transactionLevel() > 0) {
