@@ -2,6 +2,7 @@ import { Head, Link } from '@inertiajs/react';
 import { Printer, Wallet } from 'lucide-react';
 import { DocumentAuthenticityQr } from '@/components/sms/document-authenticity-qr';
 import { DocumentPied } from '@/components/sms/document-pied';
+import { DocumentSchoolHeader } from '@/components/sms/document-school-header';
 import { DocumentSignatureBlock } from '@/components/sms/document-signature';
 import { PageHeader } from '@/components/sms/page-header';
 import { PageShell } from '@/components/sms/page-shell';
@@ -12,7 +13,6 @@ import { receiptFiche } from '@/lib/school-payments';
 import {
     COUNTRY_MOTTO,
     COUNTRY_NAME,
-    COUNTRY_SHORT,
     formatFcfa,
     paymentStatusLabel,
 } from '@/lib/school-rows';
@@ -83,24 +83,7 @@ export default function PaymentShowPage({
                     className="print-bulletin mx-auto max-w-[210mm] bg-white p-8 text-black"
                 >
                     <header className="grid grid-cols-2 items-start gap-4">
-                        <div className="text-center text-[12px] leading-5">
-                            {fiche.profile.logoUrl ? (
-                                <img
-                                    src={fiche.profile.logoUrl}
-                                    alt=""
-                                    className="mx-auto mb-2 h-24 w-32 object-contain"
-                                />
-                            ) : null}
-                            <p className="text-[14px] font-semibold uppercase">
-                                {fiche.profile.name}
-                            </p>
-                            <p>Tél. : {fiche.profile.phone}</p>
-                            <p>E-mail : {fiche.profile.email}</p>
-                            <p>{fiche.profile.address}</p>
-                            <p>
-                                {fiche.profile.city}, {COUNTRY_SHORT}
-                            </p>
-                        </div>
+                        <DocumentSchoolHeader profile={fiche.profile} />
                         <div className="text-center text-[12px] leading-5">
                             <p className="text-[14px] font-semibold uppercase">
                                 {COUNTRY_NAME}
@@ -183,18 +166,6 @@ export default function PaymentShowPage({
                     </table>
 
                     <section className="print-closing mt-8 grid grid-cols-2 gap-8 text-[14px]">
-                        <div className="flex flex-col justify-end">
-                            <DocumentAuthenticityQr
-                                claims={{
-                                    type: 'payment_statement',
-                                    studentId,
-                                    academicYearId: filter.academicYearId,
-                                    issuedOn: new Date()
-                                        .toISOString()
-                                        .slice(0, 10),
-                                }}
-                            />
-                        </div>
                         <div className="space-y-3 text-left">
                             <p>
                                 Net à payer :{' '}
@@ -210,8 +181,10 @@ export default function PaymentShowPage({
                                 Total impayé :{' '}
                                 <strong>{formatFcfa(fiche.unpaidTotal)}</strong>
                             </p>
+                        </div>
+                        <div className="space-y-3 text-left">
                             <DocumentSignatureBlock
-                                className="mt-4"
+                                className="mt-0"
                                 city={fiche.profile.city}
                                 issuedOn={fiche.issuedOn}
                                 stampUrl={fiche.profile.stampUrl}
@@ -219,10 +192,16 @@ export default function PaymentShowPage({
                                 name={fiche.profile.directorName}
                             />
                         </div>
-                        <div className="col-span-2">
-                            <DocumentPied />
-                        </div>
                     </section>
+                    <DocumentAuthenticityQr
+                        claims={{
+                            type: 'payment_statement',
+                            studentId,
+                            academicYearId: filter.academicYearId,
+                            issuedOn: new Date().toISOString().slice(0, 10),
+                        }}
+                    />
+                    <DocumentPied />
                 </article>
             </PageShell>
         </>

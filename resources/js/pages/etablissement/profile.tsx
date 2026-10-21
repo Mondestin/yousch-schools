@@ -2,7 +2,8 @@ import { Head } from '@inertiajs/react';
 import { Building2, Stamp } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { z } from 'zod';
-import { BulletinLetterhead } from '@/components/sms/bulletin-letterhead';
+import { DocumentSchoolHeader } from '@/components/sms/document-school-header';
+import { DocumentStamp } from '@/components/sms/document-stamp';
 import { Field } from '@/components/sms/field';
 import { PhotoField } from '@/components/sms/photo-field';
 import { Button } from '@/components/ui/button';
@@ -402,17 +403,31 @@ export default function SchoolProfilePage({
 
                 <aside className="lg:sticky lg:top-6">
                     <p className="mb-2 text-[13px] font-medium">
-                        En-tête du bulletin
+                        Aperçu document officiel
                     </p>
                     <div className="rounded-[8px] border bg-white p-5 text-black shadow-none">
-                        <BulletinLetterhead
-                            profile={form}
-                            logoUrl={logoPreview}
+                        <DocumentSchoolHeader
+                            profile={{
+                                ...form,
+                                logoUrl: logoPreview,
+                            }}
+                            number="ATT-2026-0001"
                         />
+                        <div className="mt-6 flex flex-col items-center text-center text-[14px] leading-5">
+                            <DocumentStamp
+                                url={stampPreview}
+                                className="h-28 w-44"
+                            />
+                            <p className="mt-2 font-medium">
+                                Le chef d’établissement
+                                <br />
+                                <strong>{form.directorName}</strong>
+                            </p>
+                        </div>
                     </div>
                     <p className="text-muted-foreground mt-2 text-[13px]">
-                        Aperçu de l’en-tête imprimé en haut à gauche des
-                        bulletins.
+                        En-tête et cachet utilisés sur les attestations,
+                        certificats, reçus et bulletins.
                     </p>
                 </aside>
             </form>

@@ -45,6 +45,47 @@ const FIELD_PRINT_LABELS: Record<IdCardField, string> = {
 export const DEFAULT_ID_CARD_ACCENT = '#6425d0';
 export const DEFAULT_ID_CARD_BODY = '#ffffff';
 
+function normalizeHexColor(value: string): string | null {
+    const hex = value.replace('#', '').trim();
+    const full =
+        hex.length === 3
+            ? hex
+                  .split('')
+                  .map((char) => char + char)
+                  .join('')
+            : hex;
+
+    if (!/^[0-9A-Fa-f]{6}$/.test(full)) {
+        return null;
+    }
+
+    return full.toLowerCase();
+}
+
+/**
+ * Black or white text that stays readable on a given background.
+ * Light headers (e.g. white) → dark text; dark headers → white text.
+ */
+export function contrastTextOn(background: string): '#ffffff' | '#121826' {
+    const full = normalizeHexColor(background);
+
+    if (!full) {
+        return '#ffffff';
+    }
+
+    const channel = (start: number) =>
+        Number.parseInt(full.slice(start, start + 2), 16) / 255;
+    const toLinear = (value: number) =>
+        value <= 0.03928 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
+
+    const luminance =
+        0.2126 * toLinear(channel(0)) +
+        0.7152 * toLinear(channel(2)) +
+        0.0722 * toLinear(channel(4));
+
+    return luminance > 0.55 ? '#121826' : '#ffffff';
+}
+
 /** Students: horizontal. Staff / teachers: vertical. */
 export function orientationForKind(kind: IdCardKind): IdCardOrientation {
     return kind === 'staff' ? 'vertical' : 'horizontal';
@@ -198,6 +239,7 @@ export function IdCardPreview({
     schoolLogoUrl,
     yearLabel,
     accent = DEFAULT_ID_CARD_ACCENT,
+    headerTextColor = null,
     layout = 'classic',
     showQr = true,
     visibleFields,
@@ -214,6 +256,8 @@ export function IdCardPreview({
     schoolLogoUrl?: string | null;
     yearLabel: string;
     accent?: string;
+    /** School name color on the header; null = auto-contrast from accent. */
+    headerTextColor?: string | null;
     bodyColor?: string;
     /** Ignored: orientation is forced by kind. */
     orientation?: IdCardOrientation;
@@ -232,6 +276,11 @@ export function IdCardPreview({
         layout === 'split'
             ? `linear-gradient(105deg, ${accent} 0%, ${softFromAccent(accent, 0.35)} 100%)`
             : accent;
+    const headerFg =
+        headerTextColor && normalizeHexColor(headerTextColor)
+            ? `#${normalizeHexColor(headerTextColor)}`
+            : contrastTextOn(accent);
+    const accentFg = contrastTextOn(accent);
     const validityShort =
         yearLabel.match(/\d{4}/g)?.slice(-1)[0] ??
         validUntil.match(/\d{4}/)?.[0] ??
@@ -291,8 +340,8 @@ export function IdCardPreview({
             {horizontal ? (
                 <>
                     <header
-                        className="flex items-center gap-[2.4mm] px-[3.2mm] py-[2.4mm] text-white"
-                        style={{ background: headerBg }}
+                        className="flex items-center gap-[2.4mm] px-[3.2mm] py-[2.4mm]"
+                        style={{ background: headerBg, color: headerFg }}
                     >
                         <SchoolMark
                             schoolLogoUrl={schoolLogoUrl}
@@ -417,7 +466,10 @@ export function IdCardPreview({
                         className="mt-auto flex items-center justify-center px-[3mm] py-[2.2mm]"
                         style={{ background: accent }}
                     >
-                        <p className="text-[2.6mm] font-bold tracking-[0.18em] text-white uppercase">
+                        <p
+                            className="text-[2.6mm] font-bold tracking-[0.18em] uppercase"
+                            style={{ color: accentFg }}
+                        >
                             Enseignant
                         </p>
                     </div>

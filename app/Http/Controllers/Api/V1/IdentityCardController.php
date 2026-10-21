@@ -57,12 +57,18 @@ class IdentityCardController extends Controller
         $validated = $request->validate([
             'idCardAccent' => ['sometimes', 'required', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'idCardBody' => ['sometimes', 'required', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'idCardHeaderText' => ['sometimes', 'nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
         ], [
             'idCardAccent.regex' => 'La couleur d’en-tête doit être un code hexadécimal (#RRGGBB).',
             'idCardBody.regex' => 'La couleur du fond doit être un code hexadécimal (#RRGGBB).',
+            'idCardHeaderText.regex' => 'La couleur du nom d’établissement doit être un code hexadécimal (#RRGGBB).',
         ]);
 
-        if (! isset($validated['idCardAccent']) && ! isset($validated['idCardBody'])) {
+        if (
+            ! isset($validated['idCardAccent'])
+            && ! isset($validated['idCardBody'])
+            && ! array_key_exists('idCardHeaderText', $validated)
+        ) {
             throw ValidationException::withMessages([
                 'idCardAccent' => 'Indiquez au moins une couleur à enregistrer.',
             ]);
@@ -91,6 +97,13 @@ class IdentityCardController extends Controller
 
         if (isset($validated['idCardBody'])) {
             $profile->id_card_body = strtolower($validated['idCardBody']);
+        }
+
+        if (array_key_exists('idCardHeaderText', $validated)) {
+            $value = $validated['idCardHeaderText'];
+            $profile->id_card_header_text = is_string($value) && $value !== ''
+                ? strtolower($value)
+                : null;
         }
 
         $profile->save();

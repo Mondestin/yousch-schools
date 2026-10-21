@@ -41,6 +41,7 @@ import {
 import { useSchoolContext } from '@/hooks/use-school-context';
 import { apiData } from '@/lib/api';
 import { canAccess } from '@/lib/school-access';
+import { fillDocumentPlaceholders } from '@/lib/document-placeholders';
 import { printDomElement } from '@/lib/school-export';
 import { dossierFilesOf, isImageDossier } from '@/lib/school-files';
 import { formatFrDate } from '@/lib/school-rows';
@@ -111,21 +112,22 @@ const ISSUABLE: Array<{
     },
 ];
 
+/** Fallback bodies aligned with IssuedDocumentService defaults. */
 const DEFAULT_BODIES: Record<IssuableKind, string> = {
     attestation:
-        'atteste que l’élève {{name}} est régulièrement inscrit(e) en classe de {{classroom}} pour l’année scolaire {{year}}.',
+        'Je soussigné(e), {{directorName}}, chef d’établissement du {{schoolName}}, atteste que l’élève {{name}}, {{genderLabel}}, né(e) le {{bornOnLabel}}, matricule {{matricule}}, est régulièrement inscrit(e) en classe de {{classroomName}}{{trackSuffix}} pour l’année scolaire {{yearLabel}}.\n\nLa présente attestation est délivrée pour servir et valoir ce que de droit.',
     certificat:
-        'certifie que l’élève {{name}} fréquente régulièrement cet établissement en classe de {{classroom}} pour l’année scolaire {{year}}.',
+        'Je soussigné(e), {{directorName}}, chef d’établissement du {{schoolName}}, certifie que l’élève {{name}}, {{genderLabel}}, né(e) le {{bornOnLabel}}, matricule {{matricule}}, fréquente régulièrement cet établissement en classe de {{classroomName}}{{trackSuffix}} pour l’année scolaire {{yearLabel}}.\n\nLe présent certificat est délivré pour servir et valoir ce que de droit.',
     attestation_reussite:
-        'atteste que l’élève {{name}} a satisfait aux exigences de la classe de {{classroom}} pour l’année scolaire {{year}} et est déclaré(e) admis(e) au passage.',
+        'Je soussigné(e), {{directorName}}, chef d’établissement du {{schoolName}}, atteste que l’élève {{name}}, {{genderLabel}}, né(e) le {{bornOnLabel}}, matricule {{matricule}}, a satisfait aux exigences scolaires de la classe de {{classroomName}}{{trackSuffix}} pour l’année scolaire {{yearLabel}} et est déclaré(e) admis(e) au passage.\n\nLa présente attestation est délivrée pour servir et valoir ce que de droit.',
     attestation_radiation:
-        'atteste que l’élève {{name}} a été radié(e) des effectifs. Dernière classe : {{classroom}} ({{year}}).',
+        'Je soussigné(e), {{directorName}}, chef d’établissement du {{schoolName}}, atteste que l’élève {{name}}, {{genderLabel}}, né(e) le {{bornOnLabel}}, matricule {{matricule}}, a été radié(e) des effectifs de cet établissement. Dernière classe fréquentée : {{classroomName}}{{trackSuffix}} (année scolaire {{yearLabel}}).\n\nLa présente attestation est délivrée pour servir et valoir ce que de droit.',
     attestation_transfert:
-        'atteste que l’élève {{name}} était inscrit(e) en classe de {{classroom}} pour l’année scolaire {{year}} et quitte l’établissement pour poursuivre sa scolarité ailleurs.',
+        'Je soussigné(e), {{directorName}}, chef d’établissement du {{schoolName}}, atteste que l’élève {{name}}, {{genderLabel}}, né(e) le {{bornOnLabel}}, matricule {{matricule}}, était régulièrement inscrit(e) en classe de {{classroomName}}{{trackSuffix}} pour l’année scolaire {{yearLabel}} et quitte l’établissement pour poursuivre sa scolarité ailleurs.\n\nLa présente attestation de transfert est délivrée pour servir et valoir ce que de droit.',
     attestation_bourse:
-        'atteste que l’élève {{name}} est régulièrement inscrit(e) en classe de {{classroom}} pour l’année scolaire {{year}}, pour l’appui d’une demande de bourse ou de transport.',
+        'Je soussigné(e), {{directorName}}, chef d’établissement du {{schoolName}}, atteste que l’élève {{name}}, {{genderLabel}}, né(e) le {{bornOnLabel}}, matricule {{matricule}}, est régulièrement inscrit(e) en classe de {{classroomName}}{{trackSuffix}} pour l’année scolaire {{yearLabel}}.\n\nLa présente attestation est délivrée pour l’appui d’une demande de bourse ou de transport scolaire.',
     certificat_conduite:
-        'certifie que l’élève {{name}}, en classe de {{classroom}} pour l’année scolaire {{year}}, a fait preuve d’une bonne conduite.',
+        'Je soussigné(e), {{directorName}}, chef d’établissement du {{schoolName}}, certifie que l’élève {{name}}, {{genderLabel}}, né(e) le {{bornOnLabel}}, matricule {{matricule}}, élève de la classe de {{classroomName}}{{trackSuffix}} pour l’année scolaire {{yearLabel}}, a fait preuve d’une bonne conduite au sein de l’établissement.\n\nLe présent certificat est délivré pour servir et valoir ce que de droit.',
 };
 
 export default function StudentDocumentsPage({
@@ -1021,18 +1023,49 @@ function LinkedCard({
     );
 }
 
-function certificateBody(
-    kind: IssuableKind,
+function certificatePlaceholderValues(
     fiche: StudentFiche,
-    name: string,
-): string {
-    const classroom = `${fiche.classroomName}${fiche.trackCode ? ` (série ${fiche.trackCode})` : ''}`;
+    document: IssuedDocument,
+    payload: {
+        issuedOn?: string;
+        classroomName?: string;
+        yearLabel?: string;
+        trackCode?: string | null;
+        name?: string;
+        bornOnLabel?: string;
+        genderLabel?: string;
+    },
+): Record<string, string> {
+    const trackCode = payload.trackCode ?? fiche.trackCode ?? '';
+    const issuedOnLabel =
+        payload.issuedOn ??
+        new Intl.DateTimeFormat('fr-FR', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+        }).format(new Date(`${document.issuedOn}T12:00:00`));
 
-    return DEFAULT_BODIES[kind]
-        .replaceAll('{{name}}', name)
-        .replaceAll('{{classroom}}', classroom)
-        .replaceAll('{{year}}', fiche.yearLabel)
-        .replaceAll('{{yearLabel}}', fiche.yearLabel);
+    return {
+        title: document.title,
+        name: payload.name ?? fiche.name,
+        classroomName: payload.classroomName ?? fiche.classroomName,
+        yearLabel: payload.yearLabel ?? fiche.yearLabel,
+        trackCode,
+        trackSuffix: trackCode ? ` (série ${trackCode})` : '',
+        bornOnLabel:
+            payload.bornOnLabel ?? formatFrDate(fiche.student.bornOn),
+        genderLabel: (
+            payload.genderLabel ?? genderLabel(fiche.student.gender)
+        ).toLowerCase(),
+        matricule: fiche.student.matricule,
+        schoolName: fiche.profile.name,
+        directorName: fiche.profile.directorName,
+        city: fiche.profile.city,
+        address: fiche.profile.address ?? '',
+        phone: fiche.profile.phone ?? '',
+        issuedOn: issuedOnLabel,
+        number: document.number,
+    };
 }
 
 function IssuedCertificate({
@@ -1056,24 +1089,20 @@ function IssuedCertificate({
         trackCode?: string | null;
         name?: string;
         templateBody?: string | null;
+        bornOnLabel?: string;
+        genderLabel?: string;
     };
-    const issuedOnLabel =
-        payload.issuedOn ??
-        new Intl.DateTimeFormat('fr-FR', {
-            day: 'numeric',
-            month: 'long',
-            year: 'numeric',
-        }).format(new Date(`${document.issuedOn}T12:00:00`));
-    const name = payload.name ?? fiche.name;
-    const gender = genderLabel(fiche.student.gender).toLowerCase();
+    const values = certificatePlaceholderValues(fiche, document, payload);
+    const sourceBody =
+        (payload.templateBody && payload.templateBody.trim() !== ''
+            ? payload.templateBody
+            : DEFAULT_BODIES[kind]) ?? DEFAULT_BODIES.attestation;
+    const filledBody = fillDocumentPlaceholders(sourceBody, values);
+    const paragraphs = filledBody
+        .split(/\n{2,}/)
+        .map((part) => part.trim())
+        .filter(Boolean);
     const revoked = document.status === 'revoked';
-    const previewFiche = {
-        ...fiche,
-        classroomName: payload.classroomName ?? fiche.classroomName,
-        yearLabel: payload.yearLabel ?? fiche.yearLabel,
-        trackCode: payload.trackCode ?? fiche.trackCode,
-    };
-    const bodyLead = certificateBody(kind, previewFiche, name);
 
     return (
         <article
@@ -1093,22 +1122,21 @@ function IssuedCertificate({
             <h1 className="mt-10 mb-8 text-center text-[20px] font-bold tracking-[0.04em] uppercase sm:text-[22px]">
                 {document.title}
             </h1>
-            <p className="text-[15px] leading-7">
-                Je soussigné(e), <strong>{fiche.profile.directorName}</strong>,
-                chef d’établissement du {fiche.profile.name}, {bodyLead} Élève{' '}
-                {gender}, né(e) le {formatFrDate(fiche.student.bornOn)},
-                matricule <strong>{fiche.student.matricule}</strong>.
-            </p>
-            <p className="mt-6 text-[15px] leading-7">
-                La présente pièce est délivrée pour servir et valoir ce que de
-                droit.
-            </p>
-            <DocumentSignatureBlock
-                city={fiche.profile.city}
-                issuedOn={issuedOnLabel}
-                stampUrl={fiche.profile.stampUrl}
-                name={fiche.profile.directorName}
-            />
+            <div className="space-y-4 text-[15px] leading-7 whitespace-pre-wrap">
+                {paragraphs.map((paragraph, index) => (
+                    <p key={`${index}-${paragraph.slice(0, 24)}`}>
+                        {paragraph}
+                    </p>
+                ))}
+            </div>
+            <div className="print-closing">
+                <DocumentSignatureBlock
+                    city={fiche.profile.city}
+                    issuedOn={values.issuedOn}
+                    stampUrl={fiche.profile.stampUrl}
+                    name={fiche.profile.directorName}
+                />
+            </div>
             {!revoked ? (
                 <DocumentAuthenticityQr
                     claims={{

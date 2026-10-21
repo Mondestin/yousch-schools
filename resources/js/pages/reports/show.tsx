@@ -1,12 +1,12 @@
 import { Head } from '@inertiajs/react';
 import { Printer } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { BulletinLetterhead } from '@/components/sms/bulletin-letterhead';
 import {
     DocumentAuthenticityQr,
     useDocumentVerifyUrl,
 } from '@/components/sms/document-authenticity-qr';
 import { DocumentPied } from '@/components/sms/document-pied';
+import { DocumentSchoolHeader } from '@/components/sms/document-school-header';
 import { DocumentSignatureBlock } from '@/components/sms/document-signature';
 import { EmptyState } from '@/components/sms/empty-state';
 import { PageShell } from '@/components/sms/page-shell';
@@ -163,10 +163,7 @@ export default function ReportShowPage({
 
                 <article className="print-bulletin mx-auto max-w-[210mm] bg-white p-8 text-black">
                     <header className="grid grid-cols-2 items-start gap-8">
-                        <BulletinLetterhead
-                            profile={bulletin.profile}
-                            logoUrl={bulletin.profile.logoUrl}
-                        />
+                        <DocumentSchoolHeader profile={bulletin.profile} />
                         <div className="text-center text-[12px] leading-5">
                             <p className="text-[14px] font-semibold uppercase">
                                 {COUNTRY_NAME}
@@ -288,24 +285,22 @@ export default function ReportShowPage({
                                         : formatNote(bulletin.average)}
                                 </strong>
                             </p>
-                            <DocumentSignatureBlock
-                                className="mt-4"
-                                city={bulletin.profile.city}
-                                issuedOn={bulletin.issuedOn}
-                                stampUrl={bulletin.profile.stampUrl}
-                                role="Le Directeur"
-                                name={bulletin.profile.directorName}
-                            />
-                            <DocumentPied
-                                profile={bulletin.profile}
-                                className="mt-4 text-left"
-                            />
-                            <DocumentAuthenticityQr
-                                url={verifyUrl}
-                                className="mt-3 ml-auto"
-                            />
+                            <div className="print-closing mt-4">
+                                <DocumentSignatureBlock
+                                    city={bulletin.profile.city}
+                                    issuedOn={bulletin.issuedOn}
+                                    stampUrl={bulletin.profile.stampUrl}
+                                    role="Le Directeur"
+                                    name={bulletin.profile.directorName}
+                                />
+                            </div>
                         </div>
                     </div>
+                    <DocumentAuthenticityQr
+                        verifyUrl={verifyUrl}
+                        claims={authenticityClaims}
+                    />
+                    <DocumentPied />
                 </article>
             </PageShell>
         </>

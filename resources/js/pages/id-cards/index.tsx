@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import {
+    contrastTextOn,
     DEFAULT_ID_CARD_ACCENT,
     ID_CARD_FIELD_LABELS,
     ID_CARD_HEIGHT_MM,
@@ -130,6 +131,12 @@ export default function IdCardsIndex({ catalog }: { catalog: SchoolDataset }) {
     const [layout, setLayout] = useState<IdCardLayout>('classic');
     const [accent, setAccent] = useState(
         catalog.profile.idCardAccent || DEFAULT_ID_CARD_ACCENT,
+    );
+    const [headerText, setHeaderText] = useState(
+        catalog.profile.idCardHeaderText || contrastTextOn(accent),
+    );
+    const [headerTextAuto, setHeaderTextAuto] = useState(
+        catalog.profile.idCardHeaderText == null,
     );
     const [savingTheme, setSavingTheme] = useState(false);
     const [showQr, setShowQr] = useState(true);
@@ -428,7 +435,10 @@ export default function IdCardsIndex({ catalog }: { catalog: SchoolDataset }) {
         }
     }
 
-    async function saveTheme(nextAccent: string): Promise<void> {
+    async function saveTheme(patch: {
+        idCardAccent?: string;
+        idCardHeaderText?: string | null;
+    }): Promise<void> {
         if (!isAdmin) {
             return;
         }
@@ -438,15 +448,52 @@ export default function IdCardsIndex({ catalog }: { catalog: SchoolDataset }) {
         try {
             const profile = await apiData<SchoolProfile>(updateTheme.url(), {
                 method: 'PUT',
-                body: { idCardAccent: nextAccent },
+                body: patch,
             });
             setAccent(profile.idCardAccent);
+            setHeaderTextAuto(profile.idCardHeaderText == null);
+            setHeaderText(
+                profile.idCardHeaderText ||
+                    contrastTextOn(profile.idCardAccent),
+            );
             toastSaved('Thème enregistré');
             router.reload({ only: ['catalog'] });
         } catch (error) {
             toastApiError(error);
         } finally {
             setSavingTheme(false);
+        }
+    }
+
+    function commitAccent(next: string): void {
+        if (!/^#[0-9A-Fa-f]{6}$/.test(next)) {
+            return;
+        }
+
+        if (headerTextAuto) {
+            setHeaderText(contrastTextOn(next));
+        }
+
+        if (next !== (catalog.profile.idCardAccent || DEFAULT_ID_CARD_ACCENT)) {
+            void saveTheme({
+                idCardAccent: next,
+                ...(headerTextAuto
+                    ? { idCardHeaderText: null }
+                    : { idCardHeaderText: headerText }),
+            });
+        }
+    }
+
+    function commitHeaderText(next: string): void {
+        if (!/^#[0-9A-Fa-f]{6}$/.test(next)) {
+            return;
+        }
+
+        setHeaderTextAuto(false);
+        setHeaderText(next);
+
+        if (next !== (catalog.profile.idCardHeaderText || '')) {
+            void saveTheme({ idCardHeaderText: next });
         }
     }
 
@@ -861,6 +908,9 @@ export default function IdCardsIndex({ catalog }: { catalog: SchoolDataset }) {
                                     schoolLogoUrl={catalog.profile.logoUrl}
                                     yearLabel={academicYearLabel}
                                     accent={accent}
+                                    headerTextColor={
+                                        headerTextAuto ? null : headerText
+                                    }
                                     layout={layout}
                                     showQr={showQr}
                                     visibleFields={visibleFields}
@@ -954,71 +1004,160 @@ export default function IdCardsIndex({ catalog }: { catalog: SchoolDataset }) {
                         ) : null}
 
                         <div className="space-y-3">
-                            <Label>Couleur de la carte</Label>
+                            <Label>Couleurs de la carte</Label>
                             {isAdmin ? (
-                                <div className="space-y-1.5">
-                                    <Label
-                                        htmlFor="card-accent"
-                                        className="text-muted-foreground text-[12px] font-normal"
-                                    >
-                                        En-tête / bandeau
-                                    </Label>
-                                    <div className="flex items-center gap-2">
-                                        <Input
-                                            id="card-accent"
-                                            type="color"
-                                            value={accent}
-                                            disabled={savingTheme}
-                                            onChange={(event) =>
-                                                setAccent(event.target.value)
-                                            }
-                                            onBlur={() => {
-                                                if (
-                                                    /^#[0-9A-Fa-f]{6}$/.test(
-                                                        accent,
-                                                    ) &&
-                                                    accent !==
-                                                        (catalog.profile
-                                                            .idCardAccent ||
-                                                            DEFAULT_ID_CARD_ACCENT)
-                                                ) {
-                                                    void saveTheme(accent);
+                                <div className="space-y-3">
+                                    <div className="space-y-1.5">
+                                        <Label
+                                            htmlFor="card-accent"
+                                            className="text-muted-foreground text-[12px] font-normal"
+                                        >
+                                            En-tête / bandeau
+                                        </Label>
+                                        <div className="flex items-center gap-2">
+                                            <Input
+                                                id="card-accent"
+                                                type="color"
+                                                value={accent}
+                                                disabled={savingTheme}
+                                                onChange={(event) => {
+                                                    const next =
+                                                        event.target.value;
+                                                    setAccent(next);
+                                                    if (headerTextAuto) {
+                                                        setHeaderText(
+                                                            contrastTextOn(
+                                                                next,
+                                                            ),
+                                                        );
+                                                    }
+                                                }}
+                                                onBlur={() =>
+                                                    commitAccent(accent)
                                                 }
-                                            }}
-                                            className="h-10 w-14 cursor-pointer p-1"
-                                        />
-                                        <Input
-                                            value={accent}
-                                            disabled={savingTheme}
-                                            onChange={(event) =>
-                                                setAccent(event.target.value)
-                                            }
-                                            onBlur={() => {
-                                                if (
-                                                    /^#[0-9A-Fa-f]{6}$/.test(
-                                                        accent,
-                                                    ) &&
-                                                    accent !==
-                                                        (catalog.profile
-                                                            .idCardAccent ||
-                                                            DEFAULT_ID_CARD_ACCENT)
-                                                ) {
-                                                    void saveTheme(accent);
+                                                className="h-10 w-14 cursor-pointer p-1"
+                                            />
+                                            <Input
+                                                value={accent}
+                                                disabled={savingTheme}
+                                                onChange={(event) => {
+                                                    const next =
+                                                        event.target.value;
+                                                    setAccent(next);
+                                                    if (
+                                                        headerTextAuto &&
+                                                        /^#[0-9A-Fa-f]{6}$/.test(
+                                                            next,
+                                                        )
+                                                    ) {
+                                                        setHeaderText(
+                                                            contrastTextOn(
+                                                                next,
+                                                            ),
+                                                        );
+                                                    }
+                                                }}
+                                                onBlur={() =>
+                                                    commitAccent(accent)
                                                 }
-                                            }}
-                                            className="font-mono text-[12px]"
-                                        />
+                                                className="font-mono text-[12px]"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <Label
+                                            htmlFor="card-header-text"
+                                            className="text-muted-foreground text-[12px] font-normal"
+                                        >
+                                            Nom de l’établissement (en-tête)
+                                        </Label>
+                                        <div className="flex items-center gap-2">
+                                            <Input
+                                                id="card-header-text"
+                                                type="color"
+                                                value={headerText}
+                                                disabled={savingTheme}
+                                                onChange={(event) => {
+                                                    setHeaderTextAuto(false);
+                                                    setHeaderText(
+                                                        event.target.value,
+                                                    );
+                                                }}
+                                                onBlur={() =>
+                                                    commitHeaderText(
+                                                        headerText,
+                                                    )
+                                                }
+                                                className="h-10 w-14 cursor-pointer p-1"
+                                            />
+                                            <Input
+                                                value={headerText}
+                                                disabled={savingTheme}
+                                                onChange={(event) => {
+                                                    setHeaderTextAuto(false);
+                                                    setHeaderText(
+                                                        event.target.value,
+                                                    );
+                                                }}
+                                                onBlur={() =>
+                                                    commitHeaderText(
+                                                        headerText,
+                                                    )
+                                                }
+                                                className="font-mono text-[12px]"
+                                            />
+                                        </div>
+                                        <p className="text-muted-foreground text-[11px]">
+                                            {headerTextAuto
+                                                ? 'Auto : noir sur fond clair, blanc sur fond foncé.'
+                                                : 'Couleur personnalisée enregistrée.'}
+                                        </p>
+                                        {!headerTextAuto ? (
+                                            <button
+                                                type="button"
+                                                className="text-primary text-[11px] font-medium underline-offset-2 hover:underline"
+                                                disabled={savingTheme}
+                                                onClick={() => {
+                                                    setHeaderTextAuto(true);
+                                                    const next =
+                                                        contrastTextOn(accent);
+                                                    setHeaderText(next);
+                                                    void saveTheme({
+                                                        idCardHeaderText: null,
+                                                    });
+                                                }}
+                                            >
+                                                Revenir au contraste auto
+                                            </button>
+                                        ) : null}
                                     </div>
                                 </div>
                             ) : (
-                                <div className="text-muted-foreground flex items-center gap-2 rounded-[10px] border px-3 py-2 text-[12px]">
-                                    <span
-                                        className="size-5 rounded-full border border-black/5"
-                                        style={{ background: accent }}
-                                    />
-                                    <span className="font-mono">{accent}</span>
-                                    <LockKeyhole className="ml-auto size-3.5" />
-                                    Admin uniquement
+                                <div className="text-muted-foreground space-y-2 rounded-[10px] border px-3 py-2 text-[12px]">
+                                    <div className="flex items-center gap-2">
+                                        <span
+                                            className="size-5 rounded-full border border-black/5"
+                                            style={{ background: accent }}
+                                        />
+                                        <span className="font-mono">
+                                            {accent}
+                                        </span>
+                                        <LockKeyhole className="ml-auto size-3.5" />
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <span
+                                            className="size-5 rounded-full border border-black/5"
+                                            style={{
+                                                background: headerText,
+                                            }}
+                                        />
+                                        <span className="font-mono">
+                                            {headerText}
+                                        </span>
+                                        <span className="text-muted-foreground ml-auto text-[11px]">
+                                            Admin uniquement
+                                        </span>
+                                    </div>
                                 </div>
                             )}
                         </div>
@@ -1051,6 +1190,11 @@ export default function IdCardsIndex({ catalog }: { catalog: SchoolDataset }) {
                                           }
                                           yearLabel={academicYearLabel}
                                           accent={accent}
+                                          headerTextColor={
+                                              headerTextAuto
+                                                  ? null
+                                                  : headerText
+                                          }
                                           layout={layout}
                                           showQr={showQr}
                                           visibleFields={visibleFields}

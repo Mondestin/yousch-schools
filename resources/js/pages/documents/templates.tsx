@@ -1,6 +1,12 @@
 import { Head } from '@inertiajs/react';
-import { FileStack, Save } from 'lucide-react';
-import { useMemo, useState, type ReactNode } from 'react';
+import { FileStack, Printer, Save } from 'lucide-react';
+import {
+    useMemo,
+    useRef,
+    useState,
+    type ReactNode,
+    type Ref,
+} from 'react';
 import { DocumentPied } from '@/components/sms/document-pied';
 import { DocumentSchoolHeader } from '@/components/sms/document-school-header';
 import { DocumentSignatureBlock } from '@/components/sms/document-signature';
@@ -12,6 +18,11 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useSchoolContext } from '@/hooks/use-school-context';
 import { apiData } from '@/lib/api';
+import {
+    fillDocumentPlaceholders,
+    placeholdersForKind,
+} from '@/lib/document-placeholders';
+import { printDomElement } from '@/lib/school-export';
 import { formatFrDate } from '@/lib/school-rows';
 import { toastApiError, toastSaved } from '@/lib/school-toast';
 import {
@@ -30,23 +41,6 @@ const KIND_LABEL: Record<string, string> = {
     certificat_conduite: 'Certificat de bonne conduite',
 };
 
-const PLACEHOLDERS = [
-    'name',
-    'matricule',
-    'classroomName',
-    'yearLabel',
-    'trackSuffix',
-    'bornOnLabel',
-    'genderLabel',
-    'directorName',
-    'schoolName',
-    'city',
-    'address',
-    'phone',
-    'issuedOn',
-    'number',
-] as const;
-
 export default function DocumentTemplatesPage({
     catalog,
     documentTemplates,
@@ -55,6 +49,7 @@ export default function DocumentTemplatesPage({
     documentTemplates: DocumentTemplate[];
 }) {
     const { academicYearLabel } = useSchoolContext();
+    const previewRef = useRef<HTMLElement | null>(null);
     const [templates, setTemplates] = useState(documentTemplates);
     const [selectedId, setSelectedId] = useState<string | null>(
         documentTemplates[0]?.id ?? null,
@@ -73,6 +68,11 @@ export default function DocumentTemplatesPage({
         (title.trim() !== selected.title ||
             (body.trim() || '') !== (selected.body ?? '').trim());
 
+    const legend = useMemo(
+        () => placeholdersForKind(selected?.kind ?? 'attestation'),
+        [selected?.kind],
+    );
+
     const sampleValues = useMemo(() => {
         const issuedOn = new Intl.DateTimeFormat('fr-FR', {
             day: 'numeric',
@@ -86,6 +86,7 @@ export default function DocumentTemplatesPage({
             classroomName: 'CM2 A',
             yearLabel: academicYearLabel || '—',
             trackSuffix: '',
+            trackCode: '',
             bornOnLabel: formatFrDate('2014-03-12'),
             genderLabel: 'féminin',
             directorName: catalog.profile.directorName || 'Aminata Diop',
@@ -102,7 +103,7 @@ export default function DocumentTemplatesPage({
     }, [academicYearLabel, catalog.profile, title]);
 
     const previewBody = useMemo(
-        () => fillPlaceholders(body || '', sampleValues),
+        () => fillDocumentPlaceholders(body || '', sampleValues),
         [body, sampleValues],
     );
 
@@ -130,6 +131,18 @@ export default function DocumentTemplatesPage({
 
             return current === '' ? token : `${current}${token}`;
         });
+    }
+
+    function printPreview(): void {
+        const node = previewRef.current;
+        if (!node) {
+            return;
+        }
+
+        printDomElement(
+            title.trim() || selected?.title || 'Aperçu document',
+            node,
+        );
     }
 
     async function saveTemplate(): Promise<void> {
@@ -168,47 +181,52 @@ export default function DocumentTemplatesPage({
             <Head title="Modèles de documents" />
             <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden px-6 pt-4 pb-4">
                 <div className="flex shrink-0 flex-wrap items-end justify-between gap-3">
-                    <div className="flex min-w-0 flex-1 flex-wrap items-end gap-3">
-                        <div className="min-w-0 sm:min-w-[18rem] sm:max-w-[24rem] sm:flex-1">
-                            <Field id="template-catalog" label="Catalogue">
-                                <SearchSelect
-                                    value={selectedId ?? ''}
-                                    onValueChange={(value) => {
-                                        const template = templates.find(
-                                            (item) => item.id === value,
-                                        );
-                                        if (template) {
-                                            selectTemplate(template);
-                                        }
-                                    }}
-                                    aria-label="Catalogue des modèles"
-                                    placeholder="Choisir un modèle"
-                                    searchPlaceholder="Rechercher un modèle..."
-                                    options={templates.map((template) => ({
-                                        value: template.id,
-                                        label: template.title,
-                                        keywords:
-                                            KIND_LABEL[template.kind] ??
-                                            template.kind,
-                                    }))}
-                                />
-                            </Field>
-                        </div>
-                        <p className="text-muted-foreground pb-2 text-[12px]">
-                            Aperçu papier · modification en direct ·
-                            placeholders remplacés à l’émission.
-                        </p>
+                    <div className="min-w-0 sm:min-w-[18rem] sm:max-w-[24rem] sm:flex-1">
+                        <Field id="template-catalog" label="Catalogue">
+                            <SearchSelect
+                                value={selectedId ?? ''}
+                                onValueChange={(value) => {
+                                    const template = templates.find(
+                                        (item) => item.id === value,
+                                    );
+                                    if (template) {
+                                        selectTemplate(template);
+                                    }
+                                }}
+                                aria-label="Catalogue des modèles"
+                                placeholder="Choisir un modèle"
+                                searchPlaceholder="Rechercher un modèle..."
+                                options={templates.map((template) => ({
+                                    value: template.id,
+                                    label: template.title,
+                                    keywords:
+                                        KIND_LABEL[template.kind] ??
+                                        template.kind,
+                                }))}
+                            />
+                        </Field>
                     </div>
-                    <Button
-                        type="button"
-                        disabled={!dirty || saving || selected === null}
-                        onClick={() => {
-                            void saveTemplate();
-                        }}
-                    >
-                        <Save />
-                        {saving ? 'Enregistrement…' : 'Enregistrer'}
-                    </Button>
+                    <div className="flex flex-wrap gap-2">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            disabled={selected === null}
+                            onClick={printPreview}
+                        >
+                            <Printer />
+                            Aperçu impression
+                        </Button>
+                        <Button
+                            type="button"
+                            disabled={!dirty || saving || selected === null}
+                            onClick={() => {
+                                void saveTemplate();
+                            }}
+                        >
+                            <Save />
+                            {saving ? 'Enregistrement…' : 'Enregistrer'}
+                        </Button>
+                    </div>
                 </div>
 
                 <div className="grid min-h-0 flex-1 gap-4 overflow-hidden xl:grid-cols-[minmax(18rem,24rem)_minmax(0,1fr)]">
@@ -230,39 +248,41 @@ export default function DocumentTemplatesPage({
                                         }
                                     />
                                 </Field>
-                                <Field
-                                    id="template-body"
-                                    label="Corps du texte"
-                                    hint="Utilisez les placeholders ci-dessous. L’aperçu se met à jour immédiatement."
-                                >
-                                    <Textarea
+                                <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-hidden">
+                                    <Field
                                         id="template-body"
-                                        value={body}
-                                        onChange={(event) =>
-                                            setBody(event.target.value)
-                                        }
-                                        className="min-h-[12rem] resize-none font-mono text-[12px] leading-5 xl:min-h-[18rem]"
-                                    />
-                                </Field>
-                                <div className="shrink-0 space-y-2">
-                                    <p className="text-muted-foreground text-[12px] font-medium">
-                                        Insérer un placeholder
-                                    </p>
-                                    <div className="flex flex-wrap gap-1.5">
-                                        {PLACEHOLDERS.map((key) => (
-                                            <Button
-                                                key={key}
-                                                type="button"
-                                                size="sm"
-                                                variant="outline"
-                                                className="h-7 px-2 font-mono text-[11px]"
-                                                onClick={() =>
-                                                    insertPlaceholder(key)
-                                                }
-                                            >
-                                                {`{{${key}}}`}
-                                            </Button>
-                                        ))}
+                                        label="Corps du texte"
+                                    >
+                                        <Textarea
+                                            id="template-body"
+                                            value={body}
+                                            onChange={(event) =>
+                                                setBody(event.target.value)
+                                            }
+                                            className="min-h-[10rem] resize-none font-mono text-[12px] leading-5 xl:min-h-[14rem]"
+                                        />
+                                    </Field>
+                                    <div className="min-h-0 shrink-0 space-y-1.5 overflow-y-auto pb-1">
+                                        <p className="text-muted-foreground text-[12px]">
+                                            Cliquez pour insérer dans le texte
+                                        </p>
+                                        <div className="flex flex-wrap gap-1.5">
+                                            {legend.map((item) => (
+                                                <button
+                                                    key={item.key}
+                                                    type="button"
+                                                    title={item.description}
+                                                    className="border-border text-foreground hover:bg-muted inline-flex h-7 items-center rounded-md border bg-white px-2 font-mono text-[11px] transition-colors"
+                                                    onClick={() =>
+                                                        insertPlaceholder(
+                                                            item.key,
+                                                        )
+                                                    }
+                                                >
+                                                    {`{{${item.key}}}`}
+                                                </button>
+                                            ))}
+                                        </div>
                                     </div>
                                 </div>
                             </>
@@ -288,6 +308,7 @@ export default function DocumentTemplatesPage({
                                 }
                             >
                                 <TemplateCertificate
+                                    ref={previewRef}
                                     profile={catalog.profile}
                                     title={title.trim() || selected.title}
                                     body={previewBody}
@@ -305,15 +326,6 @@ export default function DocumentTemplatesPage({
     );
 }
 
-function fillPlaceholders(
-    source: string,
-    values: Record<string, string>,
-): string {
-    return source.replaceAll(/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g, (_, key: string) => {
-        return values[key] ?? `{{${key}}}`;
-    });
-}
-
 function PaperFrame({
     title,
     subtitle,
@@ -325,16 +337,12 @@ function PaperFrame({
 }) {
     return (
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-            <div className="flex shrink-0 items-end justify-between gap-3 px-1 pb-3">
-                <div>
-                    <p className="text-[14px] font-semibold">{title}</p>
-                    <p className="text-muted-foreground text-[12px]">
-                        {subtitle}
-                    </p>
-                </div>
+            <div className="shrink-0 px-1 pb-3">
+                <p className="text-[14px] font-semibold">{title}</p>
+                <p className="text-muted-foreground text-[12px]">{subtitle}</p>
             </div>
             <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain rounded-[12px] border border-black/5 bg-[#ece8f1] p-3 sm:p-5">
-                <div className="mx-auto max-w-[210mm] overflow-hidden rounded-[2px] bg-white shadow-[0_12px_40px_rgba(26,18,37,0.12)]">
+                <div className="mx-auto max-w-[210mm] overflow-x-clip bg-white shadow-[0_12px_40px_rgba(26,18,37,0.12)]">
                     {children}
                 </div>
             </div>
@@ -350,6 +358,7 @@ function TemplateCertificate({
     issuedOn,
     directorName,
     city,
+    ref,
 }: {
     profile: SchoolDataset['profile'];
     title: string;
@@ -358,6 +367,7 @@ function TemplateCertificate({
     issuedOn: string;
     directorName: string;
     city: string;
+    ref?: Ref<HTMLElement | null>;
 }) {
     const paragraphs = body
         .split(/\n{2,}/)
@@ -365,7 +375,11 @@ function TemplateCertificate({
         .filter(Boolean);
 
     return (
-        <article className="print-bulletin mx-auto max-w-[210mm] bg-white p-8 text-black sm:p-10">
+        <article
+            ref={ref}
+            data-print-root="student-document"
+            className="print-bulletin mx-auto max-w-[210mm] bg-white p-8 text-black sm:p-10"
+        >
             <DocumentSchoolHeader profile={profile} number={number} />
             <h1 className="mt-10 mb-8 text-center text-[20px] font-bold tracking-[0.04em] uppercase sm:text-[22px]">
                 {title}
@@ -383,12 +397,14 @@ function TemplateCertificate({
                     </p>
                 )}
             </div>
-            <DocumentSignatureBlock
-                city={city}
-                issuedOn={issuedOn}
-                stampUrl={profile.stampUrl}
-                name={directorName}
-            />
+            <div className="print-closing">
+                <DocumentSignatureBlock
+                    city={city}
+                    issuedOn={issuedOn}
+                    stampUrl={profile.stampUrl}
+                    name={directorName}
+                />
+            </div>
             <DocumentPied />
         </article>
     );

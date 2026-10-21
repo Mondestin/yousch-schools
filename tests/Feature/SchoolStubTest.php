@@ -305,7 +305,8 @@ test('school profile includes promoter director city and logo field', function (
         ->and($profile)->toHaveKey('logoUrl')
         ->and($profile)->toHaveKey('stampUrl')
         ->and($profile)->toHaveKey('idCardAccent')
-        ->and($profile)->toHaveKey('idCardBody');
+        ->and($profile)->toHaveKey('idCardBody')
+        ->and($profile)->toHaveKey('idCardHeaderText');
 });
 
 test('each academic year has three trimestres', function () {
