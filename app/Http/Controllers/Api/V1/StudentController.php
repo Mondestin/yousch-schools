@@ -226,13 +226,16 @@ class StudentController extends Controller
         $this->storeDossierFiles($model, $request->file('files'), 'students/dossiers');
 
         $model = $model->fresh();
+
+        // Collège / lycée: create portal login when the pupil has an e-mail and no account yet
+        // (inscription without mail, admission path, or staff adding the e-mail later).
         $cycle = PortalAccountProvisioner::cycleForStudent($model);
 
         if (
             ! $hadAccount
+            && filled($model->email)
             && $cycle !== null
             && $cycle->needsStudentPortal()
-            && filled($model->email)
         ) {
             PortalAccountProvisioner::forStudent($model, $cycle);
             $model = $model->fresh();
