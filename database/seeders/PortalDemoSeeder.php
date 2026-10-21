@@ -34,7 +34,6 @@ use App\Models\User;
 use App\Support\Tenancy\CurrentSchool;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
 /**
  * Deterministic élève / parent accounts + rich portal data for local testing.
@@ -86,8 +85,8 @@ class PortalDemoSeeder extends Seeder
             return;
         }
 
-        $this->seedStablePhotos($schoolId);
         $this->seedAccountsAndStudent($schoolId, $classroom);
+        $this->seedStablePhotos($schoolId);
         $this->seedClosedMarkingWindows($schoolId);
         $this->seedAssessmentsGradesAndBulletin($schoolId, $classroom);
         $this->seedPlanningAttendancePayments($schoolId, $classroom);
@@ -102,49 +101,132 @@ class PortalDemoSeeder extends Seeder
     }
 
     /**
-     * Stable external avatars — seed in URL never changes the image.
+     * Demo-only synthetic ID photos from /public/demo/student-id (no real kids, no reuse).
      */
     private function seedStablePhotos(string $schoolId): void
     {
         SchoolProfile::query()
             ->where('school_id', $schoolId)
             ->update([
-                'logo_url' => $this->photoUrl('school-palmiers-logo', 'initials'),
+                'logo_url' => $this->schoolLogoUrl(),
                 'id_card_accent' => '#6425d0',
                 'id_card_body' => '#ffffff',
             ]);
 
-        Student::query()->each(function (Student $student): void {
-            if ($student->photo_url !== null && str_contains($student->photo_url, 'dicebear.com')) {
+        $girlSamples = $this->demoIdPhotoFiles(preferGirl: true);
+        $boySamples = $this->demoIdPhotoFiles(preferGirl: false);
+
+        // Demo pupil first, then others — each sample file used at most once.
+        $students = Student::query()
+            ->orderByRaw('case when id = ? then 0 else 1 end', [self::STUDENT_ID])
+            ->orderBy('id')
+            ->get();
+
+        foreach ($students as $student) {
+            if ($this->shouldKeepUploadedPhoto($student->photo_url)) {
+                continue;
+            }
+
+            $preferGirl = $student->gender === Gender::Femme;
+            $url = null;
+
+            if ($preferGirl && $girlSamples !== []) {
+                $url = array_shift($girlSamples);
+            } elseif (! $preferGirl && $boySamples !== []) {
+                $url = array_shift($boySamples);
+            } elseif ($girlSamples !== []) {
+                $url = array_shift($girlSamples);
+            } elseif ($boySamples !== []) {
+                $url = array_shift($boySamples);
+            }
+
+            // No sample left → clear stock/remote photos (do not reuse).
+            $student->forceFill(['photo_url' => $url])->saveQuietly();
+        }
+
+        Teacher::query()->orderBy('id')->each(function (Teacher $teacher): void {
+            if ($this->shouldKeepUploadedPhoto($teacher->photo_url)) {
                 return;
             }
 
-            $student->forceFill([
-                'photo_url' => $this->photoUrl($student->id, 'avataaars'),
-            ])->saveQuietly();
-        });
-
-        Teacher::query()->each(function (Teacher $teacher): void {
-            if ($teacher->photo_url !== null && str_contains($teacher->photo_url, 'dicebear.com')) {
-                return;
+            // Teachers: no demo kid samples; clear remote stock portraits.
+            if ($this->isRemoteStockPhoto($teacher->photo_url)) {
+                $teacher->forceFill(['photo_url' => null])->saveQuietly();
             }
-
-            $teacher->forceFill([
-                'photo_url' => $this->photoUrl($teacher->id, 'avataaars'),
-            ])->saveQuietly();
         });
 
         User::query()
             ->where('school_id', $schoolId)
+            ->orderBy('id')
             ->each(function (User $user): void {
-                if ($user->avatar_url !== null && str_contains($user->avatar_url, 'dicebear.com')) {
+                if ($this->shouldKeepUploadedPhoto($user->avatar_url)) {
                     return;
                 }
 
-                $user->forceFill([
-                    'avatar_url' => $this->photoUrl('user-'.$user->id, 'avataaars'),
-                ])->saveQuietly();
+                if ($this->isRemoteStockPhoto($user->avatar_url)) {
+                    $user->forceFill(['avatar_url' => null])->saveQuietly();
+                }
             });
+
+        $demoStudent = Student::query()->find(self::STUDENT_ID);
+        if ($demoStudent?->user_id && $demoStudent->photo_url) {
+            User::query()
+                ->where('id', $demoStudent->user_id)
+                ->update(['avatar_url' => $demoStudent->photo_url]);
+        }
+    }
+
+    /**
+     * @return list<string> Public URLs under /demo/student-id
+     */
+    private function demoIdPhotoFiles(bool $preferGirl): array
+    {
+        $dir = public_path('demo/student-id');
+        if (! is_dir($dir)) {
+            return [];
+        }
+
+        // Odd files = girl samples, even = boy samples (generation order).
+        $wantOdd = $preferGirl;
+        $files = collect(scandir($dir) ?: [])
+            ->filter(fn (string $name): bool => (bool) preg_match('/^\d{2}\.jpg$/', $name))
+            ->sort()
+            ->values()
+            ->all();
+
+        $urls = [];
+        foreach ($files as $name) {
+            $n = (int) substr($name, 0, 2);
+            $isOdd = $n % 2 === 1;
+            if ($isOdd === $wantOdd) {
+                $urls[] = '/demo/student-id/'.$name;
+            }
+        }
+
+        return $urls;
+    }
+
+    private function shouldKeepUploadedPhoto(?string $url): bool
+    {
+        if ($url === null || trim($url) === '') {
+            return false;
+        }
+
+        return str_contains($url, '/storage/')
+            || str_contains($url, 'students/photos')
+            || str_contains($url, 'staff/avatars');
+    }
+
+    private function isRemoteStockPhoto(?string $url): bool
+    {
+        if ($url === null || trim($url) === '') {
+            return false;
+        }
+
+        return str_contains($url, 'dicebear.com')
+            || str_contains($url, 'unsplash.com')
+            || str_contains($url, 'randomuser.me')
+            || str_contains($url, 'pravatar.cc');
     }
 
     private function seedAccountsAndStudent(string $schoolId, Classroom $classroom): void
@@ -162,7 +244,6 @@ class PortalDemoSeeder extends Seeder
                 'password' => Hash::make(self::PASSWORD),
                 'email_verified_at' => now(),
                 'blocked_at' => null,
-                'avatar_url' => $this->photoUrl(self::STUDENT_ID, 'avataaars'),
             ],
         );
 
@@ -179,7 +260,6 @@ class PortalDemoSeeder extends Seeder
                 'password' => Hash::make(self::PASSWORD),
                 'email_verified_at' => now(),
                 'blocked_at' => null,
-                'avatar_url' => $this->photoUrl('gu-demo-portal', 'avataaars'),
             ],
         );
 
@@ -197,7 +277,6 @@ class PortalDemoSeeder extends Seeder
                 'phone' => '06 000 11 22',
                 'email' => self::ELEVE_EMAIL,
                 'enrolled_on' => '2026-09-02',
-                'photo_url' => $this->photoUrl(self::STUDENT_ID, 'avataaars'),
                 'user_id' => $eleve->id,
                 'school_id' => $schoolId,
             ],
@@ -516,10 +595,8 @@ class PortalDemoSeeder extends Seeder
         );
     }
 
-    private function photoUrl(string $seed, string $style = 'avataaars'): string
+    private function schoolLogoUrl(): string
     {
-        $safe = Str::slug($seed) ?: 'yousch';
-
-        return "https://api.dicebear.com/9.x/{$style}/png?seed={$safe}&size=256";
+        return 'https://images.unsplash.com/photo-1580582932707-520aed937bd7?auto=format&fit=crop&w=320&h=240&q=80';
     }
 }

@@ -20,13 +20,30 @@ test('admin can update identity card theme color', function () {
         ->putJson('/api/v1/identity-cards/theme', [
             'idCardAccent' => '#fd7302',
             'idCardBody' => '#fff4eb',
+            'idCardHeaderText' => '#121826',
         ])
         ->assertOk()
         ->assertJsonPath('data.idCardAccent', '#fd7302')
-        ->assertJsonPath('data.idCardBody', '#fff4eb');
+        ->assertJsonPath('data.idCardBody', '#fff4eb')
+        ->assertJsonPath('data.idCardHeaderText', '#121826');
 
     expect(SchoolProfile::query()->value('id_card_accent'))->toBe('#fd7302')
-        ->and(SchoolProfile::query()->value('id_card_body'))->toBe('#fff4eb');
+        ->and(SchoolProfile::query()->value('id_card_body'))->toBe('#fff4eb')
+        ->and(SchoolProfile::query()->value('id_card_header_text'))->toBe('#121826');
+});
+
+test('admin can clear identity card header text to use auto contrast', function () {
+    $admin = User::factory()->create(['role' => StaffRole::Admin]);
+    SchoolProfile::query()->update(['id_card_header_text' => '#ffffff']);
+
+    $this->actingAs($admin)
+        ->putJson('/api/v1/identity-cards/theme', [
+            'idCardHeaderText' => null,
+        ])
+        ->assertOk()
+        ->assertJsonPath('data.idCardHeaderText', null);
+
+    expect(SchoolProfile::query()->value('id_card_header_text'))->toBeNull();
 });
 
 test('directeur cannot update identity card theme color', function () {

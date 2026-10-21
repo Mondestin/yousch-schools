@@ -34,14 +34,6 @@
       "_createLucideIcon-i-FseEqw.js"
     ]
   },
-  "_bulletin-letterhead-DtPEP0Y9.js": {
-    "file": "assets/bulletin-letterhead-DtPEP0Y9.js",
-    "name": "bulletin-letterhead",
-    "imports": [
-      "_jsx-runtime-DXLt3b3x.js",
-      "_school-rows-GydT1C7k.js"
-    ]
-  },
   "_calendar-6LkFfo_V.js": {
     "file": "assets/calendar-6LkFfo_V.js",
     "name": "calendar",
@@ -56,8 +48,8 @@
       "_createLucideIcon-i-FseEqw.js"
     ]
   },
-  "_chart-card-LWmApfvY.js": {
-    "file": "assets/chart-card-LWmApfvY.js",
+  "_chart-card-BLfzH-04.js": {
+    "file": "assets/chart-card-BLfzH-04.js",
     "name": "chart-card",
     "imports": [
       "_rolldown-runtime-hePW80VL.js",
@@ -158,8 +150,8 @@
       "_wayfinder-DX7UQcfH.js"
     ]
   },
-  "_confirm-dialog-DZThyH49.js": {
-    "file": "assets/confirm-dialog-DZThyH49.js",
+  "_confirm-dialog-CIpxXnLR.js": {
+    "file": "assets/confirm-dialog-CIpxXnLR.js",
     "name": "confirm-dialog",
     "imports": [
       "_jsx-runtime-DXLt3b3x.js",
@@ -183,23 +175,19 @@
       "_jsx-runtime-DXLt3b3x.js"
     ]
   },
-  "_data-table-CckfpUav.js": {
-    "file": "assets/data-table-CckfpUav.js",
+  "_data-table-CcfHZetU.js": {
+    "file": "assets/data-table-CcfHZetU.js",
     "name": "data-table",
     "imports": [
       "_jsx-runtime-DXLt3b3x.js",
       "_wayfinder-DX7UQcfH.js",
       "_createLucideIcon-i-FseEqw.js",
       "resources/js/app.tsx",
-      "_school-toast-BVeSuXNv.js"
+      "_school-toast-Cv5qlubA.js"
     ]
   },
-  "_date-picker-Chw94eNX.css": {
-    "file": "assets/date-picker-Chw94eNX.css",
-    "src": "_date-picker-Chw94eNX.css"
-  },
-  "_date-picker-Dj5tBbTu.js": {
-    "file": "assets/date-picker-Dj5tBbTu.js",
+  "_date-picker-B8it4lQO.js": {
+    "file": "assets/date-picker-B8it4lQO.js",
     "name": "date-picker",
     "imports": [
       "_rolldown-runtime-hePW80VL.js",
@@ -216,8 +204,12 @@
       "assets/date-picker-Chw94eNX.css"
     ]
   },
-  "_detail-dialog-BCILxZrt.js": {
-    "file": "assets/detail-dialog-BCILxZrt.js",
+  "_date-picker-Chw94eNX.css": {
+    "file": "assets/date-picker-Chw94eNX.css",
+    "src": "_date-picker-Chw94eNX.css"
+  },
+  "_detail-dialog-C9GpydIN.js": {
+    "file": "assets/detail-dialog-C9GpydIN.js",
     "name": "detail-dialog",
     "imports": [
       "_jsx-runtime-DXLt3b3x.js",
@@ -328,8 +320,8 @@
       "_dist-Eb3P22SJ.js"
     ]
   },
-  "_document-authenticity-qr-BMpBcp-d.js": {
-    "file": "assets/document-authenticity-qr-BMpBcp-d.js",
+  "_document-authenticity-qr-CXd1riWj.js": {
+    "file": "assets/document-authenticity-qr-CXd1riWj.js",
     "name": "document-authenticity-qr",
     "imports": [
       "_rolldown-runtime-hePW80VL.js",
@@ -348,21 +340,26 @@
       "_wayfinder-DX7UQcfH.js"
     ]
   },
-  "_document-school-header-BA7v21sb.js": {
-    "file": "assets/document-school-header-BA7v21sb.js",
-    "name": "document-school-header",
-    "imports": [
-      "_jsx-runtime-DXLt3b3x.js",
-      "_wayfinder-DX7UQcfH.js",
-      "_school-rows-GydT1C7k.js"
-    ]
+  "_document-placeholders-D33WSXR3.js": {
+    "file": "assets/document-placeholders-D33WSXR3.js",
+    "name": "document-placeholders"
   },
-  "_document-signature-f_0nt6mK.js": {
-    "file": "assets/document-signature-f_0nt6mK.js",
+  "_document-signature-C--HK2Ut.js": {
+    "file": "assets/document-signature-C--HK2Ut.js",
     "name": "document-signature",
     "imports": [
       "_jsx-runtime-DXLt3b3x.js",
-      "_wayfinder-DX7UQcfH.js"
+      "_wayfinder-DX7UQcfH.js",
+      "_document-stamp-CfxR1Dx_.js"
+    ]
+  },
+  "_document-stamp-CfxR1Dx_.js": {
+    "file": "assets/document-stamp-CfxR1Dx_.js",
+    "name": "document-stamp",
+    "imports": [
+      "_jsx-runtime-DXLt3b3x.js",
+      "_wayfinder-DX7UQcfH.js",
+      "_school-rows-DDQUTfqQ.js"
     ]
   },
   "_download-KMxVAnpi.js": {
@@ -372,8 +369,8 @@
       "_createLucideIcon-i-FseEqw.js"
     ]
   },
-  "_empty-state-7Imq2bLe.js": {
-    "file": "assets/empty-state-7Imq2bLe.js",
+  "_empty-state-Dt7C9hNm.js": {
+    "file": "assets/empty-state-Dt7C9hNm.js",
     "name": "empty-state",
     "imports": [
       "_jsx-runtime-DXLt3b3x.js",
@@ -417,8 +414,8 @@
       "_createLucideIcon-i-FseEqw.js"
     ]
   },
-  "_file-list-field-bDF0oJN1.js": {
-    "file": "assets/file-list-field-bDF0oJN1.js",
+  "_file-list-field-k9iZ3S38.js": {
+    "file": "assets/file-list-field-k9iZ3S38.js",
     "name": "file-list-field",
     "imports": [
       "_jsx-runtime-DXLt3b3x.js",
@@ -426,7 +423,7 @@
       "_trash-2-CjwRdEjF.js",
       "resources/js/app.tsx",
       "_field-ug3RKPH_.js",
-      "_school-files-BF_Orh7q.js"
+      "_school-files-CSWJ-ACo.js"
     ]
   },
   "_fonts-CeWT54MI.css": {
@@ -441,16 +438,16 @@
       "_wayfinder-DX7UQcfH.js"
     ]
   },
-  "_form-sheet-CbV3rW9t.js": {
-    "file": "assets/form-sheet-CbV3rW9t.js",
+  "_form-sheet-SX6fVgk8.js": {
+    "file": "assets/form-sheet-SX6fVgk8.js",
     "name": "form-sheet",
     "imports": [
       "_jsx-runtime-DXLt3b3x.js",
       "resources/js/app.tsx"
     ]
   },
-  "_form-steps-D3Q6jVMR.js": {
-    "file": "assets/form-steps-D3Q6jVMR.js",
+  "_form-steps-lkqQoxf3.js": {
+    "file": "assets/form-steps-lkqQoxf3.js",
     "name": "form-steps",
     "imports": [
       "_jsx-runtime-DXLt3b3x.js",
@@ -463,40 +460,40 @@
     "file": "assets/fr-B0edKAg9.js",
     "name": "fr"
   },
-  "_gender-select-HCQdu4cb.js": {
-    "file": "assets/gender-select-HCQdu4cb.js",
+  "_gender-select-BQAVzPnv.js": {
+    "file": "assets/gender-select-BQAVzPnv.js",
     "name": "gender-select",
     "imports": [
       "_jsx-runtime-DXLt3b3x.js",
       "_select-BYfs74q9.js",
-      "_school-students-CPzd92k6.js",
+      "_school-students-av0bUjs9.js",
       "_field-ug3RKPH_.js"
     ]
   },
-  "_grade-sheet-IqvSm7ha.js": {
-    "file": "assets/grade-sheet-IqvSm7ha.js",
+  "_grade-sheet-C91SlFvY.js": {
+    "file": "assets/grade-sheet-C91SlFvY.js",
     "name": "grade-sheet",
     "imports": [
       "_rolldown-runtime-hePW80VL.js",
       "_jsx-runtime-DXLt3b3x.js",
       "_wayfinder-DX7UQcfH.js",
-      "_table-pagination-x-uT6P89.js",
-      "_data-table-CckfpUav.js",
+      "_table-pagination-D--Wuw6K.js",
+      "_data-table-CcfHZetU.js",
       "_hash-vW1C4iQY.js",
-      "_use-school-context-UC7d6UQn.js",
-      "_school-rows-GydT1C7k.js",
+      "_use-school-context-Dc9a10XV.js",
+      "_school-rows-DDQUTfqQ.js",
       "resources/js/app.tsx",
       "_school-form-DHodJKXQ.js",
-      "_school-toast-BVeSuXNv.js",
+      "_school-toast-Cv5qlubA.js",
       "_dialog-DomOv7at.js",
       "_field-ug3RKPH_.js",
-      "_list-page-ByZosQNB.js",
+      "_list-page-CmPgmRyZ.js",
       "_use-field-errors-sru_QvXp.js",
       "_table-DYHXgcxL.js",
       "_api-DXVM8nsA.js",
-      "_school-grades-CfTmeb0e.js",
+      "_school-grades-BicVnRSL.js",
       "_person-cell-CtILrzRz.js",
-      "_search-select-D9q0OLIA.js",
+      "_search-select-BJkOF3en.js",
       "_alert-DJX3vF86.js",
       "_school-marking-windows-xezbf8Wc.js"
     ]
@@ -554,8 +551,8 @@
       "_fr-B0edKAg9.js"
     ]
   },
-  "_jspdf.plugin.autotable-BnCLaJqz.js": {
-    "file": "assets/jspdf.plugin.autotable-BnCLaJqz.js",
+  "_jspdf.plugin.autotable-Cb5C6JQ1.js": {
+    "file": "assets/jspdf.plugin.autotable-Cb5C6JQ1.js",
     "name": "jspdf.plugin.autotable",
     "imports": [
       "_rolldown-runtime-hePW80VL.js",
@@ -574,8 +571,8 @@
       "_rolldown-runtime-hePW80VL.js"
     ]
   },
-  "_kpi-card-CDrOYlyi.js": {
-    "file": "assets/kpi-card-CDrOYlyi.js",
+  "_kpi-card-gSaajA-2.js": {
+    "file": "assets/kpi-card-gSaajA-2.js",
     "name": "kpi-card",
     "imports": [
       "_jsx-runtime-DXLt3b3x.js",
@@ -593,19 +590,19 @@
       "_wayfinder-DX7UQcfH.js"
     ]
   },
-  "_list-page-ByZosQNB.js": {
-    "file": "assets/list-page-ByZosQNB.js",
+  "_list-page-CmPgmRyZ.js": {
+    "file": "assets/list-page-CmPgmRyZ.js",
     "name": "list-page",
     "imports": [
       "_rolldown-runtime-hePW80VL.js",
       "_jsx-runtime-DXLt3b3x.js",
-      "_table-pagination-x-uT6P89.js",
-      "_data-table-CckfpUav.js",
+      "_table-pagination-D--Wuw6K.js",
+      "_data-table-CcfHZetU.js",
       "resources/js/app.tsx",
-      "_school-toast-BVeSuXNv.js",
-      "_empty-state-7Imq2bLe.js",
-      "_search-input-PDmVo688.js",
-      "_school-export-DvKn1SD2.js"
+      "_school-toast-Cv5qlubA.js",
+      "_empty-state-Dt7C9hNm.js",
+      "_search-input-CHIDMH3-.js",
+      "_school-export-PpmMAB5-.js"
     ]
   },
   "_loader-circle-ago54sZZ.js": {
@@ -650,8 +647,8 @@
       "_createLucideIcon-i-FseEqw.js"
     ]
   },
-  "_mocks-CPYqw8w-.js": {
-    "file": "assets/mocks-CPYqw8w-.js",
+  "_mocks-2pIOIqLD.js": {
+    "file": "assets/mocks-2pIOIqLD.js",
     "name": "mocks"
   },
   "_paperclip-BTLMsKOa.js": {
@@ -669,8 +666,8 @@
       "_confirm-CJ1axqGO.js"
     ]
   },
-  "_password-input-IJIHWjy4.js": {
-    "file": "assets/password-input-IJIHWjy4.js",
+  "_password-input--SJrmjUc.js": {
+    "file": "assets/password-input--SJrmjUc.js",
     "name": "password-input",
     "imports": [
       "_rolldown-runtime-hePW80VL.js",
@@ -681,8 +678,8 @@
       "resources/js/app.tsx"
     ]
   },
-  "_payment-method-cell-BRwkMfij.js": {
-    "file": "assets/payment-method-cell-BRwkMfij.js",
+  "_payment-method-cell-ilA1BBep.js": {
+    "file": "assets/payment-method-cell-ilA1BBep.js",
     "name": "payment-method-cell",
     "imports": [
       "_jsx-runtime-DXLt3b3x.js",
@@ -794,33 +791,33 @@
       "_wayfinder-DX7UQcfH.js"
     ]
   },
-  "_row-menu-BrZzOL7W.js": {
-    "file": "assets/row-menu-BrZzOL7W.js",
+  "_row-menu-BJVobvF0.js": {
+    "file": "assets/row-menu-BJVobvF0.js",
     "name": "row-menu",
     "imports": [
       "_rolldown-runtime-hePW80VL.js",
       "_jsx-runtime-DXLt3b3x.js",
       "_createLucideIcon-i-FseEqw.js",
       "resources/js/app.tsx",
-      "_confirm-dialog-DZThyH49.js"
+      "_confirm-dialog-CIpxXnLR.js"
     ]
   },
   "_school-access---EonBX1.js": {
     "file": "assets/school-access---EonBX1.js",
     "name": "school-access"
   },
-  "_school-bulletin-pdf-BThtLNgO.js": {
-    "file": "assets/school-bulletin-pdf-BThtLNgO.js",
+  "_school-bulletin-pdf-Da2qnyfa.js": {
+    "file": "assets/school-bulletin-pdf-Da2qnyfa.js",
     "name": "school-bulletin-pdf",
     "imports": [
-      "_school-rows-GydT1C7k.js",
-      "_school-students-CPzd92k6.js",
+      "_school-rows-DDQUTfqQ.js",
+      "_school-students-av0bUjs9.js",
       "resources/js/app.tsx",
-      "_jspdf.plugin.autotable-BnCLaJqz.js",
+      "_jspdf.plugin.autotable-Cb5C6JQ1.js",
       "_api-DXVM8nsA.js",
-      "_school-grades-CfTmeb0e.js",
+      "_school-grades-BicVnRSL.js",
       "_document-pied-Dg5MkV2x.js",
-      "_document-authenticity-qr-BMpBcp-d.js"
+      "_document-authenticity-qr-CXd1riWj.js"
     ]
   },
   "_school-dossier-Dxztk4Pp.js": {
@@ -831,12 +828,12 @@
     "file": "assets/school-enrolment-DMTIBMY8.js",
     "name": "school-enrolment"
   },
-  "_school-export-DvKn1SD2.js": {
-    "file": "assets/school-export-DvKn1SD2.js",
+  "_school-export-PpmMAB5-.js": {
+    "file": "assets/school-export-PpmMAB5-.js",
     "name": "school-export"
   },
-  "_school-files-BF_Orh7q.js": {
-    "file": "assets/school-files-BF_Orh7q.js",
+  "_school-files-CSWJ-ACo.js": {
+    "file": "assets/school-files-CSWJ-ACo.js",
     "name": "school-files",
     "imports": [
       "resources/js/app.tsx"
@@ -846,12 +843,12 @@
     "file": "assets/school-form-DHodJKXQ.js",
     "name": "school-form"
   },
-  "_school-grades-CfTmeb0e.js": {
-    "file": "assets/school-grades-CfTmeb0e.js",
+  "_school-grades-BicVnRSL.js": {
+    "file": "assets/school-grades-BicVnRSL.js",
     "name": "school-grades",
     "imports": [
-      "_school-rows-GydT1C7k.js",
-      "_school-students-CPzd92k6.js"
+      "_school-rows-DDQUTfqQ.js",
+      "_school-students-av0bUjs9.js"
     ]
   },
   "_school-marking-windows-xezbf8Wc.js": {
@@ -862,45 +859,45 @@
     "file": "assets/school-mobile-money-BMjghOVA.js",
     "name": "school-mobile-money"
   },
-  "_school-payments-BB-GdbIu.js": {
-    "file": "assets/school-payments-BB-GdbIu.js",
+  "_school-payments-CZ-v0Ch7.js": {
+    "file": "assets/school-payments-CZ-v0Ch7.js",
     "name": "school-payments",
     "imports": [
-      "_school-rows-GydT1C7k.js"
+      "_school-rows-DDQUTfqQ.js"
     ]
   },
-  "_school-rows-GydT1C7k.js": {
-    "file": "assets/school-rows-GydT1C7k.js",
+  "_school-rows-DDQUTfqQ.js": {
+    "file": "assets/school-rows-DDQUTfqQ.js",
     "name": "school-rows",
     "imports": [
-      "_mocks-CPYqw8w-.js"
+      "_mocks-2pIOIqLD.js"
     ]
   },
   "_school-structure-B-VOhk1c.js": {
     "file": "assets/school-structure-B-VOhk1c.js",
     "name": "school-structure"
   },
-  "_school-students-CPzd92k6.js": {
-    "file": "assets/school-students-CPzd92k6.js",
+  "_school-students-av0bUjs9.js": {
+    "file": "assets/school-students-av0bUjs9.js",
     "name": "school-students",
     "imports": [
-      "_school-rows-GydT1C7k.js"
+      "_school-rows-DDQUTfqQ.js"
     ]
   },
   "_school-subscription-CBgUGJbJ.js": {
     "file": "assets/school-subscription-CBgUGJbJ.js",
     "name": "school-subscription"
   },
-  "_school-timetable--m7c7DDg.js": {
-    "file": "assets/school-timetable--m7c7DDg.js",
+  "_school-timetable-BlWBXJXG.js": {
+    "file": "assets/school-timetable-BlWBXJXG.js",
     "name": "school-timetable",
     "imports": [
-      "_school-rows-GydT1C7k.js",
+      "_school-rows-DDQUTfqQ.js",
       "_fr-B0edKAg9.js"
     ]
   },
-  "_school-toast-BVeSuXNv.js": {
-    "file": "assets/school-toast-BVeSuXNv.js",
+  "_school-toast-Cv5qlubA.js": {
+    "file": "assets/school-toast-Cv5qlubA.js",
     "name": "school-toast",
     "imports": [
       "resources/js/app.tsx"
@@ -913,8 +910,8 @@
       "_createLucideIcon-i-FseEqw.js"
     ]
   },
-  "_search-input-PDmVo688.js": {
-    "file": "assets/search-input-PDmVo688.js",
+  "_search-input-CHIDMH3-.js": {
+    "file": "assets/search-input-CHIDMH3-.js",
     "name": "search-input",
     "imports": [
       "_jsx-runtime-DXLt3b3x.js",
@@ -923,8 +920,8 @@
       "resources/js/app.tsx"
     ]
   },
-  "_search-select-D9q0OLIA.js": {
-    "file": "assets/search-select-D9q0OLIA.js",
+  "_search-select-BJkOF3en.js": {
+    "file": "assets/search-select-BJkOF3en.js",
     "name": "search-select",
     "imports": [
       "_rolldown-runtime-hePW80VL.js",
@@ -995,8 +992,8 @@
       "_wayfinder-DX7UQcfH.js"
     ]
   },
-  "_table-pagination-x-uT6P89.js": {
-    "file": "assets/table-pagination-x-uT6P89.js",
+  "_table-pagination-D--Wuw6K.js": {
+    "file": "assets/table-pagination-D--Wuw6K.js",
     "name": "table-pagination",
     "imports": [
       "_rolldown-runtime-hePW80VL.js",
@@ -1015,8 +1012,8 @@
       "_createLucideIcon-i-FseEqw.js"
     ]
   },
-  "_teachers-f5_CqIkA.js": {
-    "file": "assets/teachers-f5_CqIkA.js",
+  "_teachers-ZMVJ81M8.js": {
+    "file": "assets/teachers-ZMVJ81M8.js",
     "name": "teachers",
     "imports": [
       "_jsx-runtime-DXLt3b3x.js",
@@ -1025,12 +1022,12 @@
       "_photo-field-BwiLNrrr.js",
       "_map-pin-CbH3J7OC.js",
       "_phone-z3f8nYkf.js",
-      "_school-rows-GydT1C7k.js",
-      "_date-picker-Dj5tBbTu.js",
+      "_school-rows-DDQUTfqQ.js",
+      "_date-picker-B8it4lQO.js",
       "resources/js/app.tsx",
       "_school-form-DHodJKXQ.js",
       "_field-ug3RKPH_.js",
-      "_gender-select-HCQdu4cb.js",
+      "_gender-select-BQAVzPnv.js",
       "_form-layout-C8AZiETX.js"
     ]
   },
@@ -1073,8 +1070,8 @@
       "_createLucideIcon-i-FseEqw.js"
     ]
   },
-  "_use-crud-items-mKluzgXp.js": {
-    "file": "assets/use-crud-items-mKluzgXp.js",
+  "_use-crud-items-BexmLeAs.js": {
+    "file": "assets/use-crud-items-BexmLeAs.js",
     "name": "use-crud-items",
     "imports": [
       "_jsx-runtime-DXLt3b3x.js",
@@ -1085,15 +1082,15 @@
       "resources/js/app.tsx"
     ]
   },
-  "_use-cycle-schedules-XUofKKNg.js": {
-    "file": "assets/use-cycle-schedules-XUofKKNg.js",
+  "_use-cycle-schedules-BNYNtU4A.js": {
+    "file": "assets/use-cycle-schedules-BNYNtU4A.js",
     "name": "use-cycle-schedules",
     "imports": [
       "_rolldown-runtime-hePW80VL.js",
       "_jsx-runtime-DXLt3b3x.js",
       "_wayfinder-DX7UQcfH.js",
-      "_school-timetable--m7c7DDg.js",
-      "_school-toast-BVeSuXNv.js",
+      "_school-timetable-BlWBXJXG.js",
+      "_school-toast-Cv5qlubA.js",
       "_api-DXVM8nsA.js"
     ]
   },
@@ -1118,13 +1115,13 @@
       "_wayfinder-DX7UQcfH.js"
     ]
   },
-  "_use-school-context-UC7d6UQn.js": {
-    "file": "assets/use-school-context-UC7d6UQn.js",
+  "_use-school-context-Dc9a10XV.js": {
+    "file": "assets/use-school-context-Dc9a10XV.js",
     "name": "use-school-context",
     "imports": [
       "_rolldown-runtime-hePW80VL.js",
       "_jsx-runtime-DXLt3b3x.js",
-      "_mocks-CPYqw8w-.js"
+      "_mocks-2pIOIqLD.js"
     ]
   },
   "_use-two-factor-auth-BkYWFWlc.js": {
@@ -1169,13 +1166,13 @@
     ]
   },
   "node_modules/canvg/lib/index.es.js": {
-    "file": "assets/index.es-B0g9ba79.js",
+    "file": "assets/index.es-C_BQF4N1.js",
     "name": "index.es",
     "src": "node_modules/canvg/lib/index.es.js",
     "isDynamicEntry": true,
     "imports": [
       "_rolldown-runtime-hePW80VL.js",
-      "_jspdf.plugin.autotable-BnCLaJqz.js"
+      "_jspdf.plugin.autotable-Cb5C6JQ1.js"
     ]
   },
   "node_modules/dompurify/dist/purify.es.mjs": {
@@ -1194,7 +1191,7 @@
     ]
   },
   "resources/css/app.css": {
-    "file": "assets/app-2WN0iyck.css",
+    "file": "assets/app-D2E80cvH.css",
     "name": "app",
     "names": [
       "app.css"
@@ -1203,7 +1200,7 @@
     "isEntry": true
   },
   "resources/js/app.tsx": {
-    "file": "assets/app-Ciav3Kqb.js",
+    "file": "assets/app-C9VxDOVx.js",
     "name": "app",
     "src": "resources/js/app.tsx",
     "isEntry": true,
@@ -1230,13 +1227,13 @@
       "_dist-BZUG4Wot.js",
       "_dist-CuPsTazy.js",
       "_use-initials-p-8-Sj61.js",
-      "_mocks-CPYqw8w-.js",
-      "_use-school-context-UC7d6UQn.js",
+      "_mocks-2pIOIqLD.js",
+      "_use-school-context-Dc9a10XV.js",
       "_school-access---EonBX1.js",
       "_routes-DNOrcn0x.js",
-      "_school-rows-GydT1C7k.js",
-      "_school-timetable--m7c7DDg.js",
-      "_school-students-CPzd92k6.js"
+      "_school-rows-DDQUTfqQ.js",
+      "_school-timetable-BlWBXJXG.js",
+      "_school-students-av0bUjs9.js"
     ],
     "dynamicImports": [
       "resources/js/pages/announcements/index.tsx",
@@ -1309,7 +1306,7 @@
     ]
   },
   "resources/js/pages/announcements/index.tsx": {
-    "file": "assets/announcements-BaCI5Ypw.js",
+    "file": "assets/announcements-B8_7A0V1.js",
     "name": "announcements",
     "src": "resources/js/pages/announcements/index.tsx",
     "isDynamicEntry": true,
@@ -1320,51 +1317,51 @@
       "_wayfinder-DX7UQcfH.js",
       "_createLucideIcon-i-FseEqw.js",
       "_calendar-6LkFfo_V.js",
-      "_table-pagination-x-uT6P89.js",
-      "_row-menu-BrZzOL7W.js",
-      "_data-table-CckfpUav.js",
+      "_table-pagination-D--Wuw6K.js",
+      "_row-menu-BJVobvF0.js",
+      "_data-table-CcfHZetU.js",
       "_plus-BPHTqcXS.js",
-      "_school-rows-GydT1C7k.js",
-      "_date-picker-Dj5tBbTu.js",
+      "_school-rows-DDQUTfqQ.js",
+      "_date-picker-B8it4lQO.js",
       "resources/js/app.tsx",
       "_school-form-DHodJKXQ.js",
-      "_school-toast-BVeSuXNv.js",
-      "_detail-dialog-BCILxZrt.js",
+      "_school-toast-Cv5qlubA.js",
+      "_detail-dialog-C9GpydIN.js",
       "_field-ug3RKPH_.js",
-      "_form-sheet-CbV3rW9t.js",
-      "_kpi-card-CDrOYlyi.js",
-      "_list-page-ByZosQNB.js",
+      "_form-sheet-SX6fVgk8.js",
+      "_kpi-card-gSaajA-2.js",
+      "_list-page-CmPgmRyZ.js",
       "_use-field-errors-sru_QvXp.js",
       "_table-DYHXgcxL.js",
       "_textarea-CC4EdPM-.js",
-      "_use-crud-items-mKluzgXp.js",
+      "_use-crud-items-BexmLeAs.js",
       "_api-DXVM8nsA.js"
     ]
   },
   "resources/js/pages/assessments/control.tsx": {
-    "file": "assets/control-DuEmACgB.js",
+    "file": "assets/control-T_vrMDq2.js",
     "name": "control",
     "src": "resources/js/pages/assessments/control.tsx",
     "isDynamicEntry": true,
     "imports": [
       "_jsx-runtime-DXLt3b3x.js",
       "resources/js/app.tsx",
-      "_grade-sheet-IqvSm7ha.js"
+      "_grade-sheet-C91SlFvY.js"
     ]
   },
   "resources/js/pages/assessments/entry.tsx": {
-    "file": "assets/entry-C4hLyBJr.js",
+    "file": "assets/entry-BetgxPfH.js",
     "name": "entry",
     "src": "resources/js/pages/assessments/entry.tsx",
     "isDynamicEntry": true,
     "imports": [
       "_jsx-runtime-DXLt3b3x.js",
       "resources/js/app.tsx",
-      "_grade-sheet-IqvSm7ha.js"
+      "_grade-sheet-C91SlFvY.js"
     ]
   },
   "resources/js/pages/assessments/index.tsx": {
-    "file": "assets/assessments-DhjVRdue.js",
+    "file": "assets/assessments-viMDjlkN.js",
     "name": "assessments",
     "src": "resources/js/pages/assessments/index.tsx",
     "isDynamicEntry": true,
@@ -1376,35 +1373,35 @@
       "_createLucideIcon-i-FseEqw.js",
       "_calendar-6LkFfo_V.js",
       "_check-41FT_Yd1.js",
-      "_table-pagination-x-uT6P89.js",
-      "_row-menu-BrZzOL7W.js",
-      "_data-table-CckfpUav.js",
+      "_table-pagination-D--Wuw6K.js",
+      "_row-menu-BJVobvF0.js",
+      "_data-table-CcfHZetU.js",
       "_plus-BPHTqcXS.js",
       "_tag-CUorjRen.js",
-      "_use-school-context-UC7d6UQn.js",
-      "_school-rows-GydT1C7k.js",
-      "_date-picker-Dj5tBbTu.js",
-      "_school-timetable--m7c7DDg.js",
-      "_school-students-CPzd92k6.js",
+      "_use-school-context-Dc9a10XV.js",
+      "_school-rows-DDQUTfqQ.js",
+      "_date-picker-B8it4lQO.js",
+      "_school-timetable-BlWBXJXG.js",
+      "_school-students-av0bUjs9.js",
       "resources/js/app.tsx",
       "_school-form-DHodJKXQ.js",
-      "_school-toast-BVeSuXNv.js",
-      "_detail-dialog-BCILxZrt.js",
+      "_school-toast-Cv5qlubA.js",
+      "_detail-dialog-C9GpydIN.js",
       "_field-ug3RKPH_.js",
-      "_form-sheet-CbV3rW9t.js",
-      "_search-input-PDmVo688.js",
-      "_list-page-ByZosQNB.js",
+      "_form-sheet-SX6fVgk8.js",
+      "_search-input-CHIDMH3-.js",
+      "_list-page-CmPgmRyZ.js",
       "_use-field-errors-sru_QvXp.js",
       "_table-DYHXgcxL.js",
-      "_use-crud-items-mKluzgXp.js",
+      "_use-crud-items-BexmLeAs.js",
       "_api-DXVM8nsA.js",
-      "_school-grades-CfTmeb0e.js",
-      "_search-select-D9q0OLIA.js",
+      "_school-grades-BicVnRSL.js",
+      "_search-select-BJkOF3en.js",
       "_time-picker-BI1uudQ8.js"
     ]
   },
   "resources/js/pages/assessments/windows.tsx": {
-    "file": "assets/windows-BRdZLQeP.js",
+    "file": "assets/windows-Gz-S_SYR.js",
     "name": "windows",
     "src": "resources/js/pages/assessments/windows.tsx",
     "isDynamicEntry": true,
@@ -1415,31 +1412,31 @@
       "_wayfinder-DX7UQcfH.js",
       "_createLucideIcon-i-FseEqw.js",
       "_calendar-6LkFfo_V.js",
-      "_table-pagination-x-uT6P89.js",
-      "_row-menu-BrZzOL7W.js",
-      "_data-table-CckfpUav.js",
+      "_table-pagination-D--Wuw6K.js",
+      "_row-menu-BJVobvF0.js",
+      "_data-table-CcfHZetU.js",
       "_lock-open-CPlPqohw.js",
       "_plus-BPHTqcXS.js",
       "_tag-CUorjRen.js",
-      "_use-school-context-UC7d6UQn.js",
-      "_school-rows-GydT1C7k.js",
-      "_date-picker-Dj5tBbTu.js",
-      "_school-students-CPzd92k6.js",
+      "_use-school-context-Dc9a10XV.js",
+      "_school-rows-DDQUTfqQ.js",
+      "_date-picker-B8it4lQO.js",
+      "_school-students-av0bUjs9.js",
       "resources/js/app.tsx",
       "_school-form-DHodJKXQ.js",
-      "_school-toast-BVeSuXNv.js",
+      "_school-toast-Cv5qlubA.js",
       "_field-ug3RKPH_.js",
-      "_form-sheet-CbV3rW9t.js",
-      "_list-page-ByZosQNB.js",
+      "_form-sheet-SX6fVgk8.js",
+      "_list-page-CmPgmRyZ.js",
       "_use-field-errors-sru_QvXp.js",
       "_table-DYHXgcxL.js",
       "_api-DXVM8nsA.js",
-      "_school-grades-CfTmeb0e.js",
+      "_school-grades-BicVnRSL.js",
       "_school-marking-windows-xezbf8Wc.js"
     ]
   },
   "resources/js/pages/attendance/index.tsx": {
-    "file": "assets/attendance-DC4TuF-I.js",
+    "file": "assets/attendance-C-247eO6.js",
     "name": "attendance",
     "src": "resources/js/pages/attendance/index.tsx",
     "isDynamicEntry": true,
@@ -1449,38 +1446,38 @@
       "_select-BYfs74q9.js",
       "_wayfinder-DX7UQcfH.js",
       "_createLucideIcon-i-FseEqw.js",
-      "_table-pagination-x-uT6P89.js",
+      "_table-pagination-D--Wuw6K.js",
       "_circle-dot-EKvLO6sZ.js",
-      "_data-table-CckfpUav.js",
+      "_data-table-CcfHZetU.js",
       "_hash-vW1C4iQY.js",
       "_paperclip-BTLMsKOa.js",
-      "_use-school-context-UC7d6UQn.js",
-      "_school-rows-GydT1C7k.js",
-      "_date-picker-Dj5tBbTu.js",
-      "_school-timetable--m7c7DDg.js",
+      "_use-school-context-Dc9a10XV.js",
+      "_school-rows-DDQUTfqQ.js",
+      "_date-picker-B8it4lQO.js",
+      "_school-timetable-BlWBXJXG.js",
       "resources/js/app.tsx",
       "_school-form-DHodJKXQ.js",
-      "_school-toast-BVeSuXNv.js",
+      "_school-toast-Cv5qlubA.js",
       "_dialog-DomOv7at.js",
       "_field-ug3RKPH_.js",
-      "_list-page-ByZosQNB.js",
+      "_list-page-CmPgmRyZ.js",
       "_use-field-errors-sru_QvXp.js",
       "_table-DYHXgcxL.js",
       "_textarea-CC4EdPM-.js",
       "_api-DXVM8nsA.js",
       "_person-cell-CtILrzRz.js",
-      "_search-select-D9q0OLIA.js",
+      "_search-select-BJkOF3en.js",
       "_alert-DJX3vF86.js"
     ]
   },
   "resources/js/pages/auth/confirm-password.tsx": {
-    "file": "assets/confirm-password-9P3cjeao.js",
+    "file": "assets/confirm-password-vIjAl_tm.js",
     "name": "confirm-password",
     "src": "resources/js/pages/auth/confirm-password.tsx",
     "isDynamicEntry": true,
     "imports": [
       "_jsx-runtime-DXLt3b3x.js",
-      "_password-input-IJIHWjy4.js",
+      "_password-input--SJrmjUc.js",
       "resources/js/app.tsx",
       "_label-B1jNJHdJ.js",
       "_input-error-BpSvuMKy.js",
@@ -1489,7 +1486,7 @@
     ]
   },
   "resources/js/pages/auth/forgot-password.tsx": {
-    "file": "assets/forgot-password-CIIr8eR1.js",
+    "file": "assets/forgot-password-C9mlF-VO.js",
     "name": "forgot-password",
     "src": "resources/js/pages/auth/forgot-password.tsx",
     "isDynamicEntry": true,
@@ -1505,7 +1502,7 @@
     ]
   },
   "resources/js/pages/auth/login-code.tsx": {
-    "file": "assets/login-code-BgneNHP_.js",
+    "file": "assets/login-code-CUNrXAxQ.js",
     "name": "login-code",
     "src": "resources/js/pages/auth/login-code.tsx",
     "isDynamicEntry": true,
@@ -1521,7 +1518,7 @@
     ]
   },
   "resources/js/pages/auth/login-domain.tsx": {
-    "file": "assets/login-domain-De8Ul_So.js",
+    "file": "assets/login-domain-Bm6eOnld.js",
     "name": "login-domain",
     "src": "resources/js/pages/auth/login-domain.tsx",
     "isDynamicEntry": true,
@@ -1540,7 +1537,7 @@
     ]
   },
   "resources/js/pages/auth/login.tsx": {
-    "file": "assets/login-7U-M710y.js",
+    "file": "assets/login-D_vEzlhX.js",
     "name": "login",
     "src": "resources/js/pages/auth/login.tsx",
     "isDynamicEntry": true,
@@ -1548,7 +1545,7 @@
       "_rolldown-runtime-hePW80VL.js",
       "_jsx-runtime-DXLt3b3x.js",
       "_createLucideIcon-i-FseEqw.js",
-      "_password-input-IJIHWjy4.js",
+      "_password-input--SJrmjUc.js",
       "_routes-DNOrcn0x.js",
       "resources/js/app.tsx",
       "_school-form-DHodJKXQ.js",
@@ -1562,7 +1559,7 @@
     ]
   },
   "resources/js/pages/auth/register-school.tsx": {
-    "file": "assets/register-school-Ua6SAeYe.js",
+    "file": "assets/register-school-CVaGKBnQ.js",
     "name": "register-school",
     "src": "resources/js/pages/auth/register-school.tsx",
     "isDynamicEntry": true,
@@ -1573,7 +1570,7 @@
       "_createLucideIcon-i-FseEqw.js",
       "_arrow-right-Dwy-9G31.js",
       "_check-41FT_Yd1.js",
-      "_password-input-IJIHWjy4.js",
+      "_password-input--SJrmjUc.js",
       "_routes-DNOrcn0x.js",
       "resources/js/app.tsx",
       "_school-form-DHodJKXQ.js",
@@ -1585,13 +1582,13 @@
     ]
   },
   "resources/js/pages/auth/reset-password.tsx": {
-    "file": "assets/reset-password-jqEeXwhB.js",
+    "file": "assets/reset-password-FRRlAuP6.js",
     "name": "reset-password",
     "src": "resources/js/pages/auth/reset-password.tsx",
     "isDynamicEntry": true,
     "imports": [
       "_jsx-runtime-DXLt3b3x.js",
-      "_password-input-IJIHWjy4.js",
+      "_password-input--SJrmjUc.js",
       "resources/js/app.tsx",
       "_label-B1jNJHdJ.js",
       "_input-error-BpSvuMKy.js",
@@ -1600,7 +1597,7 @@
     ]
   },
   "resources/js/pages/auth/two-factor-challenge.tsx": {
-    "file": "assets/two-factor-challenge-DjpnG3xx.js",
+    "file": "assets/two-factor-challenge-CoZ8XBiE.js",
     "name": "two-factor-challenge",
     "src": "resources/js/pages/auth/two-factor-challenge.tsx",
     "isDynamicEntry": true,
@@ -1614,7 +1611,7 @@
     ]
   },
   "resources/js/pages/auth/verify-email.tsx": {
-    "file": "assets/verify-email-wDS3u3a5.js",
+    "file": "assets/verify-email-BdHp9ii_.js",
     "name": "verify-email",
     "src": "resources/js/pages/auth/verify-email.tsx",
     "isDynamicEntry": true,
@@ -1628,7 +1625,7 @@
     ]
   },
   "resources/js/pages/cash/index.tsx": {
-    "file": "assets/cash-Caohqvp4.js",
+    "file": "assets/cash-nbm2UqKB.js",
     "name": "cash",
     "src": "resources/js/pages/cash/index.tsx",
     "isDynamicEntry": true,
@@ -1640,52 +1637,52 @@
       "_createLucideIcon-i-FseEqw.js",
       "_arrow-up-right-CeocQzRM.js",
       "_calendar-6LkFfo_V.js",
-      "_table-pagination-x-uT6P89.js",
-      "_row-menu-BrZzOL7W.js",
-      "_data-table-CckfpUav.js",
+      "_table-pagination-D--Wuw6K.js",
+      "_row-menu-BJVobvF0.js",
+      "_data-table-CcfHZetU.js",
       "_plus-BPHTqcXS.js",
       "_tag-CUorjRen.js",
-      "_school-rows-GydT1C7k.js",
-      "_date-picker-Dj5tBbTu.js",
+      "_school-rows-DDQUTfqQ.js",
+      "_date-picker-B8it4lQO.js",
       "resources/js/app.tsx",
       "_school-form-DHodJKXQ.js",
-      "_school-toast-BVeSuXNv.js",
-      "_detail-dialog-BCILxZrt.js",
+      "_school-toast-Cv5qlubA.js",
+      "_detail-dialog-C9GpydIN.js",
       "_field-ug3RKPH_.js",
-      "_form-sheet-CbV3rW9t.js",
-      "_kpi-card-CDrOYlyi.js",
-      "_list-page-ByZosQNB.js",
+      "_form-sheet-SX6fVgk8.js",
+      "_kpi-card-gSaajA-2.js",
+      "_list-page-CmPgmRyZ.js",
       "_use-field-errors-sru_QvXp.js",
       "_table-DYHXgcxL.js",
       "_textarea-CC4EdPM-.js",
-      "_use-crud-items-mKluzgXp.js",
+      "_use-crud-items-BexmLeAs.js",
       "_api-DXVM8nsA.js",
-      "_search-select-D9q0OLIA.js",
-      "_payment-method-cell-BRwkMfij.js"
+      "_search-select-BJkOF3en.js",
+      "_payment-method-cell-ilA1BBep.js"
     ]
   },
   "resources/js/pages/dashboard.tsx": {
-    "file": "assets/dashboard-DPaoxHV8.js",
+    "file": "assets/dashboard-DhMZOFsZ.js",
     "name": "dashboard",
     "src": "resources/js/pages/dashboard.tsx",
     "isDynamicEntry": true,
     "imports": [
       "_rolldown-runtime-hePW80VL.js",
-      "_chart-card-LWmApfvY.js",
+      "_chart-card-BLfzH-04.js",
       "_jsx-runtime-DXLt3b3x.js",
       "_wayfinder-DX7UQcfH.js",
       "_createLucideIcon-i-FseEqw.js",
       "_user-check-OwEzmfMQ.js",
-      "_use-school-context-UC7d6UQn.js",
+      "_use-school-context-Dc9a10XV.js",
       "_routes-DNOrcn0x.js",
-      "_school-rows-GydT1C7k.js",
+      "_school-rows-DDQUTfqQ.js",
       "_fr-B0edKAg9.js",
       "resources/js/app.tsx",
-      "_kpi-card-CDrOYlyi.js"
+      "_kpi-card-gSaajA-2.js"
     ]
   },
   "resources/js/pages/documents/index.tsx": {
-    "file": "assets/documents-DxXvaPFF.js",
+    "file": "assets/documents-tLdhHw2J.js",
     "name": "documents",
     "src": "resources/js/pages/documents/index.tsx",
     "isDynamicEntry": true,
@@ -1694,28 +1691,28 @@
       "_jsx-runtime-DXLt3b3x.js",
       "_select-BYfs74q9.js",
       "_createLucideIcon-i-FseEqw.js",
-      "_table-pagination-x-uT6P89.js",
-      "_row-menu-BrZzOL7W.js",
+      "_table-pagination-D--Wuw6K.js",
+      "_row-menu-BJVobvF0.js",
       "_file-check-2-C6LHd9lE.js",
-      "_data-table-CckfpUav.js",
+      "_data-table-CcfHZetU.js",
       "_hash-vW1C4iQY.js",
       "_shield-off-B8yEq2Q1.js",
       "_stamp-DkWt339D.js",
-      "_use-school-context-UC7d6UQn.js",
-      "_school-rows-GydT1C7k.js",
+      "_use-school-context-Dc9a10XV.js",
+      "_school-rows-DDQUTfqQ.js",
       "resources/js/app.tsx",
-      "_school-toast-BVeSuXNv.js",
+      "_school-toast-Cv5qlubA.js",
       "_field-ug3RKPH_.js",
-      "_form-sheet-CbV3rW9t.js",
-      "_kpi-card-CDrOYlyi.js",
-      "_list-page-ByZosQNB.js",
+      "_form-sheet-SX6fVgk8.js",
+      "_kpi-card-gSaajA-2.js",
+      "_list-page-CmPgmRyZ.js",
       "_table-DYHXgcxL.js",
       "_api-DXVM8nsA.js",
-      "_search-select-D9q0OLIA.js"
+      "_search-select-BJkOF3en.js"
     ]
   },
   "resources/js/pages/documents/requests.tsx": {
-    "file": "assets/requests-sCQ632Pm.js",
+    "file": "assets/requests-BXBs3wlc.js",
     "name": "requests",
     "src": "resources/js/pages/documents/requests.tsx",
     "isDynamicEntry": true,
@@ -1725,21 +1722,21 @@
       "_select-BYfs74q9.js",
       "_createLucideIcon-i-FseEqw.js",
       "_check-41FT_Yd1.js",
-      "_table-pagination-x-uT6P89.js",
-      "_row-menu-BrZzOL7W.js",
-      "_data-table-CckfpUav.js",
-      "_school-rows-GydT1C7k.js",
+      "_table-pagination-D--Wuw6K.js",
+      "_row-menu-BJVobvF0.js",
+      "_data-table-CcfHZetU.js",
+      "_school-rows-DDQUTfqQ.js",
       "resources/js/app.tsx",
-      "_school-toast-BVeSuXNv.js",
+      "_school-toast-Cv5qlubA.js",
       "_field-ug3RKPH_.js",
-      "_form-sheet-CbV3rW9t.js",
-      "_list-page-ByZosQNB.js",
+      "_form-sheet-SX6fVgk8.js",
+      "_list-page-CmPgmRyZ.js",
       "_table-DYHXgcxL.js",
       "_api-DXVM8nsA.js"
     ]
   },
   "resources/js/pages/documents/templates.tsx": {
-    "file": "assets/templates-DJO9Y7d2.js",
+    "file": "assets/templates-DBEsgTk1.js",
     "name": "templates",
     "src": "resources/js/pages/documents/templates.tsx",
     "isDynamicEntry": true,
@@ -1747,22 +1744,25 @@
       "_rolldown-runtime-hePW80VL.js",
       "_jsx-runtime-DXLt3b3x.js",
       "_createLucideIcon-i-FseEqw.js",
-      "_use-school-context-UC7d6UQn.js",
-      "_school-rows-GydT1C7k.js",
+      "_printer-DF7M_ZEd.js",
+      "_use-school-context-Dc9a10XV.js",
+      "_school-rows-DDQUTfqQ.js",
       "resources/js/app.tsx",
-      "_school-toast-BVeSuXNv.js",
+      "_school-toast-Cv5qlubA.js",
       "_field-ug3RKPH_.js",
-      "_empty-state-7Imq2bLe.js",
+      "_empty-state-Dt7C9hNm.js",
+      "_school-export-PpmMAB5-.js",
       "_textarea-CC4EdPM-.js",
       "_api-DXVM8nsA.js",
-      "_search-select-D9q0OLIA.js",
+      "_search-select-BJkOF3en.js",
       "_document-pied-Dg5MkV2x.js",
-      "_document-school-header-BA7v21sb.js",
-      "_document-signature-f_0nt6mK.js"
+      "_document-stamp-CfxR1Dx_.js",
+      "_document-signature-C--HK2Ut.js",
+      "_document-placeholders-D33WSXR3.js"
     ]
   },
   "resources/js/pages/documents/verify.tsx": {
-    "file": "assets/verify-pji_v0XK.js",
+    "file": "assets/verify-BJuxQcdJ.js",
     "name": "verify",
     "src": "resources/js/pages/documents/verify.tsx",
     "isDynamicEntry": true,
@@ -1771,12 +1771,12 @@
       "_wayfinder-DX7UQcfH.js",
       "_createLucideIcon-i-FseEqw.js",
       "_routes-DNOrcn0x.js",
-      "_school-rows-GydT1C7k.js",
+      "_school-rows-DDQUTfqQ.js",
       "resources/js/app.tsx"
     ]
   },
   "resources/js/pages/errors/show.tsx": {
-    "file": "assets/show-DFJ_yg_B.js",
+    "file": "assets/show-Dyn0-RN0.js",
     "name": "show",
     "src": "resources/js/pages/errors/show.tsx",
     "isDynamicEntry": true,
@@ -1787,7 +1787,7 @@
     ]
   },
   "resources/js/pages/etablissement/fees.tsx": {
-    "file": "assets/fees-DZkxYSSn.js",
+    "file": "assets/fees-CBi7iOo0.js",
     "name": "fees",
     "src": "resources/js/pages/etablissement/fees.tsx",
     "isDynamicEntry": true,
@@ -1795,16 +1795,16 @@
       "_rolldown-runtime-hePW80VL.js",
       "_jsx-runtime-DXLt3b3x.js",
       "_wayfinder-DX7UQcfH.js",
-      "_school-rows-GydT1C7k.js",
+      "_school-rows-DDQUTfqQ.js",
       "resources/js/app.tsx",
-      "_school-toast-BVeSuXNv.js",
+      "_school-toast-Cv5qlubA.js",
       "_field-ug3RKPH_.js",
       "_table-DYHXgcxL.js",
       "_api-DXVM8nsA.js"
     ]
   },
   "resources/js/pages/etablissement/profile.tsx": {
-    "file": "assets/profile-DOQZvk8t.js",
+    "file": "assets/profile-Gp42gUFX.js",
     "name": "profile",
     "src": "resources/js/pages/etablissement/profile.tsx",
     "isDynamicEntry": true,
@@ -1816,15 +1816,15 @@
       "_stamp-DkWt339D.js",
       "resources/js/app.tsx",
       "_school-form-DHodJKXQ.js",
-      "_school-toast-BVeSuXNv.js",
+      "_school-toast-Cv5qlubA.js",
       "_field-ug3RKPH_.js",
       "_use-field-errors-sru_QvXp.js",
       "_api-DXVM8nsA.js",
-      "_bulletin-letterhead-DtPEP0Y9.js"
+      "_document-stamp-CfxR1Dx_.js"
     ]
   },
   "resources/js/pages/fees/pay.tsx": {
-    "file": "assets/pay-DAB3Zpl8.js",
+    "file": "assets/pay-D4PACVSd.js",
     "name": "pay",
     "src": "resources/js/pages/fees/pay.tsx",
     "isDynamicEntry": true,
@@ -1832,12 +1832,12 @@
       "_jsx-runtime-DXLt3b3x.js",
       "_download-KMxVAnpi.js",
       "_phone-z3f8nYkf.js",
-      "_school-rows-GydT1C7k.js",
+      "_school-rows-DDQUTfqQ.js",
       "resources/js/app.tsx"
     ]
   },
   "resources/js/pages/guardians/index.tsx": {
-    "file": "assets/guardians-CRLf6bdO.js",
+    "file": "assets/guardians-B-FPO56Z.js",
     "name": "guardians",
     "src": "resources/js/pages/guardians/index.tsx",
     "isDynamicEntry": true,
@@ -1846,31 +1846,31 @@
       "_jsx-runtime-DXLt3b3x.js",
       "_select-BYfs74q9.js",
       "_createLucideIcon-i-FseEqw.js",
-      "_table-pagination-x-uT6P89.js",
-      "_row-menu-BrZzOL7W.js",
-      "_data-table-CckfpUav.js",
+      "_table-pagination-D--Wuw6K.js",
+      "_row-menu-BJVobvF0.js",
+      "_data-table-CcfHZetU.js",
       "_phone-z3f8nYkf.js",
       "_plus-BPHTqcXS.js",
-      "_use-school-context-UC7d6UQn.js",
-      "_school-rows-GydT1C7k.js",
-      "_school-students-CPzd92k6.js",
+      "_use-school-context-Dc9a10XV.js",
+      "_school-rows-DDQUTfqQ.js",
+      "_school-students-av0bUjs9.js",
       "resources/js/app.tsx",
       "_school-form-DHodJKXQ.js",
-      "_school-toast-BVeSuXNv.js",
+      "_school-toast-Cv5qlubA.js",
       "_field-ug3RKPH_.js",
-      "_form-sheet-CbV3rW9t.js",
-      "_kpi-card-CDrOYlyi.js",
-      "_list-page-ByZosQNB.js",
+      "_form-sheet-SX6fVgk8.js",
+      "_kpi-card-gSaajA-2.js",
+      "_list-page-CmPgmRyZ.js",
       "_use-field-errors-sru_QvXp.js",
       "_table-DYHXgcxL.js",
-      "_use-crud-items-mKluzgXp.js",
+      "_use-crud-items-BexmLeAs.js",
       "_api-DXVM8nsA.js",
       "_person-cell-CtILrzRz.js",
       "_guardians-BN0k2YJm.js"
     ]
   },
   "resources/js/pages/guardians/show.tsx": {
-    "file": "assets/show-DqMvdd3_.js",
+    "file": "assets/show-BMbTaJ-k.js",
     "name": "show",
     "src": "resources/js/pages/guardians/show.tsx",
     "isDynamicEntry": true,
@@ -1878,30 +1878,30 @@
       "_rolldown-runtime-hePW80VL.js",
       "_jsx-runtime-DXLt3b3x.js",
       "_select-BYfs74q9.js",
-      "_row-menu-BrZzOL7W.js",
+      "_row-menu-BJVobvF0.js",
       "_eye-CNuO3hzR.js",
       "_plus-BPHTqcXS.js",
       "_user-minus-OrS_sdgW.js",
-      "_use-school-context-UC7d6UQn.js",
-      "_school-rows-GydT1C7k.js",
-      "_school-students-CPzd92k6.js",
+      "_use-school-context-Dc9a10XV.js",
+      "_school-rows-DDQUTfqQ.js",
+      "_school-students-av0bUjs9.js",
       "resources/js/app.tsx",
       "_school-form-DHodJKXQ.js",
-      "_school-toast-BVeSuXNv.js",
+      "_school-toast-Cv5qlubA.js",
       "_field-ug3RKPH_.js",
-      "_form-sheet-CbV3rW9t.js",
-      "_empty-state-7Imq2bLe.js",
+      "_form-sheet-SX6fVgk8.js",
+      "_empty-state-Dt7C9hNm.js",
       "_use-field-errors-sru_QvXp.js",
       "_table-DYHXgcxL.js",
       "_api-DXVM8nsA.js",
       "_person-cell-CtILrzRz.js",
-      "_search-select-D9q0OLIA.js",
+      "_search-select-BJkOF3en.js",
       "_guardians-BN0k2YJm.js",
       "_info-field-D_-tVJL9.js"
     ]
   },
   "resources/js/pages/id-cards/index.tsx": {
-    "file": "assets/id-cards-BZvVfxJ3.js",
+    "file": "assets/id-cards-D6CekcnR.js",
     "name": "id-cards",
     "src": "resources/js/pages/id-cards/index.tsx",
     "isDynamicEntry": true,
@@ -1912,30 +1912,30 @@
       "_wayfinder-DX7UQcfH.js",
       "_ban-CIr-ho2r.js",
       "_clock-3-BmrVB2Nw.js",
-      "_row-menu-BrZzOL7W.js",
+      "_row-menu-BJVobvF0.js",
       "_lock-keyhole-BI1lMcil.js",
       "_lock-open-CPlPqohw.js",
       "_printer-DF7M_ZEd.js",
       "_shield-off-B8yEq2Q1.js",
       "_use-initials-p-8-Sj61.js",
-      "_use-school-context-UC7d6UQn.js",
-      "_school-rows-GydT1C7k.js",
+      "_use-school-context-Dc9a10XV.js",
+      "_school-rows-DDQUTfqQ.js",
       "resources/js/app.tsx",
-      "_school-toast-BVeSuXNv.js",
+      "_school-toast-Cv5qlubA.js",
       "_dialog-DomOv7at.js",
       "_label-B1jNJHdJ.js",
-      "_kpi-card-CDrOYlyi.js",
-      "_search-input-PDmVo688.js",
-      "_school-export-DvKn1SD2.js",
+      "_kpi-card-gSaajA-2.js",
+      "_search-input-CHIDMH3-.js",
+      "_school-export-PpmMAB5-.js",
       "_api-DXVM8nsA.js",
       "_person-cell-CtILrzRz.js",
-      "_search-select-D9q0OLIA.js",
+      "_search-select-BJkOF3en.js",
       "_checkbox-yBT_R8DU.js",
       "_dist-C75V3bWh.js"
     ]
   },
   "resources/js/pages/inventory/index.tsx": {
-    "file": "assets/inventory-DXs5aYtG.js",
+    "file": "assets/inventory-DNoyf3m6.js",
     "name": "inventory",
     "src": "resources/js/pages/inventory/index.tsx",
     "isDynamicEntry": true,
@@ -1945,33 +1945,33 @@
       "_select-BYfs74q9.js",
       "_wayfinder-DX7UQcfH.js",
       "_createLucideIcon-i-FseEqw.js",
-      "_table-pagination-x-uT6P89.js",
+      "_table-pagination-D--Wuw6K.js",
       "_circle-dot-EKvLO6sZ.js",
-      "_row-menu-BrZzOL7W.js",
-      "_data-table-CckfpUav.js",
+      "_row-menu-BJVobvF0.js",
+      "_data-table-CcfHZetU.js",
       "_hash-vW1C4iQY.js",
       "_map-pin-CbH3J7OC.js",
       "_plus-BPHTqcXS.js",
       "_triangle-alert-n9bi59hn.js",
-      "_school-rows-GydT1C7k.js",
-      "_date-picker-Dj5tBbTu.js",
+      "_school-rows-DDQUTfqQ.js",
+      "_date-picker-B8it4lQO.js",
       "resources/js/app.tsx",
       "_school-form-DHodJKXQ.js",
-      "_school-toast-BVeSuXNv.js",
-      "_detail-dialog-BCILxZrt.js",
+      "_school-toast-Cv5qlubA.js",
+      "_detail-dialog-C9GpydIN.js",
       "_field-ug3RKPH_.js",
-      "_form-sheet-CbV3rW9t.js",
-      "_kpi-card-CDrOYlyi.js",
-      "_list-page-ByZosQNB.js",
+      "_form-sheet-SX6fVgk8.js",
+      "_kpi-card-gSaajA-2.js",
+      "_list-page-CmPgmRyZ.js",
       "_use-field-errors-sru_QvXp.js",
       "_table-DYHXgcxL.js",
       "_textarea-CC4EdPM-.js",
-      "_use-crud-items-mKluzgXp.js",
+      "_use-crud-items-BexmLeAs.js",
       "_api-DXVM8nsA.js"
     ]
   },
   "resources/js/pages/organisation/subscription.tsx": {
-    "file": "assets/subscription-BJ6Vmqz4.js",
+    "file": "assets/subscription-DS7NW90k.js",
     "name": "subscription",
     "src": "resources/js/pages/organisation/subscription.tsx",
     "isDynamicEntry": true,
@@ -1986,10 +1986,10 @@
       "_pencil-Y192l8KR.js",
       "_plus-BPHTqcXS.js",
       "_triangle-alert-n9bi59hn.js",
-      "_school-rows-GydT1C7k.js",
+      "_school-rows-DDQUTfqQ.js",
       "resources/js/app.tsx",
-      "_jspdf.plugin.autotable-BnCLaJqz.js",
-      "_school-toast-BVeSuXNv.js",
+      "_jspdf.plugin.autotable-Cb5C6JQ1.js",
+      "_school-toast-Cv5qlubA.js",
       "_dialog-DomOv7at.js",
       "_label-B1jNJHdJ.js",
       "_table-DYHXgcxL.js",
@@ -1999,7 +1999,7 @@
     ]
   },
   "resources/js/pages/payments/index.tsx": {
-    "file": "assets/payments-Ce4Xz89g.js",
+    "file": "assets/payments-DUHKBqJR.js",
     "name": "payments",
     "src": "resources/js/pages/payments/index.tsx",
     "isDynamicEntry": true,
@@ -2009,41 +2009,41 @@
       "_select-BYfs74q9.js",
       "_createLucideIcon-i-FseEqw.js",
       "_calendar-6LkFfo_V.js",
-      "_table-pagination-x-uT6P89.js",
+      "_table-pagination-D--Wuw6K.js",
       "_circle-dot-EKvLO6sZ.js",
-      "_row-menu-BrZzOL7W.js",
-      "_data-table-CckfpUav.js",
+      "_row-menu-BJVobvF0.js",
+      "_data-table-CcfHZetU.js",
       "_mail-DM51nvEP.js",
       "_plus-BPHTqcXS.js",
       "_printer-DF7M_ZEd.js",
       "_triangle-alert-n9bi59hn.js",
-      "_use-school-context-UC7d6UQn.js",
-      "_school-rows-GydT1C7k.js",
+      "_use-school-context-Dc9a10XV.js",
+      "_school-rows-DDQUTfqQ.js",
       "resources/js/app.tsx",
       "_school-form-DHodJKXQ.js",
-      "_school-toast-BVeSuXNv.js",
+      "_school-toast-Cv5qlubA.js",
       "_dialog-DomOv7at.js",
       "_label-B1jNJHdJ.js",
       "_field-ug3RKPH_.js",
-      "_form-sheet-CbV3rW9t.js",
-      "_kpi-card-CDrOYlyi.js",
-      "_search-input-PDmVo688.js",
-      "_list-page-ByZosQNB.js",
+      "_form-sheet-SX6fVgk8.js",
+      "_kpi-card-gSaajA-2.js",
+      "_search-input-CHIDMH3-.js",
+      "_list-page-CmPgmRyZ.js",
       "_use-field-errors-sru_QvXp.js",
       "_table-DYHXgcxL.js",
       "_textarea-CC4EdPM-.js",
-      "_use-crud-items-mKluzgXp.js",
+      "_use-crud-items-BexmLeAs.js",
       "_api-DXVM8nsA.js",
       "_person-cell-CtILrzRz.js",
-      "_search-select-D9q0OLIA.js",
+      "_search-select-BJkOF3en.js",
       "_checkbox-yBT_R8DU.js",
-      "_payment-method-cell-BRwkMfij.js",
-      "_school-payments-BB-GdbIu.js",
+      "_payment-method-cell-ilA1BBep.js",
+      "_school-payments-CZ-v0Ch7.js",
       "_payments-DUqR3rc0.js"
     ]
   },
   "resources/js/pages/payments/receipt.tsx": {
-    "file": "assets/receipt-BTO__mpl.js",
+    "file": "assets/receipt-CHLHZ4ne.js",
     "name": "receipt",
     "src": "resources/js/pages/payments/receipt.tsx",
     "isDynamicEntry": true,
@@ -2053,40 +2053,41 @@
       "_mail-DM51nvEP.js",
       "_printer-DF7M_ZEd.js",
       "_receipt-CVuH053H.js",
-      "_use-school-context-UC7d6UQn.js",
-      "_school-rows-GydT1C7k.js",
+      "_use-school-context-Dc9a10XV.js",
+      "_school-rows-DDQUTfqQ.js",
       "resources/js/app.tsx",
-      "_school-toast-BVeSuXNv.js",
-      "_school-export-DvKn1SD2.js",
+      "_school-toast-Cv5qlubA.js",
+      "_school-export-PpmMAB5-.js",
       "_api-DXVM8nsA.js",
       "_document-pied-Dg5MkV2x.js",
-      "_document-school-header-BA7v21sb.js",
-      "_document-signature-f_0nt6mK.js",
-      "_school-payments-BB-GdbIu.js",
+      "_document-stamp-CfxR1Dx_.js",
+      "_document-signature-C--HK2Ut.js",
+      "_school-payments-CZ-v0Ch7.js",
       "_payments-DUqR3rc0.js",
-      "_document-authenticity-qr-BMpBcp-d.js"
+      "_document-authenticity-qr-CXd1riWj.js"
     ]
   },
   "resources/js/pages/payments/show.tsx": {
-    "file": "assets/show-oxAwbagb.js",
+    "file": "assets/show-CJ_3KYDf.js",
     "name": "show",
     "src": "resources/js/pages/payments/show.tsx",
     "isDynamicEntry": true,
     "imports": [
       "_jsx-runtime-DXLt3b3x.js",
       "_printer-DF7M_ZEd.js",
-      "_use-school-context-UC7d6UQn.js",
-      "_school-rows-GydT1C7k.js",
+      "_use-school-context-Dc9a10XV.js",
+      "_school-rows-DDQUTfqQ.js",
       "resources/js/app.tsx",
-      "_school-export-DvKn1SD2.js",
+      "_school-export-PpmMAB5-.js",
       "_document-pied-Dg5MkV2x.js",
-      "_document-signature-f_0nt6mK.js",
-      "_school-payments-BB-GdbIu.js",
-      "_document-authenticity-qr-BMpBcp-d.js"
+      "_document-stamp-CfxR1Dx_.js",
+      "_document-signature-C--HK2Ut.js",
+      "_school-payments-CZ-v0Ch7.js",
+      "_document-authenticity-qr-CXd1riWj.js"
     ]
   },
   "resources/js/pages/reports/index.tsx": {
-    "file": "assets/reports-BA7Dpvx4.js",
+    "file": "assets/reports-DobN5K7e.js",
     "name": "reports",
     "src": "resources/js/pages/reports/index.tsx",
     "isDynamicEntry": true,
@@ -2095,28 +2096,28 @@
       "_jsx-runtime-DXLt3b3x.js",
       "_select-BYfs74q9.js",
       "_calendar-6LkFfo_V.js",
-      "_table-pagination-x-uT6P89.js",
+      "_table-pagination-D--Wuw6K.js",
       "_download-KMxVAnpi.js",
-      "_row-menu-BrZzOL7W.js",
-      "_data-table-CckfpUav.js",
+      "_row-menu-BJVobvF0.js",
+      "_data-table-CcfHZetU.js",
       "_printer-DF7M_ZEd.js",
-      "_use-school-context-UC7d6UQn.js",
-      "_school-rows-GydT1C7k.js",
+      "_use-school-context-Dc9a10XV.js",
+      "_school-rows-DDQUTfqQ.js",
       "resources/js/app.tsx",
-      "_school-toast-BVeSuXNv.js",
-      "_list-page-ByZosQNB.js",
+      "_school-toast-Cv5qlubA.js",
+      "_list-page-CmPgmRyZ.js",
       "_table-DYHXgcxL.js",
       "_api-DXVM8nsA.js",
-      "_school-grades-CfTmeb0e.js",
+      "_school-grades-BicVnRSL.js",
       "_person-cell-CtILrzRz.js",
-      "_search-select-D9q0OLIA.js",
+      "_search-select-BJkOF3en.js",
       "_school-marking-windows-xezbf8Wc.js",
-      "_school-bulletin-pdf-BThtLNgO.js",
+      "_school-bulletin-pdf-Da2qnyfa.js",
       "_students-zggyLpRT.js"
     ]
   },
   "resources/js/pages/reports/show.tsx": {
-    "file": "assets/show-GRSyn0CT.js",
+    "file": "assets/show-B0eKJM_o.js",
     "name": "show",
     "src": "resources/js/pages/reports/show.tsx",
     "isDynamicEntry": true,
@@ -2124,24 +2125,24 @@
       "_rolldown-runtime-hePW80VL.js",
       "_jsx-runtime-DXLt3b3x.js",
       "_printer-DF7M_ZEd.js",
-      "_use-school-context-UC7d6UQn.js",
-      "_school-rows-GydT1C7k.js",
-      "_school-students-CPzd92k6.js",
+      "_use-school-context-Dc9a10XV.js",
+      "_school-rows-DDQUTfqQ.js",
+      "_school-students-av0bUjs9.js",
       "resources/js/app.tsx",
-      "_school-toast-BVeSuXNv.js",
-      "_empty-state-7Imq2bLe.js",
+      "_school-toast-Cv5qlubA.js",
+      "_empty-state-Dt7C9hNm.js",
       "_api-DXVM8nsA.js",
-      "_school-grades-CfTmeb0e.js",
+      "_school-grades-BicVnRSL.js",
       "_document-pied-Dg5MkV2x.js",
-      "_document-signature-f_0nt6mK.js",
-      "_bulletin-letterhead-DtPEP0Y9.js",
-      "_document-authenticity-qr-BMpBcp-d.js",
-      "_school-bulletin-pdf-BThtLNgO.js",
+      "_document-stamp-CfxR1Dx_.js",
+      "_document-signature-C--HK2Ut.js",
+      "_document-authenticity-qr-CXd1riWj.js",
+      "_school-bulletin-pdf-Da2qnyfa.js",
       "_students-zggyLpRT.js"
     ]
   },
   "resources/js/pages/results/index.tsx": {
-    "file": "assets/results-Cr3OH0hp.js",
+    "file": "assets/results-CNA_OAIE.js",
     "name": "results",
     "src": "resources/js/pages/results/index.tsx",
     "isDynamicEntry": true,
@@ -2149,28 +2150,28 @@
       "_rolldown-runtime-hePW80VL.js",
       "_jsx-runtime-DXLt3b3x.js",
       "_select-BYfs74q9.js",
-      "_table-pagination-x-uT6P89.js",
+      "_table-pagination-D--Wuw6K.js",
       "_circle-dot-EKvLO6sZ.js",
-      "_data-table-CckfpUav.js",
+      "_data-table-CcfHZetU.js",
       "_hash-vW1C4iQY.js",
       "_printer-DF7M_ZEd.js",
-      "_use-school-context-UC7d6UQn.js",
-      "_school-rows-GydT1C7k.js",
+      "_use-school-context-Dc9a10XV.js",
+      "_school-rows-DDQUTfqQ.js",
       "resources/js/app.tsx",
-      "_school-toast-BVeSuXNv.js",
-      "_kpi-card-CDrOYlyi.js",
-      "_empty-state-7Imq2bLe.js",
-      "_school-export-DvKn1SD2.js",
+      "_school-toast-Cv5qlubA.js",
+      "_kpi-card-gSaajA-2.js",
+      "_empty-state-Dt7C9hNm.js",
+      "_school-export-PpmMAB5-.js",
       "_table-DYHXgcxL.js",
       "_api-DXVM8nsA.js",
-      "_school-grades-CfTmeb0e.js",
+      "_school-grades-BicVnRSL.js",
       "_person-cell-CtILrzRz.js",
-      "_search-select-D9q0OLIA.js",
+      "_search-select-BJkOF3en.js",
       "_classrooms-Dcp0wl3g.js"
     ]
   },
   "resources/js/pages/settings/profile.tsx": {
-    "file": "assets/profile-Bei7hhdV.js",
+    "file": "assets/profile-ZpmJKgsz.js",
     "name": "profile",
     "src": "resources/js/pages/settings/profile.tsx",
     "isDynamicEntry": true,
@@ -2179,7 +2180,7 @@
       "_jsx-runtime-DXLt3b3x.js",
       "_wayfinder-DX7UQcfH.js",
       "_photo-field-BwiLNrrr.js",
-      "_use-school-context-UC7d6UQn.js",
+      "_use-school-context-Dc9a10XV.js",
       "_school-access---EonBX1.js",
       "resources/js/app.tsx",
       "_label-B1jNJHdJ.js",
@@ -2189,7 +2190,7 @@
     ]
   },
   "resources/js/pages/settings/security.tsx": {
-    "file": "assets/security-BCb6l5kU.js",
+    "file": "assets/security-SSFB53g3.js",
     "name": "security",
     "src": "resources/js/pages/settings/security.tsx",
     "isDynamicEntry": true,
@@ -2201,14 +2202,14 @@
       "_check-41FT_Yd1.js",
       "_circle-alert-Cxc2GLlF.js",
       "_copy-DParvAGt.js",
-      "_password-input-IJIHWjy4.js",
+      "_password-input--SJrmjUc.js",
       "_eye-CNuO3hzR.js",
       "_lock-keyhole-BI1lMcil.js",
       "_input-otp-dr08PocE.js",
       "resources/js/app.tsx",
       "_dialog-DomOv7at.js",
       "_label-B1jNJHdJ.js",
-      "_confirm-dialog-DZThyH49.js",
+      "_confirm-dialog-CIpxXnLR.js",
       "_alert-DJX3vF86.js",
       "_input-error-BpSvuMKy.js",
       "_spinner-BFdfmu48.js",
@@ -2217,7 +2218,7 @@
     ]
   },
   "resources/js/pages/staff/index.tsx": {
-    "file": "assets/staff-BYiEhheJ.js",
+    "file": "assets/staff-Cs2Z7zGN.js",
     "name": "staff",
     "src": "resources/js/pages/staff/index.tsx",
     "isDynamicEntry": true,
@@ -2228,33 +2229,33 @@
       "_wayfinder-DX7UQcfH.js",
       "_createLucideIcon-i-FseEqw.js",
       "_ban-CIr-ho2r.js",
-      "_table-pagination-x-uT6P89.js",
-      "_row-menu-BrZzOL7W.js",
-      "_data-table-CckfpUav.js",
+      "_table-pagination-D--Wuw6K.js",
+      "_row-menu-BJVobvF0.js",
+      "_data-table-CcfHZetU.js",
       "_mail-DM51nvEP.js",
       "_phone-z3f8nYkf.js",
       "_plus-BPHTqcXS.js",
       "_school-access---EonBX1.js",
-      "_school-rows-GydT1C7k.js",
+      "_school-rows-DDQUTfqQ.js",
       "resources/js/app.tsx",
       "_school-form-DHodJKXQ.js",
-      "_school-toast-BVeSuXNv.js",
-      "_detail-dialog-BCILxZrt.js",
+      "_school-toast-Cv5qlubA.js",
+      "_detail-dialog-C9GpydIN.js",
       "_label-B1jNJHdJ.js",
       "_field-ug3RKPH_.js",
-      "_form-sheet-CbV3rW9t.js",
-      "_kpi-card-CDrOYlyi.js",
-      "_list-page-ByZosQNB.js",
+      "_form-sheet-SX6fVgk8.js",
+      "_kpi-card-gSaajA-2.js",
+      "_list-page-CmPgmRyZ.js",
       "_use-field-errors-sru_QvXp.js",
       "_table-DYHXgcxL.js",
-      "_use-crud-items-mKluzgXp.js",
+      "_use-crud-items-BexmLeAs.js",
       "_api-DXVM8nsA.js",
       "_person-cell-CtILrzRz.js",
       "_checkbox-yBT_R8DU.js"
     ]
   },
   "resources/js/pages/structure/classes.tsx": {
-    "file": "assets/classes-CwsXpead.js",
+    "file": "assets/classes-BqNZWUUl.js",
     "name": "classes",
     "src": "resources/js/pages/structure/classes.tsx",
     "isDynamicEntry": true,
@@ -2262,31 +2263,31 @@
       "_rolldown-runtime-hePW80VL.js",
       "_jsx-runtime-DXLt3b3x.js",
       "_select-BYfs74q9.js",
-      "_table-pagination-x-uT6P89.js",
-      "_row-menu-BrZzOL7W.js",
-      "_data-table-CckfpUav.js",
+      "_table-pagination-D--Wuw6K.js",
+      "_row-menu-BJVobvF0.js",
+      "_data-table-CcfHZetU.js",
       "_hash-vW1C4iQY.js",
       "_plus-BPHTqcXS.js",
       "_tag-CUorjRen.js",
-      "_use-school-context-UC7d6UQn.js",
-      "_school-rows-GydT1C7k.js",
+      "_use-school-context-Dc9a10XV.js",
+      "_school-rows-DDQUTfqQ.js",
       "resources/js/app.tsx",
       "_school-form-DHodJKXQ.js",
-      "_school-toast-BVeSuXNv.js",
-      "_detail-dialog-BCILxZrt.js",
+      "_school-toast-Cv5qlubA.js",
+      "_detail-dialog-C9GpydIN.js",
       "_field-ug3RKPH_.js",
-      "_form-sheet-CbV3rW9t.js",
-      "_list-page-ByZosQNB.js",
+      "_form-sheet-SX6fVgk8.js",
+      "_list-page-CmPgmRyZ.js",
       "_use-field-errors-sru_QvXp.js",
       "_table-DYHXgcxL.js",
-      "_use-crud-items-mKluzgXp.js",
+      "_use-crud-items-BexmLeAs.js",
       "_api-DXVM8nsA.js",
       "_classrooms-Dcp0wl3g.js",
       "_school-structure-B-VOhk1c.js"
     ]
   },
   "resources/js/pages/structure/hours.tsx": {
-    "file": "assets/hours-CAaoDNxO.js",
+    "file": "assets/hours-Dr9Gep7Y.js",
     "name": "hours",
     "src": "resources/js/pages/structure/hours.tsx",
     "isDynamicEntry": true,
@@ -2295,49 +2296,49 @@
       "_jsx-runtime-DXLt3b3x.js",
       "_plus-BPHTqcXS.js",
       "_trash-2-CjwRdEjF.js",
-      "_use-school-context-UC7d6UQn.js",
-      "_school-rows-GydT1C7k.js",
-      "_school-timetable--m7c7DDg.js",
+      "_use-school-context-Dc9a10XV.js",
+      "_school-rows-DDQUTfqQ.js",
+      "_school-timetable-BlWBXJXG.js",
       "resources/js/app.tsx",
       "_school-form-DHodJKXQ.js",
       "_field-ug3RKPH_.js",
       "_use-field-errors-sru_QvXp.js",
       "_time-picker-BI1uudQ8.js",
-      "_use-cycle-schedules-XUofKKNg.js"
+      "_use-cycle-schedules-BNYNtU4A.js"
     ]
   },
   "resources/js/pages/structure/periods.tsx": {
-    "file": "assets/periods-SykfZT9g.js",
+    "file": "assets/periods-2zIEMIYA.js",
     "name": "periods",
     "src": "resources/js/pages/structure/periods.tsx",
     "isDynamicEntry": true,
     "imports": [
       "_rolldown-runtime-hePW80VL.js",
       "_jsx-runtime-DXLt3b3x.js",
-      "_table-pagination-x-uT6P89.js",
-      "_row-menu-BrZzOL7W.js",
-      "_data-table-CckfpUav.js",
+      "_table-pagination-D--Wuw6K.js",
+      "_row-menu-BJVobvF0.js",
+      "_data-table-CcfHZetU.js",
       "_hash-vW1C4iQY.js",
       "_plus-BPHTqcXS.js",
-      "_use-school-context-UC7d6UQn.js",
-      "_school-rows-GydT1C7k.js",
-      "_school-timetable--m7c7DDg.js",
+      "_use-school-context-Dc9a10XV.js",
+      "_school-rows-DDQUTfqQ.js",
+      "_school-timetable-BlWBXJXG.js",
       "resources/js/app.tsx",
       "_school-form-DHodJKXQ.js",
-      "_school-toast-BVeSuXNv.js",
-      "_detail-dialog-BCILxZrt.js",
+      "_school-toast-Cv5qlubA.js",
+      "_detail-dialog-C9GpydIN.js",
       "_field-ug3RKPH_.js",
-      "_form-sheet-CbV3rW9t.js",
-      "_list-page-ByZosQNB.js",
+      "_form-sheet-SX6fVgk8.js",
+      "_list-page-CmPgmRyZ.js",
       "_use-field-errors-sru_QvXp.js",
       "_table-DYHXgcxL.js",
-      "_use-crud-items-mKluzgXp.js",
+      "_use-crud-items-BexmLeAs.js",
       "_time-picker-BI1uudQ8.js",
-      "_use-cycle-schedules-XUofKKNg.js"
+      "_use-cycle-schedules-BNYNtU4A.js"
     ]
   },
   "resources/js/pages/structure/tracks.tsx": {
-    "file": "assets/tracks-C3hfz8cv.js",
+    "file": "assets/tracks-CrTc1x5K.js",
     "name": "tracks",
     "src": "resources/js/pages/structure/tracks.tsx",
     "isDynamicEntry": true,
@@ -2345,30 +2346,30 @@
       "_rolldown-runtime-hePW80VL.js",
       "_jsx-runtime-DXLt3b3x.js",
       "_wayfinder-DX7UQcfH.js",
-      "_table-pagination-x-uT6P89.js",
-      "_row-menu-BrZzOL7W.js",
-      "_data-table-CckfpUav.js",
+      "_table-pagination-D--Wuw6K.js",
+      "_row-menu-BJVobvF0.js",
+      "_data-table-CcfHZetU.js",
       "_hash-vW1C4iQY.js",
       "_plus-BPHTqcXS.js",
       "_tag-CUorjRen.js",
-      "_use-school-context-UC7d6UQn.js",
-      "_school-rows-GydT1C7k.js",
+      "_use-school-context-Dc9a10XV.js",
+      "_school-rows-DDQUTfqQ.js",
       "resources/js/app.tsx",
       "_school-form-DHodJKXQ.js",
-      "_school-toast-BVeSuXNv.js",
-      "_detail-dialog-BCILxZrt.js",
+      "_school-toast-Cv5qlubA.js",
+      "_detail-dialog-C9GpydIN.js",
       "_field-ug3RKPH_.js",
-      "_form-sheet-CbV3rW9t.js",
-      "_empty-state-7Imq2bLe.js",
-      "_list-page-ByZosQNB.js",
+      "_form-sheet-SX6fVgk8.js",
+      "_empty-state-Dt7C9hNm.js",
+      "_list-page-CmPgmRyZ.js",
       "_use-field-errors-sru_QvXp.js",
       "_table-DYHXgcxL.js",
-      "_use-crud-items-mKluzgXp.js",
+      "_use-crud-items-BexmLeAs.js",
       "_api-DXVM8nsA.js"
     ]
   },
   "resources/js/pages/structure/venues.tsx": {
-    "file": "assets/venues-SwsS09WI.js",
+    "file": "assets/venues-BLJDU1r1.js",
     "name": "venues",
     "src": "resources/js/pages/structure/venues.tsx",
     "isDynamicEntry": true,
@@ -2378,27 +2379,27 @@
       "_select-BYfs74q9.js",
       "_wayfinder-DX7UQcfH.js",
       "_createLucideIcon-i-FseEqw.js",
-      "_table-pagination-x-uT6P89.js",
+      "_table-pagination-D--Wuw6K.js",
       "_circle-dot-EKvLO6sZ.js",
-      "_row-menu-BrZzOL7W.js",
-      "_data-table-CckfpUav.js",
+      "_row-menu-BJVobvF0.js",
+      "_data-table-CcfHZetU.js",
       "_plus-BPHTqcXS.js",
       "resources/js/app.tsx",
       "_school-form-DHodJKXQ.js",
-      "_school-toast-BVeSuXNv.js",
-      "_detail-dialog-BCILxZrt.js",
+      "_school-toast-Cv5qlubA.js",
+      "_detail-dialog-C9GpydIN.js",
       "_field-ug3RKPH_.js",
-      "_form-sheet-CbV3rW9t.js",
-      "_list-page-ByZosQNB.js",
+      "_form-sheet-SX6fVgk8.js",
+      "_list-page-CmPgmRyZ.js",
       "_use-field-errors-sru_QvXp.js",
       "_table-DYHXgcxL.js",
-      "_use-crud-items-mKluzgXp.js",
+      "_use-crud-items-BexmLeAs.js",
       "_api-DXVM8nsA.js",
       "_school-structure-B-VOhk1c.js"
     ]
   },
   "resources/js/pages/structure/years.tsx": {
-    "file": "assets/years-C7wx8EEx.js",
+    "file": "assets/years-CPH8DECx.js",
     "name": "years",
     "src": "resources/js/pages/structure/years.tsx",
     "isDynamicEntry": true,
@@ -2408,28 +2409,28 @@
       "_wayfinder-DX7UQcfH.js",
       "_calendar-check-CUaW82dp.js",
       "_calendar-6LkFfo_V.js",
-      "_table-pagination-x-uT6P89.js",
+      "_table-pagination-D--Wuw6K.js",
       "_circle-dot-EKvLO6sZ.js",
-      "_row-menu-BrZzOL7W.js",
-      "_data-table-CckfpUav.js",
+      "_row-menu-BJVobvF0.js",
+      "_data-table-CcfHZetU.js",
       "_plus-BPHTqcXS.js",
-      "_school-rows-GydT1C7k.js",
+      "_school-rows-DDQUTfqQ.js",
       "resources/js/app.tsx",
       "_school-form-DHodJKXQ.js",
-      "_school-toast-BVeSuXNv.js",
-      "_detail-dialog-BCILxZrt.js",
+      "_school-toast-Cv5qlubA.js",
+      "_detail-dialog-C9GpydIN.js",
       "_field-ug3RKPH_.js",
-      "_form-sheet-CbV3rW9t.js",
-      "_list-page-ByZosQNB.js",
+      "_form-sheet-SX6fVgk8.js",
+      "_list-page-CmPgmRyZ.js",
       "_use-field-errors-sru_QvXp.js",
       "_table-DYHXgcxL.js",
-      "_use-crud-items-mKluzgXp.js",
+      "_use-crud-items-BexmLeAs.js",
       "_api-DXVM8nsA.js",
       "_school-structure-B-VOhk1c.js"
     ]
   },
   "resources/js/pages/students/admissions.tsx": {
-    "file": "assets/admissions-BzoU3jgE.js",
+    "file": "assets/admissions-8_yslgFW.js",
     "name": "admissions",
     "src": "resources/js/pages/students/admissions.tsx",
     "isDynamicEntry": true,
@@ -2439,35 +2440,35 @@
       "_select-BYfs74q9.js",
       "_wayfinder-DX7UQcfH.js",
       "_calendar-6LkFfo_V.js",
-      "_table-pagination-x-uT6P89.js",
+      "_table-pagination-D--Wuw6K.js",
       "_circle-dot-EKvLO6sZ.js",
-      "_row-menu-BrZzOL7W.js",
-      "_data-table-CckfpUav.js",
+      "_row-menu-BJVobvF0.js",
+      "_data-table-CcfHZetU.js",
       "_plus-BPHTqcXS.js",
-      "_use-school-context-UC7d6UQn.js",
-      "_school-rows-GydT1C7k.js",
-      "_date-picker-Dj5tBbTu.js",
-      "_school-students-CPzd92k6.js",
+      "_use-school-context-Dc9a10XV.js",
+      "_school-rows-DDQUTfqQ.js",
+      "_date-picker-B8it4lQO.js",
+      "_school-students-av0bUjs9.js",
       "resources/js/app.tsx",
       "_school-form-DHodJKXQ.js",
-      "_school-toast-BVeSuXNv.js",
+      "_school-toast-Cv5qlubA.js",
       "_field-ug3RKPH_.js",
-      "_form-sheet-CbV3rW9t.js",
-      "_kpi-card-CDrOYlyi.js",
-      "_list-page-ByZosQNB.js",
+      "_form-sheet-SX6fVgk8.js",
+      "_kpi-card-gSaajA-2.js",
+      "_list-page-CmPgmRyZ.js",
       "_use-field-errors-sru_QvXp.js",
       "_table-DYHXgcxL.js",
       "_textarea-CC4EdPM-.js",
-      "_use-crud-items-mKluzgXp.js",
+      "_use-crud-items-BexmLeAs.js",
       "_api-DXVM8nsA.js",
-      "_search-select-D9q0OLIA.js",
-      "_file-list-field-bDF0oJN1.js",
-      "_gender-select-HCQdu4cb.js",
+      "_search-select-BJkOF3en.js",
+      "_file-list-field-k9iZ3S38.js",
+      "_gender-select-BQAVzPnv.js",
       "_school-enrolment-DMTIBMY8.js"
     ]
   },
   "resources/js/pages/students/create.tsx": {
-    "file": "assets/create-BKSR_4gH.js",
+    "file": "assets/create-Cj1LfAP7.js",
     "name": "create",
     "src": "resources/js/pages/students/create.tsx",
     "isDynamicEntry": true,
@@ -2477,28 +2478,28 @@
       "_select-BYfs74q9.js",
       "_photo-field-BwiLNrrr.js",
       "_map-pin-CbH3J7OC.js",
-      "_use-school-context-UC7d6UQn.js",
-      "_school-rows-GydT1C7k.js",
-      "_date-picker-Dj5tBbTu.js",
-      "_school-students-CPzd92k6.js",
+      "_use-school-context-Dc9a10XV.js",
+      "_school-rows-DDQUTfqQ.js",
+      "_date-picker-B8it4lQO.js",
+      "_school-students-av0bUjs9.js",
       "resources/js/app.tsx",
       "_school-form-DHodJKXQ.js",
-      "_school-toast-BVeSuXNv.js",
+      "_school-toast-Cv5qlubA.js",
       "_label-B1jNJHdJ.js",
       "_field-ug3RKPH_.js",
       "_use-field-errors-sru_QvXp.js",
       "_api-DXVM8nsA.js",
-      "_search-select-D9q0OLIA.js",
+      "_search-select-BJkOF3en.js",
       "_checkbox-yBT_R8DU.js",
       "_students-zggyLpRT.js",
-      "_file-list-field-bDF0oJN1.js",
-      "_gender-select-HCQdu4cb.js",
+      "_file-list-field-k9iZ3S38.js",
+      "_gender-select-BQAVzPnv.js",
       "_form-layout-C8AZiETX.js",
-      "_form-steps-D3Q6jVMR.js"
+      "_form-steps-lkqQoxf3.js"
     ]
   },
   "resources/js/pages/students/discipline.tsx": {
-    "file": "assets/discipline-B6oBBDVg.js",
+    "file": "assets/discipline-CqIxjz8D.js",
     "name": "discipline",
     "src": "resources/js/pages/students/discipline.tsx",
     "isDynamicEntry": true,
@@ -2506,29 +2507,29 @@
       "_rolldown-runtime-hePW80VL.js",
       "_jsx-runtime-DXLt3b3x.js",
       "_wayfinder-DX7UQcfH.js",
-      "_row-menu-BrZzOL7W.js",
-      "_data-table-CckfpUav.js",
+      "_row-menu-BJVobvF0.js",
+      "_data-table-CcfHZetU.js",
       "_plus-BPHTqcXS.js",
-      "_use-school-context-UC7d6UQn.js",
-      "_school-rows-GydT1C7k.js",
-      "_date-picker-Dj5tBbTu.js",
-      "_school-students-CPzd92k6.js",
+      "_use-school-context-Dc9a10XV.js",
+      "_school-rows-DDQUTfqQ.js",
+      "_date-picker-B8it4lQO.js",
+      "_school-students-av0bUjs9.js",
       "resources/js/app.tsx",
       "_school-form-DHodJKXQ.js",
-      "_school-toast-BVeSuXNv.js",
-      "_detail-dialog-BCILxZrt.js",
+      "_school-toast-Cv5qlubA.js",
+      "_detail-dialog-C9GpydIN.js",
       "_field-ug3RKPH_.js",
-      "_form-sheet-CbV3rW9t.js",
-      "_empty-state-7Imq2bLe.js",
+      "_form-sheet-SX6fVgk8.js",
+      "_empty-state-Dt7C9hNm.js",
       "_use-field-errors-sru_QvXp.js",
       "_table-DYHXgcxL.js",
       "_textarea-CC4EdPM-.js",
-      "_use-crud-items-mKluzgXp.js",
+      "_use-crud-items-BexmLeAs.js",
       "_api-DXVM8nsA.js"
     ]
   },
   "resources/js/pages/students/documents.tsx": {
-    "file": "assets/documents-BDEQZnPN.js",
+    "file": "assets/documents-B5C9QcsF.js",
     "name": "documents",
     "src": "resources/js/pages/students/documents.tsx",
     "isDynamicEntry": true,
@@ -2543,26 +2544,27 @@
       "_printer-DF7M_ZEd.js",
       "_receipt-CVuH053H.js",
       "_stamp-DkWt339D.js",
-      "_use-school-context-UC7d6UQn.js",
+      "_use-school-context-Dc9a10XV.js",
       "_school-access---EonBX1.js",
-      "_school-rows-GydT1C7k.js",
-      "_school-students-CPzd92k6.js",
+      "_school-rows-DDQUTfqQ.js",
+      "_school-students-av0bUjs9.js",
       "resources/js/app.tsx",
-      "_school-toast-BVeSuXNv.js",
+      "_school-toast-Cv5qlubA.js",
       "_field-ug3RKPH_.js",
-      "_form-sheet-CbV3rW9t.js",
-      "_empty-state-7Imq2bLe.js",
-      "_school-export-DvKn1SD2.js",
+      "_form-sheet-SX6fVgk8.js",
+      "_empty-state-Dt7C9hNm.js",
+      "_school-export-PpmMAB5-.js",
       "_api-DXVM8nsA.js",
       "_document-pied-Dg5MkV2x.js",
-      "_document-school-header-BA7v21sb.js",
-      "_document-signature-f_0nt6mK.js",
-      "_document-authenticity-qr-BMpBcp-d.js",
-      "_school-files-BF_Orh7q.js"
+      "_document-stamp-CfxR1Dx_.js",
+      "_document-signature-C--HK2Ut.js",
+      "_document-placeholders-D33WSXR3.js",
+      "_document-authenticity-qr-CXd1riWj.js",
+      "_school-files-CSWJ-ACo.js"
     ]
   },
   "resources/js/pages/students/dossier.tsx": {
-    "file": "assets/dossier-Cx-7QsiB.js",
+    "file": "assets/dossier-CFZrWaEy.js",
     "name": "dossier",
     "src": "resources/js/pages/students/dossier.tsx",
     "isDynamicEntry": true,
@@ -2573,35 +2575,35 @@
       "_photo-field-BwiLNrrr.js",
       "_circle-alert-Cxc2GLlF.js",
       "_circle-check-Dbqtihed.js",
-      "_use-school-context-UC7d6UQn.js",
-      "_school-students-CPzd92k6.js",
+      "_use-school-context-Dc9a10XV.js",
+      "_school-students-av0bUjs9.js",
       "resources/js/app.tsx",
-      "_school-toast-BVeSuXNv.js",
-      "_form-sheet-CbV3rW9t.js",
+      "_school-toast-Cv5qlubA.js",
+      "_form-sheet-SX6fVgk8.js",
       "_api-DXVM8nsA.js",
       "_students-zggyLpRT.js",
-      "_school-files-BF_Orh7q.js",
-      "_file-list-field-bDF0oJN1.js",
+      "_school-files-CSWJ-ACo.js",
+      "_file-list-field-k9iZ3S38.js",
       "_school-dossier-Dxztk4Pp.js"
     ]
   },
   "resources/js/pages/students/grades.tsx": {
-    "file": "assets/grades-BocVPXcS.js",
+    "file": "assets/grades-CBtDwHsD.js",
     "name": "grades",
     "src": "resources/js/pages/students/grades.tsx",
     "isDynamicEntry": true,
     "imports": [
       "_jsx-runtime-DXLt3b3x.js",
-      "_use-school-context-UC7d6UQn.js",
-      "_school-rows-GydT1C7k.js",
-      "_school-students-CPzd92k6.js",
+      "_use-school-context-Dc9a10XV.js",
+      "_school-rows-DDQUTfqQ.js",
+      "_school-students-av0bUjs9.js",
       "resources/js/app.tsx",
-      "_empty-state-7Imq2bLe.js",
+      "_empty-state-Dt7C9hNm.js",
       "_table-DYHXgcxL.js"
     ]
   },
   "resources/js/pages/students/guardians.tsx": {
-    "file": "assets/guardians-BBDx7qBW.js",
+    "file": "assets/guardians-CC_hWNFH.js",
     "name": "guardians",
     "src": "resources/js/pages/students/guardians.tsx",
     "isDynamicEntry": true,
@@ -2609,26 +2611,26 @@
       "_rolldown-runtime-hePW80VL.js",
       "_jsx-runtime-DXLt3b3x.js",
       "_select-BYfs74q9.js",
-      "_row-menu-BrZzOL7W.js",
-      "_data-table-CckfpUav.js",
-      "_use-school-context-UC7d6UQn.js",
-      "_school-rows-GydT1C7k.js",
-      "_school-students-CPzd92k6.js",
+      "_row-menu-BJVobvF0.js",
+      "_data-table-CcfHZetU.js",
+      "_use-school-context-Dc9a10XV.js",
+      "_school-rows-DDQUTfqQ.js",
+      "_school-students-av0bUjs9.js",
       "resources/js/app.tsx",
-      "_school-toast-BVeSuXNv.js",
-      "_detail-dialog-BCILxZrt.js",
+      "_school-toast-Cv5qlubA.js",
+      "_detail-dialog-C9GpydIN.js",
       "_field-ug3RKPH_.js",
-      "_form-sheet-CbV3rW9t.js",
-      "_empty-state-7Imq2bLe.js",
+      "_form-sheet-SX6fVgk8.js",
+      "_empty-state-Dt7C9hNm.js",
       "_table-DYHXgcxL.js",
-      "_use-crud-items-mKluzgXp.js",
+      "_use-crud-items-BexmLeAs.js",
       "_api-DXVM8nsA.js",
       "_person-cell-CtILrzRz.js",
       "_guardians-BN0k2YJm.js"
     ]
   },
   "resources/js/pages/students/identity.tsx": {
-    "file": "assets/identity-GddhXdqp.js",
+    "file": "assets/identity-BaF-YSUh.js",
     "name": "identity",
     "src": "resources/js/pages/students/identity.tsx",
     "isDynamicEntry": true,
@@ -2636,24 +2638,24 @@
       "_rolldown-runtime-hePW80VL.js",
       "_jsx-runtime-DXLt3b3x.js",
       "_photo-field-BwiLNrrr.js",
-      "_use-school-context-UC7d6UQn.js",
-      "_school-rows-GydT1C7k.js",
-      "_date-picker-Dj5tBbTu.js",
-      "_school-students-CPzd92k6.js",
+      "_use-school-context-Dc9a10XV.js",
+      "_school-rows-DDQUTfqQ.js",
+      "_date-picker-B8it4lQO.js",
+      "_school-students-av0bUjs9.js",
       "resources/js/app.tsx",
       "_school-form-DHodJKXQ.js",
-      "_school-toast-BVeSuXNv.js",
+      "_school-toast-Cv5qlubA.js",
       "_field-ug3RKPH_.js",
-      "_form-sheet-CbV3rW9t.js",
+      "_form-sheet-SX6fVgk8.js",
       "_use-field-errors-sru_QvXp.js",
       "_api-DXVM8nsA.js",
       "_info-field-D_-tVJL9.js",
       "_students-zggyLpRT.js",
-      "_gender-select-HCQdu4cb.js"
+      "_gender-select-BQAVzPnv.js"
     ]
   },
   "resources/js/pages/students/index.tsx": {
-    "file": "assets/students-HjzvpiSV.js",
+    "file": "assets/students-CJUljtA-.js",
     "name": "students",
     "src": "resources/js/pages/students/index.tsx",
     "isDynamicEntry": true,
@@ -2662,81 +2664,81 @@
       "_jsx-runtime-DXLt3b3x.js",
       "_select-BYfs74q9.js",
       "_wayfinder-DX7UQcfH.js",
-      "_table-pagination-x-uT6P89.js",
+      "_table-pagination-D--Wuw6K.js",
       "_circle-dot-EKvLO6sZ.js",
-      "_row-menu-BrZzOL7W.js",
-      "_data-table-CckfpUav.js",
+      "_row-menu-BJVobvF0.js",
+      "_data-table-CcfHZetU.js",
       "_hash-vW1C4iQY.js",
       "_mail-DM51nvEP.js",
       "_plus-BPHTqcXS.js",
       "_user-check-OwEzmfMQ.js",
-      "_use-school-context-UC7d6UQn.js",
-      "_school-rows-GydT1C7k.js",
+      "_use-school-context-Dc9a10XV.js",
+      "_school-rows-DDQUTfqQ.js",
       "resources/js/app.tsx",
-      "_school-toast-BVeSuXNv.js",
-      "_kpi-card-CDrOYlyi.js",
-      "_list-page-ByZosQNB.js",
+      "_school-toast-Cv5qlubA.js",
+      "_kpi-card-gSaajA-2.js",
+      "_list-page-CmPgmRyZ.js",
       "_table-DYHXgcxL.js",
-      "_use-crud-items-mKluzgXp.js",
+      "_use-crud-items-BexmLeAs.js",
       "_api-DXVM8nsA.js",
       "_person-cell-CtILrzRz.js",
-      "_search-select-D9q0OLIA.js",
-      "_school-files-BF_Orh7q.js",
+      "_search-select-BJkOF3en.js",
+      "_school-files-CSWJ-ACo.js",
       "_school-dossier-Dxztk4Pp.js"
     ]
   },
   "resources/js/pages/students/overview.tsx": {
-    "file": "assets/overview-BrucDIOJ.js",
+    "file": "assets/overview-B7ZvoW4Y.js",
     "name": "overview",
     "src": "resources/js/pages/students/overview.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_chart-card-LWmApfvY.js",
+      "_chart-card-BLfzH-04.js",
       "_jsx-runtime-DXLt3b3x.js",
       "_calendar-check-CUaW82dp.js",
-      "_use-school-context-UC7d6UQn.js",
-      "_school-rows-GydT1C7k.js",
-      "_school-students-CPzd92k6.js",
+      "_use-school-context-Dc9a10XV.js",
+      "_school-rows-DDQUTfqQ.js",
+      "_school-students-av0bUjs9.js",
       "resources/js/app.tsx",
-      "_kpi-card-CDrOYlyi.js",
-      "_empty-state-7Imq2bLe.js",
+      "_kpi-card-gSaajA-2.js",
+      "_empty-state-Dt7C9hNm.js",
       "_table-DYHXgcxL.js",
-      "_school-grades-CfTmeb0e.js",
-      "_school-payments-BB-GdbIu.js"
+      "_school-grades-BicVnRSL.js",
+      "_school-payments-CZ-v0Ch7.js"
     ]
   },
   "resources/js/pages/students/payments.tsx": {
-    "file": "assets/payments-jwSRtGJz.js",
+    "file": "assets/payments-DvXG5xIh.js",
     "name": "payments",
     "src": "resources/js/pages/students/payments.tsx",
     "isDynamicEntry": true,
     "imports": [
       "_jsx-runtime-DXLt3b3x.js",
-      "_use-school-context-UC7d6UQn.js",
-      "_school-rows-GydT1C7k.js",
-      "_school-students-CPzd92k6.js",
+      "_use-school-context-Dc9a10XV.js",
+      "_school-rows-DDQUTfqQ.js",
+      "_school-students-av0bUjs9.js",
       "resources/js/app.tsx",
-      "_empty-state-7Imq2bLe.js",
+      "_empty-state-Dt7C9hNm.js",
       "_table-DYHXgcxL.js",
-      "_school-payments-BB-GdbIu.js"
+      "_school-payments-CZ-v0Ch7.js"
     ]
   },
   "resources/js/pages/students/previous.tsx": {
-    "file": "assets/previous-CDarEuMW.js",
+    "file": "assets/previous-CGLxldeL.js",
     "name": "previous",
     "src": "resources/js/pages/students/previous.tsx",
     "isDynamicEntry": true,
     "imports": [
       "_rolldown-runtime-hePW80VL.js",
       "_jsx-runtime-DXLt3b3x.js",
-      "_use-school-context-UC7d6UQn.js",
-      "_school-students-CPzd92k6.js",
+      "_use-school-context-Dc9a10XV.js",
+      "_school-students-av0bUjs9.js",
       "resources/js/app.tsx",
       "_school-form-DHodJKXQ.js",
-      "_school-toast-BVeSuXNv.js",
+      "_school-toast-Cv5qlubA.js",
       "_label-B1jNJHdJ.js",
       "_field-ug3RKPH_.js",
-      "_form-sheet-CbV3rW9t.js",
+      "_form-sheet-SX6fVgk8.js",
       "_use-field-errors-sru_QvXp.js",
       "_api-DXVM8nsA.js",
       "_checkbox-yBT_R8DU.js",
@@ -2745,7 +2747,7 @@
     ]
   },
   "resources/js/pages/students/reenrollments.tsx": {
-    "file": "assets/reenrollments-6vGpn1A9.js",
+    "file": "assets/reenrollments-CJLHAtA8.js",
     "name": "reenrollments",
     "src": "resources/js/pages/students/reenrollments.tsx",
     "isDynamicEntry": true,
@@ -2755,34 +2757,34 @@
       "_select-BYfs74q9.js",
       "_wayfinder-DX7UQcfH.js",
       "_calendar-6LkFfo_V.js",
-      "_table-pagination-x-uT6P89.js",
+      "_table-pagination-D--Wuw6K.js",
       "_circle-check-Dbqtihed.js",
       "_circle-dot-EKvLO6sZ.js",
-      "_row-menu-BrZzOL7W.js",
-      "_data-table-CckfpUav.js",
+      "_row-menu-BJVobvF0.js",
+      "_data-table-CcfHZetU.js",
       "_plus-BPHTqcXS.js",
-      "_use-school-context-UC7d6UQn.js",
-      "_school-rows-GydT1C7k.js",
-      "_date-picker-Dj5tBbTu.js",
+      "_use-school-context-Dc9a10XV.js",
+      "_school-rows-DDQUTfqQ.js",
+      "_date-picker-B8it4lQO.js",
       "resources/js/app.tsx",
       "_school-form-DHodJKXQ.js",
-      "_school-toast-BVeSuXNv.js",
+      "_school-toast-Cv5qlubA.js",
       "_field-ug3RKPH_.js",
-      "_form-sheet-CbV3rW9t.js",
-      "_kpi-card-CDrOYlyi.js",
-      "_list-page-ByZosQNB.js",
+      "_form-sheet-SX6fVgk8.js",
+      "_kpi-card-gSaajA-2.js",
+      "_list-page-CmPgmRyZ.js",
       "_use-field-errors-sru_QvXp.js",
       "_table-DYHXgcxL.js",
       "_textarea-CC4EdPM-.js",
-      "_use-crud-items-mKluzgXp.js",
+      "_use-crud-items-BexmLeAs.js",
       "_api-DXVM8nsA.js",
-      "_search-select-D9q0OLIA.js",
-      "_file-list-field-bDF0oJN1.js",
+      "_search-select-BJkOF3en.js",
+      "_file-list-field-k9iZ3S38.js",
       "_school-enrolment-DMTIBMY8.js"
     ]
   },
   "resources/js/pages/subjects/index.tsx": {
-    "file": "assets/subjects-ExrnGRxP.js",
+    "file": "assets/subjects-I1sIIsPb.js",
     "name": "subjects",
     "src": "resources/js/pages/subjects/index.tsx",
     "isDynamicEntry": true,
@@ -2791,33 +2793,33 @@
       "_jsx-runtime-DXLt3b3x.js",
       "_select-BYfs74q9.js",
       "_wayfinder-DX7UQcfH.js",
-      "_table-pagination-x-uT6P89.js",
-      "_row-menu-BrZzOL7W.js",
-      "_data-table-CckfpUav.js",
+      "_table-pagination-D--Wuw6K.js",
+      "_row-menu-BJVobvF0.js",
+      "_data-table-CcfHZetU.js",
       "_hash-vW1C4iQY.js",
       "_paperclip-BTLMsKOa.js",
       "_plus-BPHTqcXS.js",
       "_tag-CUorjRen.js",
-      "_use-school-context-UC7d6UQn.js",
-      "_school-rows-GydT1C7k.js",
+      "_use-school-context-Dc9a10XV.js",
+      "_school-rows-DDQUTfqQ.js",
       "resources/js/app.tsx",
       "_school-form-DHodJKXQ.js",
-      "_school-toast-BVeSuXNv.js",
-      "_detail-dialog-BCILxZrt.js",
+      "_school-toast-Cv5qlubA.js",
+      "_detail-dialog-C9GpydIN.js",
       "_field-ug3RKPH_.js",
-      "_form-sheet-CbV3rW9t.js",
-      "_list-page-ByZosQNB.js",
+      "_form-sheet-SX6fVgk8.js",
+      "_list-page-CmPgmRyZ.js",
       "_use-field-errors-sru_QvXp.js",
       "_table-DYHXgcxL.js",
-      "_use-crud-items-mKluzgXp.js",
+      "_use-crud-items-BexmLeAs.js",
       "_api-DXVM8nsA.js",
-      "_search-select-D9q0OLIA.js",
-      "_school-files-BF_Orh7q.js",
-      "_file-list-field-bDF0oJN1.js"
+      "_search-select-BJkOF3en.js",
+      "_school-files-CSWJ-ACo.js",
+      "_file-list-field-k9iZ3S38.js"
     ]
   },
   "resources/js/pages/teachers/assignments.tsx": {
-    "file": "assets/assignments-CiimP6Ap.js",
+    "file": "assets/assignments-CwsCz2LQ.js",
     "name": "assignments",
     "src": "resources/js/pages/teachers/assignments.tsx",
     "isDynamicEntry": true,
@@ -2826,46 +2828,46 @@
       "_jsx-runtime-DXLt3b3x.js",
       "_select-BYfs74q9.js",
       "_wayfinder-DX7UQcfH.js",
-      "_row-menu-BrZzOL7W.js",
+      "_row-menu-BJVobvF0.js",
       "_pencil-Y192l8KR.js",
       "_plus-BPHTqcXS.js",
       "_user-minus-OrS_sdgW.js",
-      "_use-school-context-UC7d6UQn.js",
-      "_school-rows-GydT1C7k.js",
+      "_use-school-context-Dc9a10XV.js",
+      "_school-rows-DDQUTfqQ.js",
       "resources/js/app.tsx",
       "_school-form-DHodJKXQ.js",
-      "_school-toast-BVeSuXNv.js",
+      "_school-toast-Cv5qlubA.js",
       "_field-ug3RKPH_.js",
-      "_form-sheet-CbV3rW9t.js",
-      "_empty-state-7Imq2bLe.js",
+      "_form-sheet-SX6fVgk8.js",
+      "_empty-state-Dt7C9hNm.js",
       "_use-field-errors-sru_QvXp.js",
       "_table-DYHXgcxL.js",
       "_api-DXVM8nsA.js",
-      "_search-select-D9q0OLIA.js"
+      "_search-select-BJkOF3en.js"
     ]
   },
   "resources/js/pages/teachers/create.tsx": {
-    "file": "assets/create-BmYisPnP.js",
+    "file": "assets/create-BGbeYerV.js",
     "name": "create",
     "src": "resources/js/pages/teachers/create.tsx",
     "isDynamicEntry": true,
     "imports": [
       "_rolldown-runtime-hePW80VL.js",
       "_jsx-runtime-DXLt3b3x.js",
-      "_use-school-context-UC7d6UQn.js",
-      "_school-rows-GydT1C7k.js",
+      "_use-school-context-Dc9a10XV.js",
+      "_school-rows-DDQUTfqQ.js",
       "resources/js/app.tsx",
-      "_school-toast-BVeSuXNv.js",
+      "_school-toast-Cv5qlubA.js",
       "_use-field-errors-sru_QvXp.js",
       "_api-DXVM8nsA.js",
-      "_file-list-field-bDF0oJN1.js",
+      "_file-list-field-k9iZ3S38.js",
       "_form-layout-C8AZiETX.js",
-      "_form-steps-D3Q6jVMR.js",
-      "_teachers-f5_CqIkA.js"
+      "_form-steps-lkqQoxf3.js",
+      "_teachers-ZMVJ81M8.js"
     ]
   },
   "resources/js/pages/teachers/dossier.tsx": {
-    "file": "assets/dossier-3UmbcO5d.js",
+    "file": "assets/dossier-Dvde6N9r.js",
     "name": "dossier",
     "src": "resources/js/pages/teachers/dossier.tsx",
     "isDynamicEntry": true,
@@ -2873,16 +2875,16 @@
       "_rolldown-runtime-hePW80VL.js",
       "_jsx-runtime-DXLt3b3x.js",
       "resources/js/app.tsx",
-      "_school-toast-BVeSuXNv.js",
-      "_form-sheet-CbV3rW9t.js",
+      "_school-toast-Cv5qlubA.js",
+      "_form-sheet-SX6fVgk8.js",
       "_api-DXVM8nsA.js",
-      "_school-files-BF_Orh7q.js",
-      "_file-list-field-bDF0oJN1.js",
-      "_teachers-f5_CqIkA.js"
+      "_school-files-CSWJ-ACo.js",
+      "_file-list-field-k9iZ3S38.js",
+      "_teachers-ZMVJ81M8.js"
     ]
   },
   "resources/js/pages/teachers/index.tsx": {
-    "file": "assets/teachers-DHUy_O1X.js",
+    "file": "assets/teachers-CKIHvoft.js",
     "name": "teachers",
     "src": "resources/js/pages/teachers/index.tsx",
     "isDynamicEntry": true,
@@ -2890,51 +2892,51 @@
       "_rolldown-runtime-hePW80VL.js",
       "_jsx-runtime-DXLt3b3x.js",
       "_createLucideIcon-i-FseEqw.js",
-      "_table-pagination-x-uT6P89.js",
+      "_table-pagination-D--Wuw6K.js",
       "_circle-dot-EKvLO6sZ.js",
-      "_row-menu-BrZzOL7W.js",
-      "_data-table-CckfpUav.js",
+      "_row-menu-BJVobvF0.js",
+      "_data-table-CcfHZetU.js",
       "_hash-vW1C4iQY.js",
       "_phone-z3f8nYkf.js",
       "_plus-BPHTqcXS.js",
       "_user-check-OwEzmfMQ.js",
-      "_use-school-context-UC7d6UQn.js",
-      "_school-rows-GydT1C7k.js",
+      "_use-school-context-Dc9a10XV.js",
+      "_school-rows-DDQUTfqQ.js",
       "resources/js/app.tsx",
-      "_school-toast-BVeSuXNv.js",
-      "_form-sheet-CbV3rW9t.js",
-      "_kpi-card-CDrOYlyi.js",
-      "_list-page-ByZosQNB.js",
+      "_school-toast-Cv5qlubA.js",
+      "_form-sheet-SX6fVgk8.js",
+      "_kpi-card-gSaajA-2.js",
+      "_list-page-CmPgmRyZ.js",
       "_use-field-errors-sru_QvXp.js",
       "_table-DYHXgcxL.js",
-      "_use-crud-items-mKluzgXp.js",
+      "_use-crud-items-BexmLeAs.js",
       "_api-DXVM8nsA.js",
       "_person-cell-CtILrzRz.js",
-      "_school-files-BF_Orh7q.js",
-      "_file-list-field-bDF0oJN1.js",
-      "_form-steps-D3Q6jVMR.js",
-      "_teachers-f5_CqIkA.js"
+      "_school-files-CSWJ-ACo.js",
+      "_file-list-field-k9iZ3S38.js",
+      "_form-steps-lkqQoxf3.js",
+      "_teachers-ZMVJ81M8.js"
     ]
   },
   "resources/js/pages/teachers/overview.tsx": {
-    "file": "assets/overview-zw2_IFaz.js",
+    "file": "assets/overview-BPUIcs9x.js",
     "name": "overview",
     "src": "resources/js/pages/teachers/overview.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "_chart-card-LWmApfvY.js",
+      "_chart-card-BLfzH-04.js",
       "_jsx-runtime-DXLt3b3x.js",
       "_calendar-check-CUaW82dp.js",
-      "_use-school-context-UC7d6UQn.js",
-      "_school-rows-GydT1C7k.js",
+      "_use-school-context-Dc9a10XV.js",
+      "_school-rows-DDQUTfqQ.js",
       "resources/js/app.tsx",
-      "_kpi-card-CDrOYlyi.js",
-      "_empty-state-7Imq2bLe.js",
+      "_kpi-card-gSaajA-2.js",
+      "_empty-state-Dt7C9hNm.js",
       "_table-DYHXgcxL.js"
     ]
   },
   "resources/js/pages/timetable/index.tsx": {
-    "file": "assets/timetable-43S8V2c3.js",
+    "file": "assets/timetable-CFSqzWZA.js",
     "name": "timetable",
     "src": "resources/js/pages/timetable/index.tsx",
     "isDynamicEntry": true,
@@ -2952,30 +2954,30 @@
       "_plus-BPHTqcXS.js",
       "_printer-DF7M_ZEd.js",
       "_trash-2-CjwRdEjF.js",
-      "_use-school-context-UC7d6UQn.js",
-      "_school-rows-GydT1C7k.js",
+      "_use-school-context-Dc9a10XV.js",
+      "_school-rows-DDQUTfqQ.js",
       "_fr-B0edKAg9.js",
       "_isSameMonth-BSxN3QhF.js",
-      "_school-timetable--m7c7DDg.js",
-      "_school-students-CPzd92k6.js",
+      "_school-timetable-BlWBXJXG.js",
+      "_school-students-av0bUjs9.js",
       "resources/js/app.tsx",
       "_school-form-DHodJKXQ.js",
-      "_school-toast-BVeSuXNv.js",
+      "_school-toast-Cv5qlubA.js",
       "_dialog-DomOv7at.js",
       "_field-ug3RKPH_.js",
-      "_form-sheet-CbV3rW9t.js",
-      "_empty-state-7Imq2bLe.js",
-      "_school-export-DvKn1SD2.js",
-      "_confirm-dialog-DZThyH49.js",
+      "_form-sheet-SX6fVgk8.js",
+      "_empty-state-Dt7C9hNm.js",
+      "_school-export-PpmMAB5-.js",
+      "_confirm-dialog-CIpxXnLR.js",
       "_use-field-errors-sru_QvXp.js",
       "_api-DXVM8nsA.js",
-      "_school-grades-CfTmeb0e.js",
-      "_search-select-D9q0OLIA.js",
+      "_school-grades-BicVnRSL.js",
+      "_search-select-BJkOF3en.js",
       "_school-structure-B-VOhk1c.js"
     ]
   },
   "resources/js/pages/welcome-maintenance.tsx": {
-    "file": "assets/welcome-maintenance-Chkj9OJk.js",
+    "file": "assets/welcome-maintenance-68hr-65J.js",
     "name": "welcome-maintenance",
     "src": "resources/js/pages/welcome-maintenance.tsx",
     "isDynamicEntry": true,
@@ -2986,7 +2988,7 @@
     ]
   },
   "resources/js/pages/welcome.tsx": {
-    "file": "assets/welcome-CfFCMTAO.js",
+    "file": "assets/welcome-ChMt6FWy.js",
     "name": "welcome",
     "src": "resources/js/pages/welcome.tsx",
     "isDynamicEntry": true,
@@ -3001,7 +3003,7 @@
       "_chevron-down-CFCpEuHH.js",
       "_x-CVZXAJPD.js",
       "_routes-DNOrcn0x.js",
-      "_school-rows-GydT1C7k.js",
+      "_school-rows-DDQUTfqQ.js",
       "resources/js/app.tsx",
       "_school-subscription-CBgUGJbJ.js"
     ]

@@ -158,6 +158,7 @@ final class PortalStudentPresenter
             'stampUrl' => null,
             'idCardAccent' => '#6425d0',
             'idCardBody' => '#ffffff',
+            'idCardHeaderText' => null,
         ];
     }
 

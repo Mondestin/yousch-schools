@@ -263,7 +263,7 @@ test('portal demo seeder enables bulletin preview with closed windows', function
     $pupil = User::query()->where('email', PortalDemoSeeder::ELEVE_EMAIL)->firstOrFail();
     $student = Student::query()->findOrFail(PortalDemoSeeder::STUDENT_ID);
 
-    expect($student->photo_url)->toContain('dicebear.com')
+    expect($student->photo_url)->toStartWith('/demo/student-id/')
         ->and(MarkingWindow::query()->where('term_id', PortalDemoSeeder::TERM_ID)->whereNotNull('closed_at')->count())->toBeGreaterThanOrEqual(2)
         ->and(Grade::query()->where('enrollment_id', PortalDemoSeeder::ENROLLMENT_ID)->count())->toBeGreaterThanOrEqual(2);
 

@@ -172,19 +172,17 @@ export default function PaymentReceiptPage({
                             role="La caisse"
                             name={slip.profile.directorName}
                         />
-                        <DocumentAuthenticityQr
-                            claims={{
-                                type: 'payment_receipt',
-                                studentId,
-                                refId: paymentId,
-                                academicYearId: filter.academicYearId,
-                                issuedOn: new Date()
-                                    .toISOString()
-                                    .slice(0, 10),
-                            }}
-                        />
-                        <DocumentPied />
                     </div>
+                    <DocumentAuthenticityQr
+                        claims={{
+                            type: 'payment_receipt',
+                            studentId,
+                            refId: paymentId,
+                            academicYearId: filter.academicYearId,
+                            issuedOn: new Date().toISOString().slice(0, 10),
+                        }}
+                    />
+                    <DocumentPied />
                 </article>
             </PageShell>
         </>

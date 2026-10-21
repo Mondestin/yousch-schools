@@ -352,11 +352,13 @@ export function printDomElement(
             clone.getAttribute('data-print-root') === 'receipt' ||
             clone.getAttribute('data-print-root') === 'student-document',
     );
+    // Bottom margin 0 keeps the Congo flag on page 1; top/side leave a safe frame.
     const margin = options?.pageMargin
         ? pageMargin
         : isDocument
-          ? '14mm 16mm 16mm'
+          ? '12mm 14mm 0'
           : '0';
+    const sheetMinHeight = isDocument ? 'calc(297mm - 12mm)' : 'auto';
 
     const html = `<!doctype html>
 <html lang="fr">
@@ -386,19 +388,54 @@ ${collectedPageStyles()}
     padding: 0 !important;
     box-shadow: none !important;
     border: none !important;
-    min-height: calc(297mm - 30mm);
+    /* Must beat app.css; full 297mm + @page margins creates a blank page 2. */
+    min-height: ${sheetMinHeight} !important;
+    height: auto !important;
     display: flex !important;
     flex-direction: column !important;
+    overflow: visible !important;
+    page-break-after: avoid;
+    break-after: avoid-page;
   }
   .print-closing {
-    margin-top: auto;
-    padding-top: 8mm;
-    break-inside: avoid;
-    page-break-inside: avoid;
+    margin-top: 10mm !important;
+    padding-top: 0 !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
   }
-  .print-closing .document-pied,
-  .print-bulletin > .document-pied {
-    margin-top: 10mm;
+  .print-bulletin {
+    padding-right: 0 !important;
+    padding-left: 0 !important;
+  }
+  .print-bulletin > :not(.document-pied):not(.document-authenticity) {
+    padding-right: 14mm;
+    padding-left: 14mm;
+  }
+  .document-pied {
+    position: absolute !important;
+    inset-inline: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    z-index: 1 !important;
+  }
+  .document-pied-svg {
+    display: block !important;
+    width: 100% !important;
+    max-width: none !important;
+    height: 4px !important;
+  }
+  .document-authenticity {
+    position: absolute !important;
+    bottom: 6mm !important;
+    left: 0 !important;
+    margin: 0 !important;
+    z-index: 2 !important;
   }
   [data-print-root="id-card"] {
     box-shadow: none !important;

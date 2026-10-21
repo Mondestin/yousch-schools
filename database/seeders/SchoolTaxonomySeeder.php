@@ -62,6 +62,7 @@ class SchoolTaxonomySeeder extends Seeder
             'stamp_url' => $profile['stampUrl'],
             'id_card_accent' => $profile['idCardAccent'] ?? '#6425d0',
             'id_card_body' => $profile['idCardBody'] ?? '#ffffff',
+            'id_card_header_text' => $profile['idCardHeaderText'] ?? null,
         ];
 
         $existing = SchoolProfile::query()->first();

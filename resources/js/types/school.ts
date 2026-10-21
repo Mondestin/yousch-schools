@@ -425,6 +425,8 @@ export type SchoolProfile = {
     idCardAccent: string;
     /** Body background color for PVC identity cards (#RRGGBB). */
     idCardBody: string;
+    /** Header school-name color; null = auto-contrast on accent. */
+    idCardHeaderText: string | null;
 };
 
 export type IdentityCardStatus = 'active' | 'blocked' | 'revoked';

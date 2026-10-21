@@ -531,8 +531,8 @@ export async function printBulletinDocument(
     const verifyUrl = await resolveBulletinVerifyUrl(options);
     openBulletinPrintWindow(
         title,
-        `<div class="sheet">${bulletinPrintHtml(fiche, verifyUrl)}</div>
-<footer class="pied">${documentPiedSvgHtml()}</footer>`,
+        `<div class="sheet">${bulletinPrintHtml(fiche, verifyUrl)}
+<footer class="pied">${documentPiedSvgHtml()}</footer></div>`,
     );
 }
 
@@ -549,8 +549,8 @@ export async function printBulletinBatch(
         const verifyUrl = await resolveBulletinVerifyUrl(item.options);
         sheets.push(`<div class="sheet page">
 ${bulletinPrintHtml(item.fiche, verifyUrl)}
-</div>
-<footer class="pied">${documentPiedSvgHtml()}</footer>`);
+<footer class="pied">${documentPiedSvgHtml()}</footer>
+</div>`);
     }
 
     openBulletinPrintWindow(title, sheets.join('\n'));
@@ -623,9 +623,11 @@ function bulletinPrintCss(): string {
   }
   .sheet {
     position: relative;
+    box-sizing: border-box;
     width: 210mm;
-    min-height: calc(297mm - 40mm);
+    min-height: 297mm;
     padding: 12mm 12mm 28mm;
+    overflow: hidden;
   }
   .page { page-break-after: always; }
   .page:last-of-type { page-break-after: auto; }
@@ -747,6 +749,7 @@ function bulletinPrintCss(): string {
     left: 12mm;
     bottom: 8mm;
     width: 44mm;
+    z-index: 2;
   }
   .authenticity p {
     margin: 4px 0 0;
@@ -756,13 +759,15 @@ function bulletinPrintCss(): string {
     white-space: nowrap;
   }
   .pied {
-    position: relative;
+    position: absolute;
     left: 0;
     right: 0;
+    bottom: 0;
     width: 210mm;
-    margin: -4px 0 0;
+    margin: 0;
     padding: 0;
     line-height: 0;
+    z-index: 1;
   }
   .pied svg,
   .pied .document-pied-svg {

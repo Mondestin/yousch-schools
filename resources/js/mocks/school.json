@@ -13,7 +13,8 @@
         "logoUrl": null,
         "stampUrl": null,
         "idCardAccent": "#6425d0",
-        "idCardBody": "#ffffff"
+        "idCardBody": "#ffffff",
+        "idCardHeaderText": null
     },
     "subscription": {
         "plan": "titanium",
